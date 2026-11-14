@@ -5,8 +5,8 @@
 A private, invite-only app for two people in a long-distance relationship.
 React + TypeScript + Tailwind, Supabase (Auth, Postgres, Storage), deployed on Vercel.
 
-**Status: Phase 1 — Foundation** (accounts, a shared space, a one-time partner invitation, two-member limit).
-Weekly activities arrive in Phase 2.
+**Status: Phase 2 — Weekly Ritual.** Accounts and pairing (Phase 1), plus one shared activity every Monday at 12:00 UTC from a library of 42.
+Answering and the sealed reveal arrive in Phase 3.
 
 ---
 
@@ -28,6 +28,13 @@ Weekly activities arrive in Phase 2.
    *Never* copy the `service_role` / secret key into this project — the app doesn't need it.
 7. After you **and** your partner have both joined: **Authentication → Sign In / Providers → turn off "Allow new users to sign up"**.
    Nobody else can then even create an account. (Optional but recommended.)
+
+### Updating to a new phase
+Run each new file in `supabase/migrations/` once, in number order, in **SQL Editor → New query → Run**.
+- **Phase 2 — `0002_weekly_rituals.sql`**: adds the 42 activities, cycles and the weekly generator, and schedules it for
+  Mondays 12:00 UTC with `pg_cron`. The result panel should end with *"Scheduled the weekly ritual for Mondays 12:00 UTC."*
+  If it says it couldn't schedule, everything still works: the week's ritual is created the first time either of you opens the app.
+  (Optional: enable **pg_cron** under Database → Extensions and run just the `do $cron$ … $cron$;` block again.)
 
 ## 2. Deploy on Vercel
 
@@ -98,7 +105,10 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 45 checks, including: anonymous users can't read or call
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 84 checks. Phase 2: both partners get the identical
+weekly record; 42 simulated weeks with no repeats, 7 per category, all six categories in every 6 weeks, never the same category
+twice running; a new cycle after 42 with history kept; the Monday 12:00 UTC boundary (including Kuching vs Santiago times);
+outsiders and pending spaces blocked; and both partners opening the app at the same instant → one shared record. Phase 1: anonymous users can't read or call
 anything; outsiders see nothing; tokens are stored hashed; a used link is refused for a third person; the creator can't redeem their own
 link; expired and replaced links fail; a member can't edit their partner's profile; direct inserts are refused; and **two people
 redeeming the same link at the same instant → exactly one gets in**.
@@ -111,12 +121,25 @@ redeeming the same link at the same instant → exactly one gets in**.
 | `relationships` | the shared space (`pending` → `active`) |
 | `relationship_members` | who is in the space (max two active) |
 | `invitations` | hashed one-time invitation tokens |
+| `activities` | the 42 weekly ritual activities (read-only library) |
+| `activity_cycles` | each run through all 42; a new one starts after the last |
+| `weekly_activities` | the one shared ritual per couple per week (unique per week, no repeats per cycle) |
+
+## How the weekly ritual is chosen
+
+- **One boundary for both of you:** Monday 12:00 UTC (8 pm in Malaysia, 9 am in Chile in summer / 8 am in winter).
+- **Created on the server, once:** whoever opens the app first (or the Monday scheduler) triggers `ensure_current_ritual()`;
+  it locks your space and creates the week's record. A unique constraint means a second record can't exist, so you both
+  always see the same activity.
+- **Fair:** each week picks the category used least so far in the cycle (never the same category two weeks running), then a
+  random unused activity from it. In 42 weeks every activity appears once and each category 7 times; then it reshuffles.
+- **No pressure:** every week counts as used whether or not you did it, so a quiet week never blocks the next one. History is kept forever.
 
 Migrations live in `supabase/migrations/` and are applied in order. History is never deleted by later migrations.
 
 ## Roadmap
 
 1. ✅ Foundation — auth, space, invitation, two-member limit
-2. Weekly activity — 42 activities, Monday 12:00 UTC generator (`pg_cron`), no repeats per cycle
+2. ✅ Weekly ritual — 42 activities, Monday 12:00 UTC generator, no repeats per cycle
 3. Submission & reveal — drafts, private-until-both-submit, enforced by RLS
 4. Weekly check-in · 5. Mailbox · 6. Scrapbook · 7. Creative Corner · 8. Timeline

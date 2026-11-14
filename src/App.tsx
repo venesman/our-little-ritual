@@ -11,6 +11,8 @@ import { CreateSpace } from "./screens/pair/CreateSpace";
 import { Join } from "./screens/pair/Join";
 import { Home } from "./screens/Home";
 import { Settings } from "./screens/Settings";
+import { Rituals } from "./screens/Rituals";
+import { RitualDetail } from "./screens/RitualDetail";
 
 export default function App() {
   if (!supabaseConfigured) return <SetupNotice />;
@@ -25,6 +27,8 @@ export default function App() {
           <Route path="/start" element={<RequireAuth><RequireNoSpace><CreateSpace /></RequireNoSpace></RequireAuth>} />
           <Route element={<RequireAuth><RequireSpace><AppShell /></RequireSpace></RequireAuth>}>
             <Route index element={<Home />} />
+            <Route path="rituals" element={<Rituals />} />
+            <Route path="rituals/:weeklyId" element={<RitualDetail />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />

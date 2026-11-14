@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
-import { Send } from "lucide-react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Send } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useSpace } from "../hooks/useSpace";
 import { clockInZone, formatInZone, longDateInZone, nextRelease, placeFromZone, relativeFromNow } from "../lib/time";
-import { Card, Loops, Stamp, Ticket } from "../components/ui";
+import { Card, ErrorNote, Loops, Stamp, Ticket } from "../components/ui";
+import { RitualPostcard } from "../components/RitualPostcard";
+import { useCurrentRitual } from "../hooks/useCurrentRitual";
 import { InvitePanel } from "./pair/InvitePanel";
 
 /** Re-render once a minute so the clocks stay current. */
@@ -17,6 +20,7 @@ export function Home() {
   const { session } = useAuth();
   const { space, profile } = useSpace();
   const now = useNow();
+  const { ritual, loading: ritualLoading, error: ritualError } = useCurrentRitual(space?.relationship.status === "active");
   if (!space) return null;
 
   const me = space.members.find((m) => m.user_id === session?.user.id);
@@ -87,28 +91,31 @@ export function Home() {
       </section>
 
       {/* this week's ritual — postcard */}
-      <Card className="overflow-hidden">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0">
-            <Ticket tone="mustard">This week</Ticket>
-            <h2 className="mt-3 text-2xl leading-tight">Your weekly rituals are on their way</h2>
-            <p className="mt-2 text-sm text-muted">
-              Each Monday you'll both receive the same small activity, to do whenever suits you. Answers stay sealed until you've both shared.
-            </p>
-          </div>
-          <div className="hidden h-20 w-16 shrink-0 rotate-3 place-items-center rounded-sm border-2 border-dashed border-raspberry bg-raspberry-soft sm:grid" aria-hidden="true">
-            <Loops className="h-8 w-12" />
-          </div>
-        </div>
-        <p className="mt-4 border-t border-dashed border-leaf/25 pt-3 font-hand text-lg text-raspberry-deep">coming soon — no rush, no streaks.</p>
-      </Card>
+      <section aria-label="This week's ritual" className="space-y-2">
+        <p className="font-hand text-xl text-raspberry-deep">this week, let's…</p>
+        <ErrorNote>{ritualError}</ErrorNote>
+        {ritualLoading && !ritual && <div className="postcard h-48 animate-pulse" aria-label="Loading this week's ritual" />}
+        {ritual && (
+          <RitualPostcard ritual={ritual}>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <p className="font-hand text-lg text-muted">no rush — any time this week</p>
+              <Link
+                to={`/rituals/${ritual.weeklyId}`}
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 border-leaf bg-mustard px-5 text-sm font-semibold text-leaf shadow-print transition hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry"
+              >
+                Open <ArrowRight size={16} aria-hidden="true" />
+              </Link>
+            </div>
+          </RitualPostcard>
+        )}
+      </section>
 
       {/* next release */}
       <Card>
         <div className="flex items-center gap-5">
           <Stamp top="every monday" main="12:00" bottom="utc" />
           <div className="min-w-0 text-sm">
-            <h2 className="text-lg leading-snug">Next ritual arrives {relativeFromNow(release, now)}</h2>
+            <h2 className="text-lg leading-snug">Next postcard arrives {relativeFromNow(release, now)}</h2>
             <dl className="mt-2 grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-muted">
               <dt>For you</dt><dd className="font-medium text-leaf">{formatInZone(release, myTz)}</dd>
               <dt>For {partnerName}</dt><dd className="font-medium text-leaf">{formatInZone(release, partnerTz)}</dd>

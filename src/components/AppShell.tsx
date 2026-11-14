@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { Home, Settings } from "lucide-react";
+import { Home, Settings, Stamp } from "lucide-react";
 import { Logo } from "./ui";
 
 /**
@@ -8,6 +8,7 @@ import { Logo } from "./ui";
  */
 const NAV = [
   { to: "/", label: "Home", icon: Home, end: true },
+  { to: "/rituals", label: "Rituals", icon: Stamp, end: false },
   { to: "/settings", label: "Settings", icon: Settings, end: false },
 ] as const;
 
