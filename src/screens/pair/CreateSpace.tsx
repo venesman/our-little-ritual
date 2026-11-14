@@ -30,21 +30,22 @@ export function CreateSpace() {
 
   return (
     <OuterPage>
-      <h1 className="text-3xl">Hello{profile?.display_name ? `, ${profile.display_name}` : ""}.</h1>
-      <p className="mt-2 text-bark">Let's make a space for the two of you. You'll invite your partner next.</p>
+      <p className="font-hand text-2xl text-raspberry-deep">page one</p>
+      <h1 className="mt-1 text-4xl leading-tight">Hello{profile?.display_name ? `, ${profile.display_name}` : ""}.</h1>
+      <p className="mt-2 text-muted">Let's make a space for the two of you. You'll invite your partner next.</p>
       <Card className="mt-6">
         <form onSubmit={submit} className="space-y-4">
-          <Field label="Name your space (optional)" htmlFor="space" hint="Only the two of you will see this. You can change it later.">
-            <input id="space" className={inputCls} placeholder="Our Little Ritual" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
+          <Field label="Name your journal (optional)" htmlFor="space" hint="Only the two of you will see this. You can change it later.">
+            <input id="space" className={inputCls} placeholder="e.g. Kuching ↔ Santiago" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
           </Field>
           <ErrorNote>{error}</ErrorNote>
           <Button type="submit" busy={busy} className="w-full">Create our space</Button>
         </form>
       </Card>
-      <p className="mt-6 text-center text-sm text-bark">
+      <p className="mt-6 text-center text-sm text-muted">
         Did your partner already send you a link? Open it on this device instead.
         <br />
-        <button onClick={signOut} className="mt-3 text-forest hover:underline">Sign out</button>
+        <button onClick={signOut} className="mt-3 text-leaf hover:underline">Sign out</button>
       </p>
     </OuterPage>
   );

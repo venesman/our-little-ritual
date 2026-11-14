@@ -49,3 +49,21 @@ export function relativeFromNow(date: Date, now: Date = new Date()): string {
   const days = Math.round(hours / 24);
   return `in ${days} day${days === 1 ? "" : "s"}`;
 }
+
+/** e.g. "9:41 pm" — the current clock in a zone. */
+export function clockInZone(date: Date, timeZone: string): string {
+  const tz = isValidTimezone(timeZone) ? timeZone : "UTC";
+  return new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "numeric", minute: "2-digit", hour12: true }).format(date);
+}
+
+/** e.g. "Saturday, 14 November" in a zone. */
+export function longDateInZone(date: Date, timeZone: string): string {
+  const tz = isValidTimezone(timeZone) ? timeZone : "UTC";
+  return new Intl.DateTimeFormat("en-GB", { timeZone: tz, weekday: "long", day: "numeric", month: "long" }).format(date);
+}
+
+/** "America/Santiago" -> "Santiago" */
+export function placeFromZone(timeZone: string): string {
+  const last = timeZone.split("/").pop() ?? timeZone;
+  return last.replace(/_/g, " ");
+}

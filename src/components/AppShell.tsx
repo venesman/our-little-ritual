@@ -12,19 +12,25 @@ const NAV = [
 ] as const;
 
 export function AppShell() {
-  const linkCls = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition ${isActive ? "bg-tangerine-soft text-tangerine-deep" : "text-bark hover:bg-white/70 hover:text-forest"}`;
-
   return (
     <div className="min-h-[100dvh] md:flex">
-      {/* desktop sidebar */}
-      <aside className="hidden w-60 shrink-0 flex-col gap-8 border-r border-bark-soft/20 px-5 py-8 md:flex">
-        <Logo />
-        <nav className="flex flex-col gap-1" aria-label="Main">
-          {NAV.map(({ to, label, icon: Icon, end }) => (
-            <NavLink key={to} to={to} end={end} className={linkCls}><Icon size={18} aria-hidden="true" />{label}</NavLink>
-          ))}
-        </nav>
+      {/* desktop sidebar — a leaf-green journal spine */}
+      <aside className="sticky top-0 hidden h-[100dvh] w-64 shrink-0 flex-col justify-between bg-leaf px-5 py-8 md:flex">
+        <div className="space-y-10">
+          <Logo tone="cream" />
+          <nav className="flex flex-col gap-1.5" aria-label="Main">
+            {NAV.map(({ to, label, icon: Icon, end }) => (
+              <NavLink
+                key={to} to={to} end={end}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-semibold transition ${isActive ? "bg-mustard text-leaf" : "text-cream/80 hover:bg-cream/10 hover:text-cream"}`}
+              >
+                <Icon size={18} aria-hidden="true" />{label}
+              </NavLink>
+            ))}
+          </nav>
+        </div>
+        <p className="font-hand text-xl leading-snug text-raspberry">two people,<br />two places,<br />one little world.</p>
       </aside>
 
       <main className="mx-auto w-full max-w-2xl px-5 pb-28 pt-6 md:pb-12 md:pt-10">
@@ -33,15 +39,16 @@ export function AppShell() {
       </main>
 
       {/* mobile bottom bar */}
-      <nav aria-label="Main" className="pb-safe fixed inset-x-0 bottom-0 z-20 border-t border-bark-soft/20 bg-cream/95 backdrop-blur md:hidden">
+      <nav aria-label="Main" className="pb-safe fixed inset-x-0 bottom-0 z-20 bg-leaf md:hidden">
         <ul className="mx-auto flex max-w-md justify-around px-4 pt-2">
           {NAV.map(({ to, label, icon: Icon, end }) => (
             <li key={to}>
               <NavLink
                 to={to} end={end}
-                className={({ isActive }) => `flex min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] ${isActive ? "text-tangerine-deep" : "text-bark-soft"}`}
+                className={({ isActive }) =>
+                  `flex min-w-[72px] flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-[11px] font-semibold transition ${isActive ? "bg-mustard text-leaf" : "text-cream/75"}`}
               >
-                <Icon size={22} aria-hidden="true" />{label}
+                <Icon size={21} aria-hidden="true" />{label}
               </NavLink>
             </li>
           ))}

@@ -60,7 +60,7 @@ export function Settings() {
               {zones.map((z) => <option key={z} value={z}>{z.replace(/_/g, " ")}</option>)}
             </select>
           </Field>
-          <p className="text-xs text-bark">Signed in as {session?.user.email}</p>
+          <p className="text-xs text-muted">Signed in as {session?.user.email}</p>
           <Button type="submit" busy={busy === "profile"}>{saved === "profile" ? "Saved" : "Save"}</Button>
         </form>
       </Card>
@@ -72,11 +72,11 @@ export function Settings() {
             <Field label="Space name" htmlFor="sn" hint="Only the two of you see this.">
               <input id="sn" className={inputCls} value={spaceName} onChange={(e) => setSpaceName(e.target.value)} maxLength={60} />
             </Field>
-            <Button type="submit" variant="soft" busy={busy === "space"}>{saved === "space" ? "Saved" : "Rename"}</Button>
+            <Button type="submit" variant="outline" busy={busy === "space"}>{saved === "space" ? "Saved" : "Rename"}</Button>
           </form>
-          <div className="mt-6 border-t border-bark-soft/20 pt-4 text-sm">
-            <h3 className="mb-2 font-sans text-sm font-medium text-forest">Members</h3>
-            <ul className="space-y-1 text-bark">
+          <div className="mt-6 border-t border-leaf/15 pt-4 text-sm">
+            <h3 className="mb-2 font-sans text-sm font-medium text-leaf">Members</h3>
+            <ul className="space-y-1 text-muted">
               {space.members.map((m) => (
                 <li key={m.user_id}>{m.profile?.display_name || "—"}{m.user_id === userId ? " (you)" : ""} · {m.profile?.timezone.replace(/_/g, " ")}</li>
               ))}
@@ -88,7 +88,7 @@ export function Settings() {
 
       <Card>
         <h2 className="mb-2 text-xl">Privacy</h2>
-        <p className="text-sm text-bark">
+        <p className="text-sm text-muted">
           Your space is visible only to its two members. Access is checked by the database on every request, not just by this app.
           There are no public profiles, feeds or sharing.
         </p>

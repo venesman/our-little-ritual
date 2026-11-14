@@ -45,10 +45,10 @@ export function AuthForm({ initialMode = "signin", redirectPath = "/" }: { initi
   if (sentTo) {
     return (
       <div className="space-y-4 text-center">
-        <MailCheck className="mx-auto text-tangerine" size={36} aria-hidden="true" />
+        <MailCheck className="mx-auto text-raspberry-deep" size={36} aria-hidden="true" />
         <h2 className="text-2xl">Check your inbox</h2>
-        <p className="text-sm text-bark">
-          We sent a confirmation link to <strong className="text-ink">{sentTo}</strong>. Open it on this device to continue.
+        <p className="text-sm text-muted">
+          We sent a confirmation link to <strong className="text-leaf">{sentTo}</strong>. Open it on this device to continue.
           It can take a minute or two — check spam if it doesn't arrive.
         </p>
         <Button variant="ghost" onClick={() => { setSentTo(null); setMode("signin"); }}>Back to sign in</Button>
@@ -75,10 +75,10 @@ export function AuthForm({ initialMode = "signin", redirectPath = "/" }: { initi
       <ErrorNote>{error}</ErrorNote>
       <Button type="submit" busy={busy} className="w-full">{mode === "signup" ? "Create account" : "Sign in"}</Button>
       <div className="flex flex-col items-center gap-1 pt-1 text-sm">
-        <button type="button" className="text-forest underline-offset-4 hover:underline" onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setError(null); }}>
+        <button type="button" className="text-leaf underline-offset-4 hover:underline" onClick={() => { setMode(mode === "signup" ? "signin" : "signup"); setError(null); }}>
           {mode === "signup" ? "Already have an account? Sign in" : "New here? Create an account"}
         </button>
-        {mode === "signin" && <Link to="/forgot" className="text-bark underline-offset-4 hover:underline">Forgot your password?</Link>}
+        {mode === "signin" && <Link to="/forgot" className="text-muted underline-offset-4 hover:underline">Forgot your password?</Link>}
       </div>
     </form>
   );

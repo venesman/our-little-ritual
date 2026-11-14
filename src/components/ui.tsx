@@ -1,21 +1,26 @@
 import type React from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 
+/* ------------------------------------------------------------------ Button
+ * primary: mustard with a printed offset shadow (leaf text ≈5.5:1)
+ * dark:    leaf with cream text
+ * outline / ghost: quieter actions                                         */
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "soft" | "outline" | "ghost";
+  variant?: "primary" | "dark" | "outline" | "ghost";
   busy?: boolean;
 };
 
 export function Button({ variant = "primary", busy = false, className = "", children, disabled, ...props }: ButtonProps) {
   const base =
-    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition " +
-    "focus:outline-none focus-visible:ring-2 focus-visible:ring-tangerine focus-visible:ring-offset-2 focus-visible:ring-offset-cream " +
-    "disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98]";
+    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition " +
+    "focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry focus-visible:ring-offset-2 focus-visible:ring-offset-cream " +
+    "disabled:cursor-not-allowed disabled:opacity-50";
   const variants = {
-    primary: "bg-forest text-cream hover:bg-forest-deep",
-    soft: "bg-tangerine-soft text-tangerine-deep hover:bg-tangerine/30",
-    outline: "border border-bark-soft/60 bg-white/70 text-forest hover:bg-white",
-    ghost: "text-bark hover:bg-tangerine-soft/60 hover:text-forest",
+    primary:
+      "border-2 border-leaf bg-mustard text-leaf shadow-print hover:-translate-y-px active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+    dark: "border-2 border-leaf bg-leaf text-cream hover:bg-leaf-deep",
+    outline: "border-2 border-leaf/80 bg-transparent text-leaf hover:bg-leaf-soft/60",
+    ghost: "text-muted hover:bg-leaf-soft/60 hover:text-leaf",
   };
   return (
     <button className={`${base} ${variants[variant]} ${className}`} disabled={disabled || busy} {...props}>
@@ -25,20 +30,22 @@ export function Button({ variant = "primary", busy = false, className = "", chil
   );
 }
 
+/* ---------------------------------------------------------- Card / Postcard */
 export function Card({ className = "", ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={`rounded-3xl border border-white/80 bg-white/90 p-6 shadow-paper ${className}`} {...props} />;
+  return <div className={`postcard ${className}`} {...props} />;
 }
 
+/* ------------------------------------------------------------------ Fields */
 export const inputCls =
-  "w-full rounded-2xl border border-bark-soft/50 bg-white px-4 py-3 text-ink placeholder-bark-soft " +
-  "focus:border-tangerine focus:outline-none focus:ring-2 focus:ring-tangerine-soft";
+  "w-full rounded-xl border-[1.5px] border-leaf/30 bg-paper px-4 py-3 text-leaf placeholder-faint " +
+  "focus:border-leaf focus:outline-none focus:ring-2 focus:ring-raspberry/50";
 
 export function Field({ label, hint, htmlFor, children }: { label: string; hint?: string; htmlFor: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label htmlFor={htmlFor} className="block text-sm font-medium text-forest">{label}</label>
+      <label htmlFor={htmlFor} className="block text-xs font-semibold uppercase tracking-[0.12em] text-leaf">{label}</label>
       {children}
-      {hint && <p className="text-xs text-bark">{hint}</p>}
+      {hint && <p className="text-xs text-muted">{hint}</p>}
     </div>
   );
 }
@@ -46,8 +53,8 @@ export function Field({ label, hint, htmlFor, children }: { label: string; hint?
 export function ErrorNote({ children }: { children: React.ReactNode }) {
   if (!children) return null;
   return (
-    <p role="alert" className="flex items-start gap-2 rounded-2xl bg-cherry-soft/70 px-4 py-3 text-sm text-ink">
-      <AlertCircle size={16} className="mt-0.5 shrink-0 text-cherry" aria-hidden="true" />
+    <p role="alert" className="flex items-start gap-2 rounded-xl border-l-4 border-tomato bg-tomato-soft/70 px-4 py-3 text-sm text-leaf">
+      <AlertCircle size={16} className="mt-0.5 shrink-0 text-tomato-deep" aria-hidden="true" />
       <span>{children}</span>
     </p>
   );
@@ -55,28 +62,84 @@ export function ErrorNote({ children }: { children: React.ReactNode }) {
 
 export function Spinner({ label = "Loading" }: { label?: string }) {
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-bark" role="status">
-      <Loader2 className="animate-spin text-tangerine" aria-hidden="true" />
-      <span className="text-sm">{label}…</span>
+    <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-muted" role="status">
+      <Loops className="h-12 w-20 animate-pulse" />
+      <span className="font-hand text-xl">{label}…</span>
     </div>
   );
 }
 
-export function Logo({ className = "" }: { className?: string }) {
+/* --------------------------------------------------- Decorative primitives */
+
+/** Two overlapping loops — the brand mark. Two people, two places, one shared middle. */
+export function Loops({ className = "", tone = "colour" }: { className?: string; tone?: "colour" | "cream" }) {
+  const a = tone === "cream" ? "#F4E7DE" : "#E480B4";
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
-      <svg viewBox="0 0 64 64" className="h-7 w-7" aria-hidden="true">
-        <rect width="64" height="64" rx="16" fill="#2F5D3A" />
-        <circle cx="26" cy="32" r="11" fill="none" stroke="#F28C38" strokeWidth="4" />
-        <circle cx="38" cy="32" r="11" fill="none" stroke="#F4B3C2" strokeWidth="4" />
-        <circle cx="32" cy="32" r="3" fill="#D7263D" />
-      </svg>
-      <span className="font-serif text-xl text-forest">Our Little Ritual</span>
+    <svg viewBox="0 0 80 48" className={className} aria-hidden="true">
+      <circle cx="28" cy="24" r="18" fill="none" stroke={a} strokeWidth="6" />
+      <circle cx="52" cy="24" r="18" fill="none" stroke="#ECB53D" strokeWidth="6" />
+      <circle cx="40" cy="24" r="4" fill="#DD3B26" />
+    </svg>
+  );
+}
+
+/** Abstract loop cluster for colour-block panels; place it in a corner box. */
+export function LoopField({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="200 -60 220 240" className={className} aria-hidden="true">
+      <circle cx="340" cy="34" r="78" fill="none" stroke="#E480B4" strokeWidth="18" />
+      <circle cx="252" cy="62" r="38" fill="none" stroke="#ECB53D" strokeWidth="13" />
+      <circle cx="372" cy="150" r="24" fill="#DD3B26" />
+    </svg>
+  );
+}
+
+/** Ticket-style label with notched ends. */
+export function Ticket({ children, tone = "raspberry", className = "" }: { children: React.ReactNode; tone?: "raspberry" | "mustard" | "tomato" | "leaf"; className?: string }) {
+  const tones = {
+    raspberry: "bg-raspberry text-leaf",
+    mustard: "bg-mustard text-leaf",
+    tomato: "bg-tomato text-cream",
+    leaf: "bg-leaf text-cream",
+  };
+  return (
+    <span className={`ticket inline-flex items-center gap-1.5 px-4 py-1 text-[11px] font-bold uppercase tracking-[0.16em] ${tones[tone]} ${className}`}>
+      {children}
     </span>
   );
 }
 
-/** Centered single-column page used before someone is inside the app (sign-in, pairing). */
+/** Round passport-style stamp. */
+export function Stamp({ top, main, bottom, className = "" }: { top: string; main: string; bottom?: string; className?: string }) {
+  return (
+    <div
+      className={`stamp-in grid h-24 w-24 shrink-0 place-items-center rounded-full border-[2.5px] border-dashed border-tomato p-1 text-center text-tomato-deep ${className}`}
+      style={{ transform: "rotate(-8deg)" }}
+      aria-hidden="true"
+    >
+      <div className="grid h-full w-full place-items-center rounded-full border border-tomato/60">
+        <div className="leading-tight">
+          <div className="text-[8px] font-bold uppercase tracking-[0.18em]">{top}</div>
+          <div className="font-display text-lg font-bold">{main}</div>
+          {bottom && <div className="text-[8px] font-bold uppercase tracking-[0.18em]">{bottom}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function Logo({ className = "", tone = "leaf" }: { className?: string; tone?: "leaf" | "cream" }) {
+  return (
+    <span className={`inline-flex items-center gap-2 ${className}`}>
+      <Loops className="h-7 w-11" tone={tone === "cream" ? "cream" : "colour"} />
+      <span className={`font-display text-lg font-semibold ${tone === "cream" ? "text-cream" : "text-leaf"}`} style={{ fontVariationSettings: '"SOFT" 100, "WONK" 1' }}>
+        Our Little Ritual
+      </span>
+    </span>
+  );
+}
+
+/** Centered single-column page used before someone is inside the app (pairing, password screens). */
 export function OuterPage({ children }: { children: React.ReactNode }) {
   return (
     <main className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col px-5 py-8">

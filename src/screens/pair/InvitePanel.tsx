@@ -51,15 +51,15 @@ export function InvitePanel() {
   if (link) {
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-2 rounded-2xl border border-tangerine/50 bg-tangerine-soft/50 p-3">
-          <Link2 size={16} className="shrink-0 text-tangerine-deep" aria-hidden="true" />
-          <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} aria-label="Invitation link" className="w-full truncate bg-transparent text-sm text-ink focus:outline-none" />
+        <div className="flex items-center gap-2 rounded-xl border-2 border-dashed border-leaf/35 bg-cream p-3">
+          <Link2 size={16} className="shrink-0 text-tomato" aria-hidden="true" />
+          <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} aria-label="Invitation link" className="w-full truncate bg-transparent text-sm text-leaf focus:outline-none" />
         </div>
         <div className="flex flex-wrap gap-2">
           <Button onClick={copy} variant="primary">{copied ? <Check size={16} /> : <Copy size={16} />}{copied ? "Copied" : "Copy link"}</Button>
           {"share" in navigator && <Button onClick={share} variant="outline"><Share2 size={16} />Share</Button>}
         </div>
-        <p className="text-xs text-bark">
+        <p className="text-xs text-muted">
           Works once, for one person{expires ? `, until ${formatInZone(new Date(expires), tz)}` : ""}. Send it privately — anyone holding it can join until your partner does.
         </p>
         <ErrorNote>{error}</ErrorNote>
@@ -70,7 +70,7 @@ export function InvitePanel() {
   return (
     <div className="space-y-3">
       {open && (
-        <p className="text-sm text-bark">
+        <p className="text-sm text-muted">
           A link is active until {formatInZone(new Date(open.expires_at), tz)}. For your privacy we don't keep a copy — make a new one if you've lost it (the old one stops working).
         </p>
       )}

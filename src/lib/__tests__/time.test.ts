@@ -23,3 +23,9 @@ describe("local display of the same instant", () => {
   it("Chile winter (UTC-4) sees Monday 8 am", () =>
     expect(formatInZone(new Date("2026-06-15T12:00:00Z"), "America/Santiago")).toMatch(/Mon.*8:00\s?am/i));
 });
+
+import { placeFromZone } from "../time";
+describe("placeFromZone", () => {
+  it("takes the city part", () => expect(placeFromZone("America/Santiago")).toBe("Santiago"));
+  it("handles underscores", () => expect(placeFromZone("Asia/Kuala_Lumpur")).toBe("Kuala Lumpur"));
+});

@@ -25,7 +25,7 @@ export function ForgotPassword() {
       <h1 className="text-3xl">Reset your password</h1>
       <Card className="mt-6">
         {sent ? (
-          <p className="text-sm text-bark">If there's an account for <strong className="text-ink">{email}</strong>, a reset link is on its way.</p>
+          <p className="text-sm text-muted">If there's an account for <strong className="text-leaf">{email}</strong>, a reset link is on its way.</p>
         ) : (
           <form onSubmit={submit} className="space-y-4" noValidate>
             <Field label="Email" htmlFor="email">
@@ -36,7 +36,7 @@ export function ForgotPassword() {
           </form>
         )}
       </Card>
-      <p className="mt-6 text-center text-sm"><Link to="/welcome" className="text-forest hover:underline">Back to sign in</Link></p>
+      <p className="mt-6 text-center text-sm"><Link to="/welcome" className="text-leaf hover:underline">Back to sign in</Link></p>
     </OuterPage>
   );
 }
@@ -64,7 +64,7 @@ export function UpdatePassword() {
       <h1 className="text-3xl">Choose a new password</h1>
       <Card className="mt-6">
         {!session ? (
-          <p className="text-sm text-bark">This reset link has expired or was already used. <Link to="/forgot" className="text-forest underline">Request a new one</Link>.</p>
+          <p className="text-sm text-muted">This reset link has expired or was already used. <Link to="/forgot" className="text-leaf underline">Request a new one</Link>.</p>
         ) : (
           <form onSubmit={submit} className="space-y-4" noValidate>
             <Field label="New password" htmlFor="pw" hint="At least 8 characters.">

@@ -38,7 +38,7 @@ function SetupNotice() {
   return (
     <OuterPage>
       <h1 className="text-3xl">Almost there</h1>
-      <p className="mt-3 text-bark">
+      <p className="mt-3 text-muted">
         This build has no Supabase connection. Add <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> to
         your environment (locally in <code>.env.local</code>, or in Vercel → Settings → Environment Variables) and redeploy.
       </p>

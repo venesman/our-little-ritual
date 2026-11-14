@@ -61,8 +61,8 @@ export function Join() {
     return (
       <OuterPage>
         <h1 className="text-3xl">This link looks incomplete</h1>
-        <p className="mt-3 text-bark">Ask your partner to send the invitation link again, and open the whole link on this device.</p>
-        <p className="mt-6"><Link to="/" className="text-forest hover:underline">Go to the app</Link></p>
+        <p className="mt-3 text-muted">Ask your partner to send the invitation link again, and open the whole link on this device.</p>
+        <p className="mt-6"><Link to="/" className="text-leaf hover:underline">Go to the app</Link></p>
       </OuterPage>
     );
   }
@@ -70,9 +70,9 @@ export function Join() {
   if (!session) {
     return (
       <OuterPage>
-        <HeartHandshake className="text-cherry" size={36} aria-hidden="true" />
-        <h1 className="mt-3 text-3xl">You've been invited</h1>
-        <p className="mt-2 text-bark">Someone special has made a little space for the two of you. Create an account (or sign in) to join.</p>
+        <p className="font-hand text-2xl text-raspberry-deep">you've got post</p>
+        <h1 className="mt-1 text-4xl leading-tight">You've been invited</h1>
+        <p className="mt-2 text-muted">Someone special has made a little space for the two of you. Create an account (or sign in) to join.</p>
         <Card className="mt-6"><AuthForm initialMode="signup" redirectPath="/join" /></Card>
       </OuterPage>
     );
@@ -82,8 +82,8 @@ export function Join() {
     return (
       <OuterPage>
         <h1 className="text-3xl">You already have a space</h1>
-        <p className="mt-3 text-bark">
-          This account is already part of <strong className="text-ink">{space.relationship.name}</strong>. Each account can belong to one space.
+        <p className="mt-3 text-muted">
+          This account is already part of <strong className="text-leaf">{space.relationship.name}</strong>. Each account can belong to one space.
           If this invitation was meant for a different account, sign out and sign in with that one.
         </p>
         <div className="mt-6 flex gap-2">
@@ -100,20 +100,21 @@ export function Join() {
     return (
       <OuterPage>
         <h1 className="text-3xl">This invitation isn't available</h1>
-        <p className="mt-3 text-bark">It may have expired, been replaced with a newer link, or already been used. Ask your partner for a fresh link.</p>
+        <p className="mt-3 text-muted">It may have expired, been replaced with a newer link, or already been used. Ask your partner for a fresh link.</p>
         <ErrorNote>{error}</ErrorNote>
-        <p className="mt-6"><Link to="/start" className="text-forest hover:underline">Or create your own space</Link></p>
+        <p className="mt-6"><Link to="/start" className="text-leaf hover:underline">Or create your own space</Link></p>
       </OuterPage>
     );
   }
 
   return (
     <OuterPage>
-      <HeartHandshake className="text-cherry" size={36} aria-hidden="true" />
-      <h1 className="mt-3 text-3xl">{preview.inviter_name} invited you</h1>
-      <p className="mt-2 text-bark">to share <strong className="text-ink">{preview.relationship_name}</strong> — a private space just for the two of you.</p>
+      <HeartHandshake className="text-tomato" size={36} aria-hidden="true" />
+      <p className="mt-2 font-hand text-2xl text-raspberry-deep">a little journal for two</p>
+      <h1 className="mt-1 text-4xl leading-tight">{preview.inviter_name} invited you</h1>
+      <p className="mt-2 text-muted">to share <strong className="text-leaf">{preview.relationship_name}</strong> — a private space just for the two of you.</p>
       <Card className="mt-6 space-y-4">
-        <ul className="space-y-2 text-sm text-bark">
+        <ul className="space-y-2 text-sm text-muted">
           <li>• One small ritual every Monday, at your own pace.</li>
           <li>• Your answers stay private until you've both taken part.</li>
           <li>• No streaks, no scores, no pressure.</li>

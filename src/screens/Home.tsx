@@ -1,76 +1,117 @@
-import { CalendarHeart, Hourglass, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Send } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useSpace } from "../hooks/useSpace";
-import { formatInZone, nextRelease, relativeFromNow } from "../lib/time";
-import { Card } from "../components/ui";
+import { clockInZone, formatInZone, longDateInZone, nextRelease, placeFromZone, relativeFromNow } from "../lib/time";
+import { Card, Loops, Stamp, Ticket } from "../components/ui";
 import { InvitePanel } from "./pair/InvitePanel";
+
+/** Re-render once a minute so the clocks stay current. */
+function useNow(): Date {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 60_000); return () => clearInterval(t); }, []);
+  return now;
+}
 
 export function Home() {
   const { session } = useAuth();
   const { space, profile } = useSpace();
+  const now = useNow();
   if (!space) return null;
 
   const me = space.members.find((m) => m.user_id === session?.user.id);
   const partner = space.members.find((m) => m.user_id !== session?.user.id);
   const myTz = profile?.timezone ?? "UTC";
-  const release = nextRelease();
+  const release = nextRelease(now);
   const myName = me?.profile?.display_name || "you";
   const partnerName = partner?.profile?.display_name || "your partner";
 
+  const header = (title: string, sub?: string) => (
+    <header className="space-y-2">
+      <p className="font-hand text-2xl text-raspberry-deep">{longDateInZone(now, myTz)}</p>
+      <Ticket>{space.relationship.name}</Ticket>
+      <h1 className="pt-1 text-[2.5rem] leading-[1.05]">{title}</h1>
+      {sub && <p className="text-muted">{sub}</p>}
+    </header>
+  );
+
+  /* ---------------------------------------------- waiting for partner */
   if (space.relationship.status === "pending" || !partner) {
     return (
       <div className="fade-up space-y-6">
-        <header>
-          <p className="text-sm uppercase tracking-[0.18em] text-tangerine-deep">{space.relationship.name}</p>
-          <h1 className="mt-1 text-4xl">Hello, {myName}.</h1>
-          <p className="mt-2 text-bark">Your space is ready. It begins once your partner joins.</p>
-        </header>
-        <Card>
-          <div className="mb-4 flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-blush-soft text-cherry"><Hourglass size={18} aria-hidden="true" /></span>
-            <div>
-              <h2 className="text-xl">Invite your partner</h2>
-              <p className="text-sm text-bark">Send them a private link. It works once, only for them.</p>
+        {header(`Hello, ${myName}.`, "Your journal is ready. It begins once your partner joins.")}
+        <div className="overflow-hidden rounded-[20px] bg-paper shadow-card">
+          <div className="airmail h-2.5" aria-hidden="true" />
+          <div className="p-6">
+            <div className="mb-4 flex items-start gap-3">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-raspberry-soft text-raspberry-deep">
+                <Send size={18} aria-hidden="true" />
+              </span>
+              <div>
+                <h2 className="text-xl">Invite your partner</h2>
+                <p className="text-sm text-muted">Send them a private link. It works once, only for them.</p>
+              </div>
             </div>
+            <InvitePanel />
           </div>
-          <InvitePanel />
-        </Card>
-        <p className="text-center text-xs text-bark">This page updates by itself when they join.</p>
+          <div className="airmail h-2.5" aria-hidden="true" />
+        </div>
+        <p className="text-center font-hand text-lg text-muted">this page updates by itself when they join</p>
       </div>
     );
   }
 
+  /* ---------------------------------------------- paired: journal opening page */
   const partnerTz = partner.profile?.timezone ?? "UTC";
+  const places = [
+    { name: myName, tz: myTz, you: true },
+    { name: partnerName, tz: partnerTz, you: false },
+  ];
+
   return (
     <div className="fade-up space-y-6">
-      <header>
-        <p className="text-sm uppercase tracking-[0.18em] text-tangerine-deep">{space.relationship.name}</p>
-        <h1 className="mt-1 text-4xl">Hello, you two.</h1>
-        <p className="mt-2 text-bark">{myName} &amp; {partnerName}</p>
-      </header>
+      {header("Hello, you two.")}
 
-      <Card className="relative overflow-hidden">
-        <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-tangerine-soft" aria-hidden="true" />
-        <div className="absolute -bottom-8 -right-4 h-16 w-16 rounded-full bg-blush-soft" aria-hidden="true" />
-        <div className="relative">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-sage-soft px-3 py-1 text-xs text-forest">
-            <Sparkles size={13} className="text-cherry" aria-hidden="true" /> Coming soon
-          </span>
-          <h2 className="mt-4 text-2xl">Your weekly rituals are on their way</h2>
-          <p className="mt-2 text-sm text-bark">
-            Each Monday you'll both receive the same small activity, to do whenever suits you. Answers stay hidden until you've both shared.
-          </p>
+      {/* two people · two places */}
+      <section aria-label="Where you both are" className="relative mt-8 grid grid-cols-2 gap-3">
+        {places.map((p, i) => (
+          <div key={p.name + i} className={`rounded-[18px] p-4 ${i === 0 ? "bg-leaf text-cream" : "bg-raspberry text-leaf"}`}>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{p.you ? "You" : "Them"} · {placeFromZone(p.tz)}</p>
+            <p className="mt-2 font-display text-[1.65rem] font-semibold leading-none">{clockInZone(now, p.tz)}</p>
+            <p className="mt-1 truncate text-sm">{p.name}</p>
+          </div>
+        ))}
+        <span className="absolute left-1/2 top-0 grid h-8 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-cream shadow-card">
+          <Loops className="h-5 w-8" />
+        </span>
+      </section>
+
+      {/* this week's ritual — postcard */}
+      <Card className="overflow-hidden">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <Ticket tone="mustard">This week</Ticket>
+            <h2 className="mt-3 text-2xl leading-tight">Your weekly rituals are on their way</h2>
+            <p className="mt-2 text-sm text-muted">
+              Each Monday you'll both receive the same small activity, to do whenever suits you. Answers stay sealed until you've both shared.
+            </p>
+          </div>
+          <div className="hidden h-20 w-16 shrink-0 rotate-3 place-items-center rounded-sm border-2 border-dashed border-raspberry bg-raspberry-soft sm:grid" aria-hidden="true">
+            <Loops className="h-8 w-12" />
+          </div>
         </div>
+        <p className="mt-4 border-t border-dashed border-leaf/25 pt-3 font-hand text-lg text-raspberry-deep">coming soon — no rush, no streaks.</p>
       </Card>
 
+      {/* next release */}
       <Card>
-        <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-tangerine-soft text-tangerine-deep"><CalendarHeart size={18} aria-hidden="true" /></span>
-          <div className="text-sm">
-            <h2 className="text-lg">Next Monday release · {relativeFromNow(release)}</h2>
-            <dl className="mt-2 grid grid-cols-[auto,1fr] gap-x-4 gap-y-1 text-bark">
-              <dt>For you</dt><dd className="text-ink">{formatInZone(release, myTz)}</dd>
-              <dt>For {partnerName}</dt><dd className="text-ink">{formatInZone(release, partnerTz)}</dd>
+        <div className="flex items-center gap-5">
+          <Stamp top="every monday" main="12:00" bottom="utc" />
+          <div className="min-w-0 text-sm">
+            <h2 className="text-lg leading-snug">Next ritual arrives {relativeFromNow(release, now)}</h2>
+            <dl className="mt-2 grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-muted">
+              <dt>For you</dt><dd className="font-medium text-leaf">{formatInZone(release, myTz)}</dd>
+              <dt>For {partnerName}</dt><dd className="font-medium text-leaf">{formatInZone(release, partnerTz)}</dd>
             </dl>
           </div>
         </div>

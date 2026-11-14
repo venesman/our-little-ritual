@@ -51,6 +51,21 @@ npm run dev                  # http://localhost:5173
 
 ---
 
+## Design system — "Retro Travel Journal"
+
+| Token | Hex | Role |
+|---|---|---|
+| `cream` (Caesar Cream) | `#F4E7DE` | dominant page background (`paper` `#FBF5F0` for cards) |
+| `leaf` (Salad Leaf) | `#20492F` | text, headings, navigation, colour-block panels |
+| `raspberry` | `#E480B4` | playful primary accent: tickets, partner card, loops |
+| `mustard` | `#ECB53D` | interactive: primary buttons, active nav |
+| `tomato` | `#DD3B26` | occasional emphasis: stamps, airmail edge, errors |
+
+Fonts: **Fraunces** (soft, retro display serif) for headings, **Inter** for interface text, **Caveat** for small handwritten notes.
+Components in `src/components/ui.tsx`: `Button` (mustard with a printed offset shadow), `Card` (postcard with inset rule),
+`Ticket` (notched label), `Stamp` (passport stamp), `Loops` / `LoopField` (overlapping-loop brand motif), plus `.airmail` edging in `index.css`.
+Text pairs are chosen for contrast: leaf on cream/mustard ≥ 5:1; small text never sits on raspberry or tomato.
+
 ## How pairing works
 
 1. Partner A signs up and creates the space (status **pending**).
