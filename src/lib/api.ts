@@ -4,6 +4,8 @@ export interface Profile {
   id: string;
   display_name: string;
   timezone: string;
+  free_from: string | null; // "HH:MM:SS" local time
+  free_to: string | null;
 }
 
 export interface Relationship {
@@ -40,10 +42,10 @@ function check<T>(res: { data: T; error: unknown }): T {
 }
 
 export async function getMyProfile(userId: string): Promise<Profile | null> {
-  return check(await supabase.from("profiles").select("id, display_name, timezone").eq("id", userId).maybeSingle());
+  return check(await supabase.from("profiles").select("id, display_name, timezone, free_from, free_to").eq("id", userId).maybeSingle());
 }
 
-export async function updateMyProfile(userId: string, patch: Partial<Pick<Profile, "display_name" | "timezone">>) {
+export async function updateMyProfile(userId: string, patch: Partial<Pick<Profile, "display_name" | "timezone" | "free_from" | "free_to">>) {
   check(await supabase.from("profiles").update(patch).eq("id", userId));
 }
 
@@ -73,7 +75,7 @@ export async function getMySpace(userId: string): Promise<Space | null> {
   const inviteRows = check(invites) as OpenInvitation[];
 
   const profiles = check(
-    await supabase.from("profiles").select("id, display_name, timezone").in("id", memberRows.map((m) => m.user_id)),
+    await supabase.from("profiles").select("id, display_name, timezone, free_from, free_to").in("id", memberRows.map((m) => m.user_id)),
   ) as Profile[];
 
   return {

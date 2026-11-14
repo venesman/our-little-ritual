@@ -6,6 +6,7 @@ import { useSpace } from "../hooks/useSpace";
 import { clockInZone, formatInZone, longDateInZone, nextRelease, placeFromZone, relativeFromNow } from "../lib/time";
 import { Card, ErrorNote, Loops, Stamp, Ticket } from "../components/ui";
 import { RitualPostcard } from "../components/RitualPostcard";
+import { CallWindowCard, NudgeCard, VisitCard } from "../components/HomeCards";
 import { useCurrentRitual } from "../hooks/useCurrentRitual";
 import { StatusPills } from "../components/WeekStatus";
 import { getMyRitualStatuses, type WeekListStatus } from "../lib/submissions";
@@ -101,6 +102,13 @@ export function Home() {
         </span>
       </section>
 
+      <CallWindowCard
+        now={now}
+        me={{ timeZone: myTz, from: profile?.free_from?.slice(0, 5) ?? null, to: profile?.free_to?.slice(0, 5) ?? null }}
+        partner={{ timeZone: partnerTz, from: partner.profile?.free_from?.slice(0, 5) ?? null, to: partner.profile?.free_to?.slice(0, 5) ?? null }}
+        partnerName={partnerName}
+      />
+
       {/* this week's ritual — postcard */}
       <section aria-label="This week's ritual" className="space-y-2">
         <p className="font-hand text-xl text-raspberry-deep">this week, let's…</p>
@@ -126,6 +134,10 @@ export function Home() {
           </RitualPostcard>
         )}
       </section>
+
+      <NudgeCard myId={session!.user.id} partnerId={partner.user_id} partnerName={partnerName} timeZone={myTz} />
+
+      <VisitCard timeZone={myTz} />
 
       {/* next release */}
       <Card>

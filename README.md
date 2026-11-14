@@ -5,7 +5,8 @@
 A private, invite-only app for two people in a long-distance relationship.
 React + TypeScript + Tailwind, Supabase (Auth, Postgres, Storage), deployed on Vercel.
 
-**Status: Phase 3 — the first complete version.** Accounts and pairing (1), one shared ritual every Monday at 12:00 UTC (2),
+**Status: Phase 4 — quick wins** (installable app, visit countdown, "thinking of you", best time to call) on top of
+**the first complete version (Phase 3).** Accounts and pairing (1), one shared ritual every Monday at 12:00 UTC (2),
 and answering it with words, photos, drawings or quick picks, sealed until you've both shared, then revealed together (3).
 
 ---
@@ -39,6 +40,10 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **Phase 3 — `0003_submissions_and_reveal.sql`**: adds answers (`activity_submissions`), the reveal rules, and a private
   storage bucket **ritual-media** for photos and drawings, with its access rules. Afterwards, **Storage** should list
   `ritual-media` marked *Private*. Nothing to change in Vercel.
+
+- **Phase 4 — `0004_quick_wins.sql`**: adds `visits`, `nudges` and your usual free hours on `profiles`. Nothing to change
+  in Vercel. To install the app: iPhone → open in Safari → Share → *Add to Home Screen*; Android → browser menu → *Install app*
+  (Settings in the app shows the right steps for your phone).
 
 ## 2. Deploy on Vercel
 
@@ -109,7 +114,10 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 133 checks. Phase 3: a partner can't see a
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 156 checks. Phase 4: visits shared between the
+two of you and invisible to others, date validation, nudge rate limits (per minute and per day), no nudges before your
+partner joins, free hours editable only by their owner. Unit tests cover the call-overlap maths for Kuching ↔ Santiago in
+both Chile summer and winter time, windows past midnight, and "happening now". Earlier phases: Phase 3: a partner can't see a
 draft, can't read a *sealed* answer before the reveal (even by filtering on its id), sees only "shared / not yet"; sealing
 locks the answer; both see both answers after the second seal; outsiders see nothing; validation (length, https links,
 image paths outside your own folder); storage — upload only to your own folder, partner's photo invisible until the reveal,
@@ -134,6 +142,9 @@ redeeming the same link at the same instant → exactly one gets in**.
 | `weekly_activities` | the one shared ritual per couple per week (unique per week, no repeats per cycle) |
 | `activity_submissions` | each person's answer: draft or sealed; the partner's is readable only after both are sealed |
 | storage `ritual-media` | private photos and drawings at `<space>/<week>/<person>/<file>` |
+| `visits` | planned visits for the countdown (either of you can add, edit, remove) |
+| `nudges` | "thinking of you" taps (max one a minute, 30 a day) |
+| `profiles.free_from / free_to` | when each of you is usually free, in your own local time |
 
 ## How the sealed reveal works
 
@@ -162,4 +173,5 @@ Migrations live in `supabase/migrations/` and are applied in order. History is n
 1. ✅ Foundation — auth, space, invitation, two-member limit
 2. ✅ Weekly ritual — 42 activities, Monday 12:00 UTC generator, no repeats per cycle
 3. ✅ Submission & reveal — drafts, private-until-both-submit, enforced by RLS and storage policies
-4. Weekly check-in · 5. Mailbox · 6. Scrapbook · 7. Creative Corner · 8. Timeline
+4. ✅ Quick wins — installable app, visit countdown, "thinking of you", best time to call
+5. Play With Me · 6. Call Session Mode · 7. The Curious Club · 8. Weekly check-in · 9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline

@@ -1,5 +1,6 @@
-import { useMemo, useState, type FormEvent } from "react";
-import { LogOut } from "lucide-react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Check, LogOut, Share, Smartphone } from "lucide-react";
+import { canPromptInstall, isInstalled, isIOS, onInstallChange, promptInstall } from "../lib/install";
 import { useAuth } from "../hooks/useAuth";
 import { useSpace } from "../hooks/useSpace";
 import { renameRelationship, updateMyProfile } from "../lib/api";
@@ -16,8 +17,12 @@ export function Settings() {
   const [name, setName] = useState(profile?.display_name ?? "");
   const [tz, setTz] = useState(profile?.timezone ?? detectTimezone());
   const [spaceName, setSpaceName] = useState(space?.relationship.name ?? "");
-  const [busy, setBusy] = useState<"profile" | "space" | null>(null);
-  const [saved, setSaved] = useState<"profile" | "space" | null>(null);
+  const [freeFrom, setFreeFrom] = useState(profile?.free_from?.slice(0, 5) ?? "");
+  const [freeTo, setFreeTo] = useState(profile?.free_to?.slice(0, 5) ?? "");
+  const [busy, setBusy] = useState<"profile" | "space" | "free" | null>(null);
+  const [saved, setSaved] = useState<"profile" | "space" | "free" | null>(null);
+  const [, setInstallTick] = useState(0);
+  useEffect(() => onInstallChange(() => setInstallTick((n) => n + 1)), []);
   const [error, setError] = useState<string | null>(null);
   const zones = useMemo(() => listTimezones(), []);
 
@@ -37,6 +42,17 @@ export function Settings() {
     setError(null); setSaved(null);
     setBusy("space");
     try { await renameRelationship(spaceName); await refresh(); setSaved("space"); }
+    catch (err) { setError(friendlyError(err)); }
+    finally { setBusy(null); }
+  };
+
+  const saveFree = async (e: FormEvent) => {
+    e.preventDefault();
+    setError(null); setSaved(null);
+    if ((freeFrom && !freeTo) || (!freeFrom && freeTo)) return setError("Please set both a start and an end time — or clear both.");
+    if (freeFrom && freeFrom === freeTo) return setError("Start and end can't be the same time.");
+    setBusy("free");
+    try { await updateMyProfile(userId, { free_from: freeFrom || null, free_to: freeTo || null }); await refresh(); setSaved("free"); }
     catch (err) { setError(friendlyError(err)); }
     finally { setBusy(null); }
   };
@@ -64,6 +80,23 @@ export function Settings() {
           <Button type="submit" busy={busy === "profile"}>{saved === "profile" ? "Saved" : "Save"}</Button>
         </form>
       </Card>
+
+      <Card>
+        <h2 className="mb-1 text-xl">When you're usually free</h2>
+        <p className="mb-4 text-sm text-muted">In your own time. We'll show you both the best overlap for a call. It can run past midnight (e.g. 10 pm – 1 am).</p>
+        <form onSubmit={saveFree} className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="From" htmlFor="free-from"><input id="free-from" type="time" className={inputCls} value={freeFrom} onChange={(e) => setFreeFrom(e.target.value)} /></Field>
+            <Field label="To" htmlFor="free-to"><input id="free-to" type="time" className={inputCls} value={freeTo} onChange={(e) => setFreeTo(e.target.value)} /></Field>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" busy={busy === "free"}>{saved === "free" ? "Saved" : "Save"}</Button>
+            {(freeFrom || freeTo) && <Button type="button" variant="ghost" onClick={() => { setFreeFrom(""); setFreeTo(""); }}>Clear</Button>}
+          </div>
+        </form>
+      </Card>
+
+      <InstallCard />
 
       {space && (
         <Card>
@@ -96,5 +129,35 @@ export function Settings() {
 
       <Button variant="outline" onClick={signOut}><LogOut size={16} />Sign out</Button>
     </div>
+  );
+}
+
+function InstallCard() {
+  if (isInstalled()) {
+    return (
+      <Card className="flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-leaf text-cream"><Check size={17} aria-hidden="true" /></span>
+        <p className="text-sm">Installed on this device — it opens from your home screen like an app.</p>
+      </Card>
+    );
+  }
+  return (
+    <Card>
+      <div className="mb-3 flex items-center gap-3">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-mustard-soft text-mustard-deep"><Smartphone size={17} aria-hidden="true" /></span>
+        <h2 className="text-xl">Add to your home screen</h2>
+      </div>
+      {canPromptInstall() ? (
+        <Button onClick={() => void promptInstall()}>Install the app</Button>
+      ) : isIOS() ? (
+        <ol className="list-decimal space-y-1 pl-5 text-sm text-muted">
+          <li>Open this page in <strong className="text-leaf">Safari</strong>.</li>
+          <li>Tap the <Share size={14} className="inline" aria-label="Share" /> <strong className="text-leaf">Share</strong> button.</li>
+          <li>Choose <strong className="text-leaf">Add to Home Screen</strong>, then <strong className="text-leaf">Add</strong>.</li>
+        </ol>
+      ) : (
+        <p className="text-sm text-muted">Open your browser's menu (⋮) and choose <strong className="text-leaf">Install app</strong> or <strong className="text-leaf">Add to Home screen</strong>.</p>
+      )}
+    </Card>
   );
 }

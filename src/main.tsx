@@ -6,6 +6,10 @@ import "@fontsource/caveat/500.css";
 import "@fontsource-variable/inter";
 import "./index.css";
 import App from "./App";
+import { initInstallCapture, registerServiceWorker } from "./lib/install";
+
+initInstallCapture();
+registerServiceWorker();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
