@@ -1,0 +1,51 @@
+/** Weekly rituals are released every Monday at 12:00 UTC — the shared boundary for both partners. */
+export const RELEASE_UTC_HOUR = 12;
+
+/** The next Monday 12:00 UTC strictly after `now`. */
+export function nextRelease(now: Date = new Date()): Date {
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), RELEASE_UTC_HOUR));
+  const daysUntilMonday = (1 - d.getUTCDay() + 7) % 7; // getUTCDay: 0 = Sunday, 1 = Monday
+  d.setUTCDate(d.getUTCDate() + daysUntilMonday);
+  if (d.getTime() <= now.getTime()) d.setUTCDate(d.getUTCDate() + 7);
+  return d;
+}
+
+export function detectTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  } catch {
+    return "UTC";
+  }
+}
+
+export function isValidTimezone(tz: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: tz });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function listTimezones(): string[] {
+  const intl = Intl as unknown as { supportedValuesOf?: (k: string) => string[] };
+  return intl.supportedValuesOf?.("timeZone") ?? ["UTC", "Asia/Kuching", "Asia/Kuala_Lumpur", "America/Santiago"];
+}
+
+/** e.g. "Mon 16 Nov, 8:00 PM" in the given time zone. */
+export function formatInZone(date: Date, timeZone: string): string {
+  const tz = isValidTimezone(timeZone) ? timeZone : "UTC";
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz, weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true,
+  }).format(date);
+}
+
+/** e.g. "in 2 days" / "in 5 hours" */
+export function relativeFromNow(date: Date, now: Date = new Date()): string {
+  const mins = Math.round((date.getTime() - now.getTime()) / 60000);
+  if (mins < 60) return `in ${Math.max(mins, 1)} minute${mins === 1 ? "" : "s"}`;
+  const hours = Math.round(mins / 60);
+  if (hours < 36) return `in ${hours} hour${hours === 1 ? "" : "s"}`;
+  const days = Math.round(hours / 24);
+  return `in ${days} day${days === 1 ? "" : "s"}`;
+}
