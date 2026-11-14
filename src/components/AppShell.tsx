@@ -13,7 +13,7 @@ const NAV = [
 
 export function AppShell() {
   const linkCls = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition ${isActive ? "bg-sage-soft text-forest" : "text-bark hover:bg-white/70 hover:text-forest"}`;
+    `flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm transition ${isActive ? "bg-tangerine-soft text-tangerine-deep" : "text-bark hover:bg-white/70 hover:text-forest"}`;
 
   return (
     <div className="min-h-[100dvh] md:flex">
@@ -39,7 +39,7 @@ export function AppShell() {
             <li key={to}>
               <NavLink
                 to={to} end={end}
-                className={({ isActive }) => `flex min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] ${isActive ? "text-forest" : "text-bark-soft"}`}
+                className={({ isActive }) => `flex min-w-[64px] flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[11px] ${isActive ? "text-tangerine-deep" : "text-bark-soft"}`}
               >
                 <Icon size={22} aria-hidden="true" />{label}
               </NavLink>

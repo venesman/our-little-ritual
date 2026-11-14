@@ -70,7 +70,7 @@ export function Join() {
   if (!session) {
     return (
       <OuterPage>
-        <HeartHandshake className="text-sage" size={36} aria-hidden="true" />
+        <HeartHandshake className="text-cherry" size={36} aria-hidden="true" />
         <h1 className="mt-3 text-3xl">You've been invited</h1>
         <p className="mt-2 text-bark">Someone special has made a little space for the two of you. Create an account (or sign in) to join.</p>
         <Card className="mt-6"><AuthForm initialMode="signup" redirectPath="/join" /></Card>
@@ -109,7 +109,7 @@ export function Join() {
 
   return (
     <OuterPage>
-      <HeartHandshake className="text-sage" size={36} aria-hidden="true" />
+      <HeartHandshake className="text-cherry" size={36} aria-hidden="true" />
       <h1 className="mt-3 text-3xl">{preview.inviter_name} invited you</h1>
       <p className="mt-2 text-bark">to share <strong className="text-ink">{preview.relationship_name}</strong> — a private space just for the two of you.</p>
       <Card className="mt-6 space-y-4">

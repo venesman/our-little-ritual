@@ -51,8 +51,8 @@ export function InvitePanel() {
   if (link) {
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-2 rounded-2xl border border-sage/60 bg-sage-soft/40 p-3">
-          <Link2 size={16} className="shrink-0 text-forest" aria-hidden="true" />
+        <div className="flex items-center gap-2 rounded-2xl border border-tangerine/50 bg-tangerine-soft/50 p-3">
+          <Link2 size={16} className="shrink-0 text-tangerine-deep" aria-hidden="true" />
           <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} aria-label="Invitation link" className="w-full truncate bg-transparent text-sm text-ink focus:outline-none" />
         </div>
         <div className="flex flex-wrap gap-2">

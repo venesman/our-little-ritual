@@ -45,7 +45,7 @@ export function AuthForm({ initialMode = "signin", redirectPath = "/" }: { initi
   if (sentTo) {
     return (
       <div className="space-y-4 text-center">
-        <MailCheck className="mx-auto text-sage" size={36} aria-hidden="true" />
+        <MailCheck className="mx-auto text-tangerine" size={36} aria-hidden="true" />
         <h2 className="text-2xl">Check your inbox</h2>
         <p className="text-sm text-bark">
           We sent a confirmation link to <strong className="text-ink">{sentTo}</strong>. Open it on this device to continue.

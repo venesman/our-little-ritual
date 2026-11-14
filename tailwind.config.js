@@ -4,12 +4,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        cream: "#FAF7F0",
-        sage: { DEFAULT: "#A9BDA5", soft: "#DCE5D9" },
-        forest: { DEFAULT: "#354C3C", deep: "#2A3D30" },
-        blush: { DEFAULT: "#E9C9C6", soft: "#F5E6E4" },
-        bark: { DEFAULT: "#8B7768", soft: "#B8A99D" },
-        ink: "#2B2723",
+        // Orange + green lead; pink softens; red is for small accents only.
+        cream: "#FFF6EC",
+        forest: { DEFAULT: "#2F5D3A", deep: "#234A2D" },
+        sage: { DEFAULT: "#8DBF8F", soft: "#DDEFD8" },
+        tangerine: { DEFAULT: "#F28C38", deep: "#C9601A", soft: "#FFE2C8" },
+        blush: { DEFAULT: "#F4B3C2", soft: "#FDE6EC" },
+        cherry: { DEFAULT: "#D7263D", soft: "#FBD9DD" },
+        bark: { DEFAULT: "#85634F", soft: "#CDB09B" },
+        ink: "#2B2320",
       },
       fontFamily: {
         serif: ['"DM Serif Display"', "Georgia", "serif"],
