@@ -5,8 +5,8 @@
 A private, invite-only app for two people in a long-distance relationship.
 React + TypeScript + Tailwind, Supabase (Auth, Postgres, Storage), deployed on Vercel.
 
-**Status: Phase 2 — Weekly Ritual.** Accounts and pairing (Phase 1), plus one shared activity every Monday at 12:00 UTC from a library of 42.
-Answering and the sealed reveal arrive in Phase 3.
+**Status: Phase 3 — the first complete version.** Accounts and pairing (1), one shared ritual every Monday at 12:00 UTC (2),
+and answering it with words, photos, drawings or quick picks, sealed until you've both shared, then revealed together (3).
 
 ---
 
@@ -35,6 +35,10 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
   Mondays 12:00 UTC with `pg_cron`. The result panel should end with *"Scheduled the weekly ritual for Mondays 12:00 UTC."*
   If it says it couldn't schedule, everything still works: the week's ritual is created the first time either of you opens the app.
   (Optional: enable **pg_cron** under Database → Extensions and run just the `do $cron$ … $cron$;` block again.)
+
+- **Phase 3 — `0003_submissions_and_reveal.sql`**: adds answers (`activity_submissions`), the reveal rules, and a private
+  storage bucket **ritual-media** for photos and drawings, with its access rules. Afterwards, **Storage** should list
+  `ritual-media` marked *Private*. Nothing to change in Vercel.
 
 ## 2. Deploy on Vercel
 
@@ -105,7 +109,11 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 84 checks. Phase 2: both partners get the identical
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 133 checks. Phase 3: a partner can't see a
+draft, can't read a *sealed* answer before the reveal (even by filtering on its id), sees only "shared / not yet"; sealing
+locks the answer; both see both answers after the second seal; outsiders see nothing; validation (length, https links,
+image paths outside your own folder); storage — upload only to your own folder, partner's photo invisible until the reveal,
+a sealed photo can't be deleted, outsiders never see files; and both partners sealing at the same instant. Phase 2: both partners get the identical
 weekly record; 42 simulated weeks with no repeats, 7 per category, all six categories in every 6 weeks, never the same category
 twice running; a new cycle after 42 with history kept; the Monday 12:00 UTC boundary (including Kuching vs Santiago times);
 outsiders and pending spaces blocked; and both partners opening the app at the same instant → one shared record. Phase 1: anonymous users can't read or call
@@ -124,6 +132,18 @@ redeeming the same link at the same instant → exactly one gets in**.
 | `activities` | the 42 weekly ritual activities (read-only library) |
 | `activity_cycles` | each run through all 42; a new one starts after the last |
 | `weekly_activities` | the one shared ritual per couple per week (unique per week, no repeats per cycle) |
+| `activity_submissions` | each person's answer: draft or sealed; the partner's is readable only after both are sealed |
+| storage `ritual-media` | private photos and drawings at `<space>/<week>/<person>/<file>` |
+
+## How the sealed reveal works
+
+- **Drafts** save to the server as you type and are visible only to you — never to your partner, even after the reveal.
+- **Seal & share** locks your answer (no edits, no photo changes after that).
+- **Before both have shared**, the database will not return your partner's answer to any request — not the text, not the
+  photo, not via a direct query. Each of you can only see *whether* the other has shared ("shared" / "not yet").
+- **When the second person seals**, both answers become readable to both of you at the same moment.
+- Photos are shrunk on the phone (max 1600 px) before upload and opened through short-lived private links.
+- Late answers are fine: any past week can still be answered.
 
 ## How the weekly ritual is chosen
 
@@ -141,5 +161,5 @@ Migrations live in `supabase/migrations/` and are applied in order. History is n
 
 1. ✅ Foundation — auth, space, invitation, two-member limit
 2. ✅ Weekly ritual — 42 activities, Monday 12:00 UTC generator, no repeats per cycle
-3. Submission & reveal — drafts, private-until-both-submit, enforced by RLS
+3. ✅ Submission & reveal — drafts, private-until-both-submit, enforced by RLS and storage policies
 4. Weekly check-in · 5. Mailbox · 6. Scrapbook · 7. Creative Corner · 8. Timeline

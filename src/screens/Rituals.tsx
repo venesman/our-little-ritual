@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { Check, ChevronRight, Hourglass } from "lucide-react";
 import { getRitualHistory, type WeeklyRitual } from "../lib/rituals";
+import { getMyRitualStatuses, type WeekListStatus } from "../lib/submissions";
 import { friendlyError } from "../lib/errors";
 import { useCurrentRitual } from "../hooks/useCurrentRitual";
 import { useSpace } from "../hooks/useSpace";
@@ -16,11 +17,13 @@ export function Rituals() {
   const { ritual: current, error: currentError } = useCurrentRitual(active);
   const [history, setHistory] = useState<WeeklyRitual[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [statuses, setStatuses] = useState<Record<string, WeekListStatus>>({});
   const tz = profile?.timezone ?? "UTC";
 
   useEffect(() => {
     if (!active || !current) return; // load history once the current week is guaranteed to exist
     getRitualHistory().then(setHistory).catch((e) => setError(friendlyError(e)));
+    getMyRitualStatuses().then((l) => setStatuses(Object.fromEntries(l.map((s) => [s.weekly_id, s])))).catch(() => {});
   }, [active, current]);
 
   if (!active) {
@@ -66,6 +69,7 @@ export function Rituals() {
                     <span className="block truncate font-display text-lg font-semibold">{r.activity.title}</span>
                     <span className="block text-xs text-muted">{formatInZone(new Date(r.weekStart), tz).split(",")[0]}</span>
                   </span>
+                  <WeekBadge s={statuses[r.weeklyId]} />
                   <ChevronRight size={18} className="text-faint" aria-hidden="true" />
                 </Link>
               </li>
@@ -84,4 +88,12 @@ function EmptyNote({ text }: { text: string }) {
       <p className="font-hand text-xl text-muted">{text}</p>
     </div>
   );
+}
+
+function WeekBadge({ s }: { s?: WeekListStatus }) {
+  if (!s) return null;
+  if (s.revealed) return <span className="inline-flex items-center gap-1 rounded-full bg-leaf px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-cream"><Check size={11} />Opened</span>;
+  if (s.my_status === "submitted" || s.partner_submitted)
+    return <span className="inline-flex items-center gap-1 rounded-full bg-mustard-soft px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-mustard-deep"><Hourglass size={11} />Half sealed</span>;
+  return null;
 }

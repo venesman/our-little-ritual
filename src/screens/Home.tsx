@@ -7,6 +7,8 @@ import { clockInZone, formatInZone, longDateInZone, nextRelease, placeFromZone, 
 import { Card, ErrorNote, Loops, Stamp, Ticket } from "../components/ui";
 import { RitualPostcard } from "../components/RitualPostcard";
 import { useCurrentRitual } from "../hooks/useCurrentRitual";
+import { StatusPills } from "../components/WeekStatus";
+import { getMyRitualStatuses, type WeekListStatus } from "../lib/submissions";
 import { InvitePanel } from "./pair/InvitePanel";
 
 /** Re-render once a minute so the clocks stay current. */
@@ -21,6 +23,15 @@ export function Home() {
   const { space, profile } = useSpace();
   const now = useNow();
   const { ritual, loading: ritualLoading, error: ritualError } = useCurrentRitual(space?.relationship.status === "active");
+  const [weekStatus, setWeekStatus] = useState<WeekListStatus | null>(null);
+  useEffect(() => {
+    if (!ritual) return;
+    const loadStatus = () => getMyRitualStatuses().then((l) => setWeekStatus(l.find((s) => s.weekly_id === ritual.weeklyId) ?? null)).catch(() => {});
+    loadStatus();
+    const onVis = () => { if (document.visibilityState === "visible") loadStatus(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [ritual]);
   if (!space) return null;
 
   const me = space.members.find((m) => m.user_id === session?.user.id);
@@ -97,13 +108,19 @@ export function Home() {
         {ritualLoading && !ritual && <div className="postcard h-48 animate-pulse" aria-label="Loading this week's ritual" />}
         {ritual && (
           <RitualPostcard ritual={ritual}>
+            {weekStatus && (
+              <div className="mt-4">
+                <StatusPills myName={myName} partnerName={partnerName} mine={weekStatus.my_status} partnerShared={weekStatus.partner_submitted} />
+              </div>
+            )}
             <div className="mt-4 flex items-center justify-between gap-3">
-              <p className="font-hand text-lg text-muted">no rush — any time this week</p>
+              <p className="font-hand text-lg text-muted">{weekStatus?.revealed ? "you've both shared ✦" : "no rush — any time this week"}</p>
               <Link
                 to={`/rituals/${ritual.weeklyId}`}
                 className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 border-leaf bg-mustard px-5 text-sm font-semibold text-leaf shadow-print transition hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry"
               >
-                Open <ArrowRight size={16} aria-hidden="true" />
+                {weekStatus?.revealed ? "See answers" : weekStatus?.my_status === "submitted" ? "View" : weekStatus?.my_status === "draft" ? "Continue" : "Start"}
+                <ArrowRight size={16} aria-hidden="true" />
               </Link>
             </div>
           </RitualPostcard>
