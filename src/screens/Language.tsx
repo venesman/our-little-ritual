@@ -64,7 +64,7 @@ export function Language() {
 }
 
 function Phrasebook({ deck, nameOf, myId, onEdit, onChange }: { deck: Card[]; nameOf: (id?: string | null) => string; myId: string | null; onEdit: () => void; onChange: () => void }) {
-  const groups: [Category | "ours", Card[]][] = (["ours", "hello", "love", "everyday", "culture"] as const)
+  const groups: [Category | "ours", Card[]][] = (["ours", "hello", "love", "assurance", "everyday", "culture"] as const)
     .map((c) => [c, deck.filter((x) => x.cat === c)] as [Category | "ours", Card[]]).filter(([, l]) => l.length);
   const [error, setError] = useState<string | null>(null);
   return (
@@ -95,7 +95,7 @@ function Phrasebook({ deck, nameOf, myId, onEdit, onChange }: { deck: Card[]; na
           </ul>
         </section>
       ))}
-      <p className="text-xs text-muted">The Iban starter phrases are a first draft — if one is off, teach the right version and it'll sit at the top.</p>
+      <p className="text-xs text-muted">Iban phrases checked by Vee. If anything could be said better, teach your version and it'll sit at the top.</p>
     </div>
   );
 }
