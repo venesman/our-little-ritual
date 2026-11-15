@@ -1,7 +1,7 @@
-/** Weekly rituals are released every Monday at 12:00 UTC — the shared boundary for both partners. */
-export const RELEASE_UTC_HOUR = 12;
+/** Weekly rituals are released every Monday at 11:00 UTC (7 pm Kuching) — the shared boundary for both partners. */
+export const RELEASE_UTC_HOUR = 11;
 
-/** The next Monday 12:00 UTC strictly after `now`. */
+/** The next Monday release (11:00 UTC) strictly after `now`. */
 export function nextRelease(now: Date = new Date()): Date {
   const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), RELEASE_UTC_HOUR));
   const daysUntilMonday = (1 - d.getUTCDay() + 7) % 7; // getUTCDay: 0 = Sunday, 1 = Monday

@@ -3,7 +3,7 @@ import { getCurrentRitual, type WeeklyRitual } from "../lib/rituals";
 import { friendlyError } from "../lib/errors";
 
 /**
- * This week's shared ritual. Re-fetches by itself when Monday 12:00 UTC passes
+ * This week's shared ritual. Re-fetches by itself when the Monday release (11:00 UTC) passes
  * while the app is open, and when the app comes back into view.
  */
 export function useCurrentRitual(enabled: boolean) {

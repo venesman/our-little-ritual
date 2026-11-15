@@ -15,15 +15,17 @@ select tests.expect((select count(distinct code) from public.activities) = 48, '
 select tests.expect(not exists (select 1 from public.activities where just_us and cardinality(needs) > 0 and fallback_instructions is null),
                     'every Just us ritual that needs profile details has a general fallback');
 
--- ------------------------------------------- the Monday 12:00 UTC boundary
-select tests.expect(public.ritual_week_start('2026-11-16 11:59:59+00') = '2026-11-09 12:00+00', 'Mon 11:59 UTC still belongs to last week');
-select tests.expect(public.ritual_week_start('2026-11-16 12:00:00+00') = '2026-11-16 12:00+00', 'Mon 12:00 UTC starts the new week');
-select tests.expect(public.ritual_week_start('2026-11-15 23:30:00+00') = '2026-11-09 12:00+00', 'Sunday night UTC is last week');
-select tests.expect(public.ritual_week_start('2026-11-22 23:59:00+00') = '2026-11-16 12:00+00', 'end of Sunday stays in the week');
+-- ------------------------------------------- the Monday 11:00 UTC boundary (7 pm Kuching)
+select tests.expect(public.ritual_week_start('2026-11-16 10:59:59+00') = '2026-11-09 11:00+00', 'Mon 10:59 UTC still belongs to last week');
+select tests.expect(public.ritual_week_start('2026-11-16 11:00:00+00') = '2026-11-16 11:00+00', 'Mon 11:00 UTC starts the new week');
+select tests.expect(public.ritual_week_start('2026-11-15 23:30:00+00') = '2026-11-09 11:00+00', 'Sunday night UTC is last week');
+select tests.expect(public.ritual_week_start('2026-11-22 23:59:00+00') = '2026-11-16 11:00+00', 'end of Sunday stays in the week');
 -- The same instant written in Malaysia time and Chile time maps to the same week.
-select tests.expect(public.ritual_week_start('2026-11-16 20:00:00+08') = public.ritual_week_start('2026-11-16 09:00:00-03'),
-                    'Kuching 8 pm Monday and Santiago 9 am Monday are the same release');
-select tests.expect(public.ritual_week_start('2026-11-16 19:59:00+08') = '2026-11-09 12:00+00', 'Kuching 7:59 pm Monday is still last week');
+select tests.expect(public.ritual_week_start('2026-11-16 19:00:00+08') = public.ritual_week_start('2026-11-16 08:00:00-03'),
+                    'Kuching 7 pm Monday and Santiago 8 am Monday (Chile summer) are the same release');
+select tests.expect(public.ritual_week_start('2026-11-16 19:00:00+08') = '2026-11-16 11:00+00', 'Kuching 7 pm Monday opens the new week');
+select tests.expect(public.ritual_week_start('2026-11-16 18:59:00+08') = '2026-11-09 11:00+00', 'Kuching 6:59 pm Monday is still last week');
+select tests.expect(public.ritual_week_start('2026-06-15 07:00:00-04') = '2026-06-15 11:00+00', 'Santiago 7 am Monday in Chile winter opens the week');
 
 -- ----------------------------------------------- who may ask, and what
 set role anon;
@@ -123,7 +125,7 @@ select tests.expect((
      and w42.relationship_id = :'rel' and w42.week_number = 42), 'new cycle does not open with last week''s activity');
 
 -- A non-Monday week start is refused.
-select tests.expect_error(format('select public.assign_weekly_activity(%L, %L)', :'rel', '2026-11-17 12:00+00'), 'Monday at 12:00 UTC');
+select tests.expect_error(format('select public.assign_weekly_activity(%L, %L)', :'rel', '2026-11-17 11:00+00'), 'Monday at 11:00 UTC');
 
 -- Members see their whole history; activities embed for the history screen.
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000b', false);

@@ -73,6 +73,10 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **Phase 10 — `0014_scrapbook.sql`**: Our Scrapbook, trips & moments (photos with their dates) and the export summary.
   Adds a private storage bucket **moments**. Afterwards, **Storage** should list `moments` marked *Private*. Nothing to change in Vercel.
 
+- **`0015_monday_7pm.sql`**: the Monday postcard opens one hour earlier — 7 pm in Kuching all year (8 am Santiago in
+  Chile's summer, 7 am in winter). Existing weeks move by the same hour; nothing is lost. If pg_cron is on, the Monday
+  scheduler moves too.
+
 ## 2. Deploy on Vercel
 
 1. [vercel.com](https://vercel.com) → **Add New → Project** → import `venesman/our-little-ritual`.
@@ -301,7 +305,7 @@ redeeming the same link at the same instant → exactly one gets in**.
 
 ## How the weekly ritual is chosen
 
-- **One boundary for both of you:** Monday 12:00 UTC (8 pm in Malaysia, 9 am in Chile in summer / 8 am in winter).
+- **One boundary for both of you:** Monday 11:00 UTC (7 pm in Malaysia, 8 am in Chile in summer / 7 am in winter).
 - **Created on the server, once:** whoever opens the app first (or the Monday scheduler) triggers `ensure_current_ritual()`;
   it locks your space and creates the week's record. A unique constraint means a second record can't exist, so you both
   always see the same activity.

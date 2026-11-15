@@ -1,5 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { BookHeart, Dices, Home, Mail, Settings, Stamp } from "lucide-react";
+import { BookHeart, CloudOff, Dices, Home, Mail, Settings, Stamp } from "lucide-react";
 import { Logo } from "./ui";
 
 /**
@@ -16,7 +17,28 @@ const NAV = [
 // The desktop sidebar has room for Settings too; on phones it's the gear at the top.
 const DESKTOP_NAV = [...NAV, { to: "/settings", label: "Settings", icon: Settings, end: false }] as const;
 
+/**
+ * Tells you when the phone is offline (so nothing looks up to date when it isn't),
+ * and refreshes every screen the moment the connection comes back.
+ */
+function useOnline() {
+  const [online, setOnline] = useState(() => (typeof navigator === "undefined" ? true : navigator.onLine));
+  useEffect(() => {
+    const up = () => {
+      setOnline(true);
+      // Screens already refresh when the app becomes visible; reuse that to resync now.
+      document.dispatchEvent(new Event("visibilitychange"));
+    };
+    const down = () => setOnline(false);
+    window.addEventListener("online", up);
+    window.addEventListener("offline", down);
+    return () => { window.removeEventListener("online", up); window.removeEventListener("offline", down); };
+  }, []);
+  return online;
+}
+
 export function AppShell() {
+  const online = useOnline();
   return (
     <div className="min-h-[100dvh] md:flex">
       {/* desktop sidebar — a leaf-green journal spine */}
@@ -43,6 +65,11 @@ export function AppShell() {
           <Logo />
           <Link to="/settings" aria-label="Settings" className="grid h-11 w-11 place-items-center rounded-full text-leaf hover:bg-leaf-soft"><Settings size={21} aria-hidden="true" /></Link>
         </div>
+        {!online && (
+          <p role="status" className="no-print mb-4 flex items-center gap-2 rounded-xl bg-mustard-soft px-4 py-2 text-sm text-mustard-deep">
+            <CloudOff size={15} aria-hidden="true" /> You're offline — this is what was last loaded. It'll refresh when you're back online.
+          </p>
+        )}
         <Outlet />
       </main>
 

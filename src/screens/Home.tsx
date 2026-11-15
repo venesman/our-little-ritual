@@ -153,7 +153,7 @@ export function Home() {
       {/* next release */}
       <Card>
         <div className="flex items-center gap-5">
-          <Stamp top="every monday" main="12:00" bottom="utc" />
+          <Stamp top="every monday" main="11:00" bottom="utc" />
           <div className="min-w-0 text-sm">
             <h2 className="text-lg leading-snug">Next postcard arrives {relativeFromNow(release, now)}</h2>
             <dl className="mt-2 grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-muted">
