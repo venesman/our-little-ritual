@@ -21,8 +21,14 @@ const PAPER = "#FBF5F0";
 const LOGICAL_W = 800; // strokes are stored in a fixed 800×600 space, so they scale with the screen
 const LOGICAL_H = 600;
 
-/** A small, touch-first drawing pad: pen, eraser, five colours, two sizes, undo, clear. */
-export const DrawingPad = forwardRef<DrawingPadHandle, { onChange?: () => void }>(function DrawingPad({ onChange }, ref) {
+/**
+ * A small, touch-first drawing pad: pen, eraser, five colours, two sizes, undo, clear.
+ * With `background` (an image URL), you draw on top of it — the eraser only
+ * removes your own lines, never the picture underneath.
+ */
+export const DrawingPad = forwardRef<DrawingPadHandle, { onChange?: () => void; background?: string | null }>(function DrawingPad({ onChange, background }, ref) {
+  const bgImage = useRef<HTMLImageElement | null>(null);
+  const layer = useRef<HTMLCanvasElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const strokes = useRef<Stroke[]>([]);
   const current = useRef<Stroke | null>(null);
@@ -40,18 +46,36 @@ export const DrawingPad = forwardRef<DrawingPadHandle, { onChange?: () => void }
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = PAPER;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.setTransform(sx, 0, 0, sy, 0, 0);
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    if (bgImage.current?.complete) ctx.drawImage(bgImage.current, 0, 0, canvas.width, canvas.height);
+    // your lines live on their own layer, so erasing never touches the picture underneath
+    if (!layer.current) layer.current = document.createElement("canvas");
+    const lc = layer.current;
+    if (lc.width !== canvas.width || lc.height !== canvas.height) { lc.width = canvas.width; lc.height = canvas.height; }
+    const l = lc.getContext("2d")!;
+    l.setTransform(1, 0, 0, 1, 0, 0);
+    l.clearRect(0, 0, lc.width, lc.height);
+    l.setTransform(sx, 0, 0, sy, 0, 0);
+    l.lineCap = "round";
+    l.lineJoin = "round";
     for (const s of [...strokes.current, ...(current.current ? [current.current] : [])]) {
-      ctx.strokeStyle = s.erase ? PAPER : s.color;
-      ctx.lineWidth = s.erase ? s.size * 3 : s.size;
-      ctx.beginPath();
-      s.points.forEach((p, i) => (i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)));
-      if (s.points.length === 1) ctx.lineTo(s.points[0].x + 0.1, s.points[0].y);
-      ctx.stroke();
+      l.globalCompositeOperation = s.erase ? "destination-out" : "source-over";
+      l.strokeStyle = s.color;
+      l.lineWidth = s.erase ? s.size * 3 : s.size;
+      l.beginPath();
+      s.points.forEach((p, i) => (i === 0 ? l.moveTo(p.x, p.y) : l.lineTo(p.x, p.y)));
+      if (s.points.length === 1) l.lineTo(s.points[0].x + 0.1, s.points[0].y);
+      l.stroke();
     }
+    l.globalCompositeOperation = "source-over";
+    ctx.drawImage(lc, 0, 0);
   }, []);
+
+  useEffect(() => {
+    if (!background) { bgImage.current = null; redraw(); return; }
+    const img = new Image();
+    img.onload = () => { bgImage.current = img; redraw(); };
+    img.src = background;
+  }, [background, redraw]);
 
   // Size the backing store to the element × device pixel ratio for crisp lines.
   useEffect(() => {

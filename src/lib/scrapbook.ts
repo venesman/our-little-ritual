@@ -2,7 +2,7 @@ import { supabase } from "./supabase";
 import { compressImage } from "./image";
 import type { Category } from "./rituals";
 
-export type MemoryKind = "ritual" | "mission" | "letter" | "discovery" | "milestone" | "moment" | "whim" | "quiz" | "personality" | "knowme";
+export type MemoryKind = "ritual" | "mission" | "letter" | "discovery" | "milestone" | "moment" | "whim" | "quiz" | "personality" | "knowme" | "creation";
 
 export interface MemoryPart {
   user_id: string | null; body?: string; answers?: { prompt: string; answer: string }[]; link_url?: string | null;
@@ -17,11 +17,11 @@ export interface Memory {
 
 /** Which private bucket a memory's files live in. */
 export const BUCKET: Record<MemoryKind, string> = {
-  ritual: "ritual-media", mission: "apart-media", letter: "letters", discovery: "", milestone: "", moment: "moments", whim: "whims", quiz: "", personality: "", knowme: "",
+  ritual: "ritual-media", mission: "apart-media", letter: "letters", discovery: "", milestone: "", moment: "moments", whim: "whims", quiz: "", personality: "", knowme: "", creation: "creations",
 };
 
 export const KIND_LABEL: Record<MemoryKind, string> = {
-  ritual: "Weekly ritual", mission: "Apart mission", letter: "Letter", discovery: "Discovery", milestone: "Milestone", moment: "Trip or moment", whim: "Wish come true", quiz: "Quiz Duel", personality: "Personality quiz", knowme: "How well do you know me?",
+  ritual: "Weekly ritual", mission: "Apart mission", letter: "Letter", discovery: "Discovery", milestone: "Milestone", moment: "Trip or moment", whim: "Wish come true", quiz: "Quiz Duel", personality: "Personality quiz", knowme: "How well do you know me?", creation: "Creative Corner",
 };
 
 /** Filter chips (from the approved spec). Photos / drawings / voice are derived from what a memory contains. */

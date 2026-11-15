@@ -1,3 +1,4 @@
+import { CreationScreen } from "./screens/Creative";
 import { ShareTarget } from "./screens/ShareTarget";
 import { KnowMeScreen } from "./screens/KnowMe";
 import { PersonalityQuiz } from "./screens/Personality";
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="play/quiz/:id" element={<QuizMatchScreen />} />
             <Route path="play/personality/:code" element={<PersonalityQuiz />} />
             <Route path="play/knowme" element={<KnowMeScreen />} />
+            <Route path="play/create/:id" element={<CreationScreen />} />
             <Route path="us" element={<Us />} />
             <Route path="us/moment/new" element={<MomentEditor />} />
             <Route path="us/moment/:id" element={<MomentEditor />} />

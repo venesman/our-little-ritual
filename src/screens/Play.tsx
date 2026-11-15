@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BookOpenCheck, Bookmark, BookmarkCheck, CalendarClock, Sparkles, Phone, Hourglass, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, Trophy, X } from "lucide-react";
+import { BookOpenCheck, Bookmark, BookmarkCheck, CalendarClock, Sparkles, Phone, Hourglass, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, Trophy, Palette, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePlaySession } from "../hooks/usePlaySession";
 import { usePeople } from "../hooks/usePeople";
@@ -8,6 +8,7 @@ import { startMission } from "../lib/apart";
 import { ApartTab } from "./Apart";
 import { CuriousTab } from "./Curious";
 import { QuizTab } from "./Quiz";
+import { CreativeTab } from "./Creative";
 import { useSpace } from "../hooks/useSpace";
 import { useAuth } from "../hooks/useAuth";
 import {
@@ -25,8 +26,9 @@ export function Play() {
   const active = space?.relationship.status === "active";
   const [tab, setTab] = useState<Tab>("play");
   const [params, setParams] = useSearchParams();
-  const mode: "call" | "apart" | "quiz" = params.get("mode") === "apart" ? "apart" : params.get("mode") === "quiz" ? "quiz" : "call";
-  const setMode = (m: "call" | "apart" | "quiz") => setParams(m === "call" ? {} : { mode: m }, { replace: true });
+  const raw = params.get("mode");
+  const mode: "call" | "apart" | "quiz" | "create" = raw === "apart" || raw === "quiz" || raw === "create" ? raw : "call";
+  const setMode = (m: "call" | "apart" | "quiz" | "create") => setParams(m === "call" ? {} : { mode: m }, { replace: true });
 
   if (!active) {
     return (
@@ -40,18 +42,18 @@ export function Play() {
   return (
     <div className="fade-up space-y-5">
       <header>
-        <p className="font-hand text-2xl text-raspberry-deep">{mode === "call" ? "on a call? open this together" : mode === "quiz" ? "who knows more? let's find out" : "together, on your own time"}</p>
+        <p className="font-hand text-2xl text-raspberry-deep">{mode === "call" ? "on a call? open this together" : mode === "quiz" ? "who knows more? let's find out" : mode === "create" ? "make something together" : "together, on your own time"}</p>
         <h1 className="text-4xl">Play With Me</h1>
       </header>
-      <div className="grid grid-cols-3 gap-1 rounded-2xl bg-leaf p-1" role="radiogroup" aria-label="How are you playing?">
-        {([["call", "On a call", Phone], ["apart", "Apart", Hourglass], ["quiz", "Quiz Time", Trophy]] as const).map(([m, label, I]) => (
+      <div className="grid grid-cols-2 gap-1 rounded-2xl bg-leaf p-1" role="radiogroup" aria-label="How are you playing?">
+        {([["call", "On a call", Phone], ["apart", "Apart, anytime", Hourglass], ["quiz", "Quiz Time", Trophy], ["create", "Creative Corner", Palette]] as const).map(([m, label, I]) => (
           <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
             className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-sm font-semibold transition ${mode === m ? "bg-mustard text-leaf" : "text-cream/80"}`}>
             <I size={16} aria-hidden="true" />{label}
           </button>
         ))}
       </div>
-      {mode === "quiz" ? <QuizTab /> : mode === "apart" ? <ApartTab /> : <>
+      {mode === "create" ? <CreativeTab /> : mode === "quiz" ? <QuizTab /> : mode === "apart" ? <ApartTab /> : <>
       <button type="button" onClick={() => setMode("quiz")} className="flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-mustard bg-mustard-soft/60 px-4 py-2.5 text-left text-sm font-semibold text-leaf">
         <Trophy size={16} aria-hidden="true" /> Fancy a quiz? Play a live Quiz Duel on this call →
       </button>

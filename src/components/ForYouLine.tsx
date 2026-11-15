@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Gift, Heart, Trophy, Hourglass, Mail, MessageCircleHeart, Stamp as StampIcon, X } from "lucide-react";
+import { ArrowRight, Gift, Heart, Palette, Trophy, Hourglass, Mail, MessageCircleHeart, Stamp as StampIcon, X } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
 import { getSeen, markSeen, useForYou } from "../hooks/useForYou";
 
@@ -15,6 +15,7 @@ export function ForYouLine({ partnerName, ritualId }: { partnerName: string; rit
   if ((data.letters_unread ?? 0) > 0) items.push({ to: "/mailbox", icon: Mail, text: data.letters_unread === 1 ? "A letter arrived for you" : `${data.letters_unread} letters arrived for you` });
   if ((data.apart_my_turn ?? 0) > 0) items.push({ to: "/play?mode=apart", icon: Hourglass, text: data.apart_my_turn === 1 ? "Your turn in an Apart mission" : `Your turn in ${data.apart_my_turn} Apart missions` });
   if (data.quiz_live_waiting) items.push({ to: `/play/quiz/${data.quiz_live_waiting}`, icon: Trophy, text: `${partnerName} is waiting for you in a live Quiz Duel` });
+  if ((data.creative_your_turn ?? 0) > 0) items.push({ to: "/play?mode=create", icon: Palette, text: `Your turn in Creative Corner` });
   if (data.knowme_your_turn) items.push({ to: "/play/knowme", icon: Heart, text: `Your turn in "How well do you know me?"` });
   if (data.quiz_your_move) items.push({ to: "/play?mode=quiz", icon: Trophy, text: `Your move in Quiz Duel with ${partnerName}` });
   if (data.whim_from_partner_at && myId && new Date(data.whim_from_partner_at).getTime() > getSeen(myId, "whims"))
