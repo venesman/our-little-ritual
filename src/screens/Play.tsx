@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BookOpenCheck, Bookmark, BookmarkCheck, CalendarClock, Sparkles, Phone, Hourglass, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, X } from "lucide-react";
+import { BookOpenCheck, Bookmark, BookmarkCheck, CalendarClock, Sparkles, Phone, Hourglass, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, Trophy, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePlaySession } from "../hooks/usePlaySession";
 import { usePeople } from "../hooks/usePeople";
@@ -7,6 +7,7 @@ import { personalise } from "../lib/tokens";
 import { startMission } from "../lib/apart";
 import { ApartTab } from "./Apart";
 import { CuriousTab } from "./Curious";
+import { QuizTab } from "./Quiz";
 import { useSpace } from "../hooks/useSpace";
 import { useAuth } from "../hooks/useAuth";
 import {
@@ -24,8 +25,8 @@ export function Play() {
   const active = space?.relationship.status === "active";
   const [tab, setTab] = useState<Tab>("play");
   const [params, setParams] = useSearchParams();
-  const mode: "call" | "apart" = params.get("mode") === "apart" ? "apart" : "call";
-  const setMode = (m: "call" | "apart") => setParams(m === "apart" ? { mode: "apart" } : {}, { replace: true });
+  const mode: "call" | "apart" | "quiz" = params.get("mode") === "apart" ? "apart" : params.get("mode") === "quiz" ? "quiz" : "call";
+  const setMode = (m: "call" | "apart" | "quiz") => setParams(m === "call" ? {} : { mode: m }, { replace: true });
 
   if (!active) {
     return (
@@ -39,18 +40,18 @@ export function Play() {
   return (
     <div className="fade-up space-y-5">
       <header>
-        <p className="font-hand text-2xl text-raspberry-deep">{mode === "call" ? "on a call? open this together" : "together, on your own time"}</p>
+        <p className="font-hand text-2xl text-raspberry-deep">{mode === "call" ? "on a call? open this together" : mode === "quiz" ? "who knows more? let's find out" : "together, on your own time"}</p>
         <h1 className="text-4xl">Play With Me</h1>
       </header>
-      <div className="grid grid-cols-2 gap-1 rounded-2xl bg-leaf p-1" role="radiogroup" aria-label="How are you playing?">
-        {([["call", "On a call", Phone], ["apart", "Apart, anytime", Hourglass]] as const).map(([m, label, I]) => (
+      <div className="grid grid-cols-3 gap-1 rounded-2xl bg-leaf p-1" role="radiogroup" aria-label="How are you playing?">
+        {([["call", "On a call", Phone], ["apart", "Apart", Hourglass], ["quiz", "Quiz Time", Trophy]] as const).map(([m, label, I]) => (
           <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
-            className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${mode === m ? "bg-mustard text-leaf" : "text-cream/80"}`}>
+            className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-sm font-semibold transition ${mode === m ? "bg-mustard text-leaf" : "text-cream/80"}`}>
             <I size={16} aria-hidden="true" />{label}
           </button>
         ))}
       </div>
-      {mode === "apart" ? <ApartTab /> : <>
+      {mode === "quiz" ? <QuizTab /> : mode === "apart" ? <ApartTab /> : <>
       <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-full border-2 border-leaf/20 p-1" role="tablist" aria-label="Play sections">
         {(["play", "curious", "favourites", "history"] as Tab[]).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}

@@ -2,7 +2,7 @@ import { supabase } from "./supabase";
 import { compressImage } from "./image";
 import type { Category } from "./rituals";
 
-export type MemoryKind = "ritual" | "mission" | "letter" | "discovery" | "milestone" | "moment" | "whim";
+export type MemoryKind = "ritual" | "mission" | "letter" | "discovery" | "milestone" | "moment" | "whim" | "quiz";
 
 export interface MemoryPart {
   user_id: string | null; body?: string; answers?: { prompt: string; answer: string }[]; link_url?: string | null;
@@ -12,16 +12,16 @@ export interface MomentPhoto { id: string; path: string; taken_at: string | null
 export interface Memory {
   kind: MemoryKind; ref_id: string; at: string; caption: string; title: string; authors: string[] | null;
   parts?: MemoryPart[]; category?: Category; week_number?: number; letter_kind?: string; area?: string; milestone_kind?: string;
-  place?: string; starts_on?: string; ends_on?: string | null; photos?: MomentPhoto[]; whim_kind?: string;
+  place?: string; starts_on?: string; ends_on?: string | null; photos?: MomentPhoto[]; whim_kind?: string; scores?: Record<string, number>; categories?: string[];
 }
 
 /** Which private bucket a memory's files live in. */
 export const BUCKET: Record<MemoryKind, string> = {
-  ritual: "ritual-media", mission: "apart-media", letter: "letters", discovery: "", milestone: "", moment: "moments", whim: "whims",
+  ritual: "ritual-media", mission: "apart-media", letter: "letters", discovery: "", milestone: "", moment: "moments", whim: "whims", quiz: "",
 };
 
 export const KIND_LABEL: Record<MemoryKind, string> = {
-  ritual: "Weekly ritual", mission: "Apart mission", letter: "Letter", discovery: "Discovery", milestone: "Milestone", moment: "Trip or moment", whim: "Wish come true",
+  ritual: "Weekly ritual", mission: "Apart mission", letter: "Letter", discovery: "Discovery", milestone: "Milestone", moment: "Trip or moment", whim: "Wish come true", quiz: "Quiz Duel",
 };
 
 /** Filter chips (from the approved spec). Photos / drawings / voice are derived from what a memory contains. */

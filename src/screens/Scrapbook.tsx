@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { scoreLine } from "../lib/quiz";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Camera, FileDown, ImagePlus, MapPin, Mic, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
@@ -144,7 +145,9 @@ function Polaroid({ m, tilt, onOpen }: { m: Memory; tilt: number; onOpen: () => 
   const first = imagesOf(m)[0];
   const url = useSigned(first?.bucket, first?.path);
   const author = useAuthorLabel();
-  const words = m.parts?.find((p) => p.body?.trim())?.body ?? m.caption;
+  const { myId, me, partner } = usePeople();
+  const words = m.kind === "quiz" ? scoreLine(m.scores, myId, me?.display_name || "You", partner?.display_name || "Partner")
+    : m.parts?.find((p) => p.body?.trim())?.body ?? m.caption;
   return (
     <button type="button" onClick={onOpen} style={{ transform: `rotate(${tilt}deg)` }}
       className="block w-full rounded-sm bg-paper p-2 pb-3 text-left shadow-card transition hover:rotate-0 hover:-translate-y-0.5">
@@ -190,6 +193,12 @@ function MemorySheet({ m, onClose, onChanged }: { m: Memory; onClose: () => void
 
         <div className="mt-4 space-y-3">
           {m.kind === "moment" && m.caption && <p className="whitespace-pre-wrap">{m.caption}</p>}
+          {m.kind === "quiz" && (
+            <div className="rounded-2xl bg-paper p-4 text-center shadow-card">
+              <p className="font-display text-2xl font-semibold">{scoreLine(m.scores, myId, me?.display_name || "You", partner?.display_name || "Partner")}</p>
+              {m.categories && <p className="mt-1 text-xs text-muted">{m.categories.join(" · ")}</p>}
+            </div>
+          )}
           {(m.photos ?? []).map((p) => (
             <div key={p.id}>
               <SignedImage bucket={BUCKET.moment} path={p.path} note={p.taken_at ? `Taken ${fmtDay(p.taken_at)}` : undefined} />

@@ -1,3 +1,4 @@
+import { QuizMatchScreen, QuizQuestions } from "./screens/Quiz";
 import { WhimEditor } from "./screens/Whims";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
@@ -41,6 +42,8 @@ export default function App() {
             <Route path="visits" element={<Visits />} />
             <Route path="play" element={<Play />} />
             <Route path="play/apart/:missionId" element={<ApartMission />} />
+            <Route path="play/quiz/questions" element={<QuizQuestions />} />
+            <Route path="play/quiz/:id" element={<QuizMatchScreen />} />
             <Route path="us" element={<Us />} />
             <Route path="us/moment/new" element={<MomentEditor />} />
             <Route path="us/moment/:id" element={<MomentEditor />} />
