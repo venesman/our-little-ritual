@@ -209,7 +209,7 @@ insert into net._http_response values ((select max(id) from net.requests), 200, 
     'category', encode(convert_to('Geography','UTF8'),'base64'), 'question', encode(convert_to('True or false?','UTF8'),'base64'),
     'correct_answer', encode(convert_to('True','UTF8'),'base64'), 'incorrect_answers', json_build_array(encode(convert_to('False','UTF8'),'base64'))),
   json_build_object('type', encode(convert_to('multiple','UTF8'),'base64'), 'difficulty', encode(convert_to('hard','UTF8'),'base64'),
-    'category', encode(convert_to('Entertainment: Japanese Anime & Manga','UTF8'),'base64'), 'question', encode(convert_to('Skip me','UTF8'),'base64'),
+    'category', encode(convert_to('Entertainment: Comics','UTF8'),'base64'), 'question', encode(convert_to('Skip me','UTF8'),'base64'),
     'correct_answer', encode(convert_to('a','UTF8'),'base64'), 'incorrect_answers', json_build_array(encode(convert_to('b','UTF8'),'base64'), encode(convert_to('c','UTF8'),'base64'), encode(convert_to('d','UTF8'),'base64')))
 ))::text);
 select tests.expect(public.opentdb_import_step() = 'imported 1', 'only multiple-choice questions in your categories are kept');

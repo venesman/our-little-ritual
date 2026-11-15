@@ -21,7 +21,8 @@ export interface OwnQuestion { id: string; category: string; question: string; c
 export const QUIZ_CATEGORY: Record<string, string> = {
   general: "General knowledge", geography: "Geography", science: "Science & nature", history: "History", food: "Food & drink",
   music: "Music", movies: "Movies & TV", sport: "Sport", words: "Words & languages", animals: "Animals", art_books: "Art & books",
-  technology: "Technology", malaysia: "Malaysia & Borneo", sweden: "Sweden", chile: "Chile & South America", ours: "Our inside jokes",
+  technology: "Technology", malaysia: "Malaysia & Borneo", sweden: "Sweden", chile: "Chile & South America", anime: "Anime & manga", games: "Video games", board_games: "Board games",
+  mythology: "Mythology", celebrities: "Celebrities & musicals", ours: "Our inside jokes",
 };
 export const catLabel = (c: string | null | undefined) => (c ? QUIZ_CATEGORY[c] ?? c : "Not picked yet");
 

@@ -4,10 +4,14 @@ import { supabase } from "../lib/supabase";
 
 export const MAX_VOICE_SECONDS = 120;
 
-/** The recording format this browser supports (Chrome/Android: webm, iPhone Safari: mp4). */
-function pickMime(): string | undefined {
+/**
+ * The recording format: MP4/AAC first, because it plays on both iPhone and Android
+ * (a WebM recording made on Android may not play on an iPhone, and some iPhones
+ * record WebM they then can't play back). WebM only where MP4 isn't available.
+ */
+export function pickMime(): string | undefined {
   if (typeof MediaRecorder === "undefined") return undefined;
-  for (const m of ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/aac", "audio/ogg;codecs=opus"]) {
+  for (const m of ["audio/mp4;codecs=mp4a.40.2", "audio/mp4", "audio/aac", "audio/webm;codecs=opus", "audio/webm", "audio/ogg;codecs=opus"]) {
     if (MediaRecorder.isTypeSupported?.(m)) return m;
   }
   return undefined;
@@ -33,13 +37,39 @@ export function VoiceRecorder({ value, onChange, disabled }: {
   const started = useRef(0);
   const timer = useRef<number | null>(null);
   const [url, setUrl] = useState<string | null>(null);
+  const [level, setLevel] = useState(0);
+  const [heard, setHeard] = useState(false);
+  const meter = useRef<{ ctx: AudioContext; raf: number } | null>(null);
 
   useEffect(() => {
     if (!value) { setUrl(null); return; }
     const u = URL.createObjectURL(value.blob); setUrl(u);
     return () => URL.revokeObjectURL(u);
   }, [value]);
-  useEffect(() => () => { if (timer.current) clearInterval(timer.current); rec.current?.stream.getTracks().forEach((t) => t.stop()); }, []);
+  const stopMeter = () => {
+    if (meter.current) { cancelAnimationFrame(meter.current.raf); void meter.current.ctx.close().catch(() => {}); meter.current = null; }
+    setLevel(0);
+  };
+  useEffect(() => () => { if (timer.current) clearInterval(timer.current); stopMeter(); rec.current?.stream.getTracks().forEach((t) => t.stop()); }, []);
+
+  /** A little live level bar, so you can see the microphone is hearing you. */
+  const startMeter = (stream: MediaStream) => {
+    try {
+      const AC = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new AC();
+      void ctx.resume();
+      const an = ctx.createAnalyser(); an.fftSize = 512;
+      ctx.createMediaStreamSource(stream).connect(an);
+      const data = new Uint8Array(an.fftSize);
+      const tick = () => {
+        an.getByteTimeDomainData(data);
+        let peak = 0; for (const v of data) peak = Math.max(peak, Math.abs(v - 128));
+        const l = Math.min(1, peak / 64); setLevel(l); if (l > 0.08) setHeard(true);
+        if (meter.current) meter.current.raf = requestAnimationFrame(tick);
+      };
+      meter.current = { ctx, raf: requestAnimationFrame(tick) };
+    } catch { /* the meter is only a nicety */ }
+  };
 
   const stop = () => { if (rec.current && rec.current.state !== "inactive") rec.current.stop(); };
 
@@ -47,23 +77,28 @@ export function VoiceRecorder({ value, onChange, disabled }: {
     setError(null);
     if (!voiceSupported()) { setError("This browser can't record audio. Try Chrome on Android or Safari on iPhone."); return; }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+      setHeard(false);
+      startMeter(stream);
       const mime = pickMime();
       const r = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined);
       chunks.current = [];
       r.ondataavailable = (e) => { if (e.data.size) chunks.current.push(e.data); };
       r.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
+        stopMeter();
         if (timer.current) { clearInterval(timer.current); timer.current = null; }
         setRecording(false);
-        const type = r.mimeType || mime || "audio/webm";
+        const type = r.mimeType || mime || "audio/mp4";
+        const blob = new Blob(chunks.current, { type });
+        if (blob.size < 1000) { setError("We didn't catch any sound — please try again (and check the microphone isn't muted)."); return; }
         const secs = Math.max(1, Math.min(MAX_VOICE_SECONDS, Math.round((Date.now() - started.current) / 1000)));
-        onChange({ blob: new Blob(chunks.current, { type }), seconds: secs, mime: baseMime(type), ext: extFor(type) });
+        onChange({ blob, seconds: secs, mime: baseMime(type), ext: extFor(type) });
       };
       rec.current = r;
       started.current = Date.now();
       setElapsed(0);
-      r.start();
+      r.start(1000);   // hand over audio every second (some iPhones return nothing otherwise)
       setRecording(true);
       timer.current = window.setInterval(() => {
         const s = Math.floor((Date.now() - started.current) / 1000);
@@ -83,13 +118,15 @@ export function VoiceRecorder({ value, onChange, disabled }: {
         <div className="flex items-center gap-3">
           <span className="h-3 w-3 animate-pulse rounded-full bg-tomato" aria-hidden="true" />
           <span className="font-display text-xl tabular-nums" aria-live="polite">{clock(elapsed)} / 2:00</span>
+          <span className="h-2 w-16 overflow-hidden rounded-full bg-leaf-soft" aria-hidden="true"><span className="block h-full rounded-full bg-leaf transition-[width] duration-75" style={{ width: `${Math.round(level * 100)}%` }} /></span>
           <button type="button" onClick={stop} className="ml-auto inline-flex min-h-[40px] items-center gap-1.5 rounded-full bg-tomato-deep px-4 text-sm font-semibold text-cream">
             <Square size={14} aria-hidden="true" /> Stop
           </button>
         </div>
       ) : value && url ? (
         <div className="space-y-2">
-          <audio controls src={url} className="w-full" preload="metadata" />
+          <audio controls src={url} className="w-full" preload="auto" playsInline />
+          <p className="text-[11px] text-muted">Can't hear it? Check your phone isn't on silent and the volume is up.</p>
           <div className="flex flex-wrap gap-2 text-sm">
             <span className="text-muted">{clock(value.seconds)} recorded</span>
             <button type="button" disabled={disabled} onClick={() => void start()} className="ml-auto inline-flex items-center gap-1 font-semibold text-leaf"><RotateCcw size={14} aria-hidden="true" /> Re-record</button>
@@ -102,6 +139,7 @@ export function VoiceRecorder({ value, onChange, disabled }: {
           Record a voice note (up to 2 min)
         </button>
       )}
+      {recording && elapsed >= 3 && !heard && <p className="text-xs text-tomato-deep">We can't hear anything yet — is the microphone allowed and not muted?</p>}
       {error && <p className="text-xs text-tomato-deep">{error}</p>}
     </div>
   );
@@ -132,7 +170,8 @@ export function VoicePlayer({ bucket, path, seconds, label }: { bucket: string; 
       <p className="mb-1 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-muted">
         <Mic size={12} aria-hidden="true" />{label ?? "Voice note"}{seconds ? ` · ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}` : ""}
       </p>
-      {url ? <audio controls src={url} className="w-full" preload="metadata" /> : failed ? <p className="text-xs text-muted">This voice note couldn't be loaded.</p> : <div className="h-10 animate-pulse rounded-xl bg-leaf-soft" />}
+      {url ? <audio controls src={url} className="w-full" preload="metadata" playsInline onError={() => setFailed(true)} /> : null}
+      {failed ? <p className="text-xs text-muted">This voice note couldn't be played on this phone.</p> : url ? null : <div className="h-10 animate-pulse rounded-xl bg-leaf-soft" />}
     </div>
   );
 }

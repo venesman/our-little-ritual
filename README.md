@@ -83,6 +83,7 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **`0018_our_photo.sql`**: "Our photo" — one shared cover photo on Home, picked from your trip photos.
 - **`0019_little_whim.sql`**: A Little Whim (Mailbox → Whims): Little Wants and Shared Wishes, a private `whims` photo bucket, surprises hidden in the database until revealed, and wishes-come-true in the scrapbook. Also updates `for_you()` and the scrapbook functions.
 - **`0020_quiz_duel.sql`**: Quiz Time → Quiz Duel (Play → Quiz Time): matches of 6 rounds × 3 questions, server-timed answers, hidden answers until you've played, reports, your own questions, the 300-question starter bank (`supabase/quiz/starter_questions.tsv`), and the optional Open Trivia DB importer. Then, optionally, run **`supabase/quiz_import_schedule.sql`** once to import Open Trivia DB questions (CC BY-SA 4.0; runs ~30 minutes in the background and switches itself off).
+- **`0021_quiz_more_categories.sql`**: adds Anime & manga, Video games, Board games, Mythology and Celebrities & musicals; the Open Trivia DB import skips clearly US-only questions. Run it **before** `quiz_import_schedule.sql`.
 
 ## 2. Deploy on Vercel
 
