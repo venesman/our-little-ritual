@@ -27,7 +27,7 @@ export function MailboxCard({ timeZone }: { timeZone: string }) {
         <h2 className="text-lg leading-snug">Our Mailbox</h2>
         <p className="text-sm text-muted">{line}</p>
       </div>
-      <Link to="/mailbox" aria-label="Open mailbox" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 border-leaf bg-mustard text-leaf shadow-print-sm">
+      <Link to="/mailbox" aria-label="Open mailbox" className="grid h-11 w-11 shrink-0 place-items-center rounded-[4px] border-[1.5px] border-leaf bg-mustard text-leaf shadow-print-sm">
         <ArrowRight size={17} aria-hidden="true" />
       </Link>
     </Card>

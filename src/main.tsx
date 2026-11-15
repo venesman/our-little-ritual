@@ -1,9 +1,11 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
-import "@fontsource-variable/fraunces/full.css";
+import "@fontsource/dm-serif-display/400.css";
+import "@fontsource/dm-serif-display/400-italic.css";
 import "@fontsource/caveat/500.css";
-import "@fontsource-variable/inter";
+import "@fontsource/caveat/700.css";
+import "@fontsource-variable/dm-sans";
 import "./index.css";
 import App from "./App";
 import { initInstallCapture, registerServiceWorker } from "./lib/install";

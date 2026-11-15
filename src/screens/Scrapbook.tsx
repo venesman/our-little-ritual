@@ -83,13 +83,13 @@ export function Scrapbook() {
         </div>
       </header>
       <div className="grid grid-cols-2 gap-2">
-        <Link to="/us/moment/new" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border-2 border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
+        <Link to="/us/moment/new" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
           <Plus size={16} aria-hidden="true" /> Add a trip or moment
         </Link>
-        <Link to="/us/export" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border-2 border-leaf/80 px-4 text-sm font-semibold text-leaf">
+        <Link to="/us/export" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[4px] border-[1.5px] border-dashed border-leaf bg-paper/60 px-4 text-sm font-semibold text-leaf">
           <FileDown size={16} aria-hidden="true" /> Export our story
         </Link>
-        <Link to="/us/keepsake" className="col-span-2 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-leaf px-4 text-sm font-semibold text-cream">
+        <Link to="/us/keepsake" className="col-span-2 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-cornflower px-4 text-sm font-bold text-leaf">
           <Sparkles size={16} aria-hidden="true" /> Our year together
         </Link>
       </div>
@@ -121,7 +121,7 @@ export function Scrapbook() {
       </section>
 
       {feed === null ? <Spinner label="Opening the scrapbook" /> : shown.length === 0 ? (
-        <div className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-8 text-center">
+        <div className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-8 text-center">
           <p className="font-hand text-xl text-muted">{feed.length ? "nothing matches these filters" : "your scrapbook is waiting for its first page"}</p>
           {!feed.length && <p className="mt-2 text-sm text-muted">Save a revealed ritual, love a letter, or add a trip with your photos.</p>}
         </div>
@@ -164,7 +164,7 @@ function Polaroid({ m, tilt, onOpen }: { m: Memory; tilt: number; onOpen: () => 
         {imagesOf(m).length > 1 && <span className="absolute bottom-1.5 right-1.5 rounded-full bg-paper/90 px-2 text-[11px] font-bold text-leaf">+{imagesOf(m).length - 1}</span>}
         {m.kind === "moment" && <TripStamp place={m.place} date={m.starts_on} />}
       </div>
-      <p className="mt-2 truncate font-display text-sm font-semibold">{m.kind === "personality" ? quizByCode(m.quiz_code ?? "")?.title ?? m.title : m.title || KIND_LABEL[m.kind]}</p>
+      <p className="mt-2 truncate font-display text-sm">{m.kind === "personality" ? quizByCode(m.quiz_code ?? "")?.title ?? m.title : m.title || KIND_LABEL[m.kind]}</p>
       <p className="truncate text-[11px] text-muted">{memoryDate(m)} · {author(m.authors)}</p>
     </button>
   );
@@ -185,7 +185,7 @@ function MemorySheet({ m, onClose, onChanged }: { m: Memory; onClose: () => void
 
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center bg-leaf/40 sm:items-center" role="dialog" aria-modal="true" aria-label={m.title} onClick={onClose}>
-      <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-[28px] bg-cream p-5 pb-10 sm:rounded-[28px]" onClick={(e) => e.stopPropagation()}>
+      <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-[28px] bg-cream p-5 pb-10 sm:rounded-card" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <Ticket tone="raspberry">{label}</Ticket>
@@ -201,13 +201,13 @@ function MemorySheet({ m, onClose, onChanged }: { m: Memory; onClose: () => void
           {m.kind === "moment" && m.caption && <p className="whitespace-pre-wrap">{m.caption}</p>}
           {m.kind === "personality" && (
             <div className="rounded-2xl bg-paper p-4 text-center shadow-card">
-              <p className="font-display text-lg font-semibold">{quizByCode(m.quiz_code ?? "")?.title}</p>
+              <p className="font-display text-lg">{quizByCode(m.quiz_code ?? "")?.title}</p>
               <p className="mt-1 whitespace-pre-line text-sm">{personalityLine(m, myId, me?.display_name || "You", partner?.display_name || "Partner")}</p>
             </div>
           )}
           {m.kind === "quiz" && (
             <div className="rounded-2xl bg-paper p-4 text-center shadow-card">
-              <p className="font-display text-2xl font-semibold">{scoreLine(m.scores, myId, me?.display_name || "You", partner?.display_name || "Partner")}</p>
+              <p className="font-display text-2xl">{scoreLine(m.scores, myId, me?.display_name || "You", partner?.display_name || "Partner")}</p>
               {m.categories && <p className="mt-1 text-xs text-muted">{m.categories.join(" · ")}</p>}
             </div>
           )}
@@ -227,7 +227,7 @@ function MemorySheet({ m, onClose, onChanged }: { m: Memory; onClose: () => void
             <div key={i} className="rounded-2xl bg-paper p-4 shadow-card">
               {p.user_id && (m.parts?.length ?? 0) > 1 && <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{nameOf(p.user_id)}</p>}
               {p.answers?.filter((a) => a.answer).map((a, j) => (
-                <div key={j} className="mb-2"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted">{a.prompt}</p><p className="font-display font-semibold">{a.answer}</p></div>
+                <div key={j} className="mb-2"><p className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted">{a.prompt}</p><p className="font-display">{a.answer}</p></div>
               ))}
               {p.body && <p className={`whitespace-pre-wrap ${m.kind === "letter" ? "font-hand text-xl" : ""}`}>{p.body}</p>}
               {p.image_path && <SignedImage bucket={BUCKET[m.kind]} path={p.image_path} />}
@@ -250,7 +250,7 @@ function MemorySheet({ m, onClose, onChanged }: { m: Memory; onClose: () => void
           </div>
         )}
         <div className="mt-5 flex flex-wrap gap-2 border-t border-dashed border-leaf/25 pt-4">
-          {m.kind === "moment" && <Link to={`/us/moment/${m.ref_id}`} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border-2 border-leaf/80 px-4 text-sm font-semibold text-leaf"><Pencil size={14} aria-hidden="true" /> Edit</Link>}
+          {m.kind === "moment" && <Link to={`/us/moment/${m.ref_id}`} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-[4px] border-[1.5px] border-dashed border-leaf bg-paper/60 px-4 text-sm font-semibold text-leaf"><Pencil size={14} aria-hidden="true" /> Edit</Link>}
           <Button variant="ghost" busy={busy === "rm"} onClick={async () => {
             setBusy("rm"); try { await setEntry(m.kind, m.ref_id, false); await onChanged(); onClose(); } catch (e) { setError(friendlyError(e)); } finally { setBusy(null); }
           }}><Trash2 size={14} aria-hidden="true" /> Remove from scrapbook</Button>
@@ -451,7 +451,7 @@ function TripStamp({ place, date }: { place?: string; date?: string }) {
     <span aria-hidden="true" className="absolute left-1.5 top-1.5 grid h-14 w-14 -rotate-12 place-items-center rounded-full border-2 border-dashed border-cream/90 bg-leaf/45 text-center leading-none text-cream backdrop-blur-[1px]">
       <span>
         <span className="block px-1 text-[8px] font-bold tracking-[0.08em]">{where}</span>
-        <span className="block font-display text-[10px] font-semibold">{when}</span>
+        <span className="block font-display text-[10px]">{when}</span>
       </span>
     </span>
   );

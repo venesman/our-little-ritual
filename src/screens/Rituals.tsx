@@ -53,7 +53,7 @@ export function Rituals() {
       {current && (
         <section aria-label="This week">
           <h2 className="mb-3 font-sans text-xs font-bold uppercase tracking-[0.16em] text-muted">This week</h2>
-          <Link to={`/rituals/${current.weeklyId}`} className="block rounded-[20px] focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry">
+          <Link to={`/rituals/${current.weeklyId}`} className="block rounded-card focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry">
             <RitualPostcard ritual={current} size="compact" />
           </Link>
         </section>
@@ -64,13 +64,13 @@ export function Rituals() {
         {history === null && !error ? null : past.length === 0 ? (
           <EmptyNote text="Your past rituals will collect here, week by week." />
         ) : (
-          <ul className="divide-y divide-dashed divide-leaf/20 rounded-[20px] bg-paper shadow-card">
+          <ul className="divide-y divide-dashed divide-leaf/20 rounded-card bg-paper shadow-card">
             {past.map((r) => (
               <li key={r.weeklyId}>
                 <Link to={`/rituals/${r.weeklyId}`} className="flex items-center gap-3 px-5 py-4 hover:bg-cream/60">
                   <span className="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-tomato-deep">Week {r.weekNumber}</span>
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate font-display text-lg font-semibold">{r.activity.title}</span>
+                    <span className="block truncate font-display text-lg">{r.activity.title}</span>
                     <span className="block text-xs text-muted">{formatInZone(new Date(r.weekStart), tz).split(",")[0]}</span>
                   </span>
                   {kept.has(r.weeklyId) && <BookHeart size={15} className="shrink-0 text-raspberry-deep" aria-label="In our scrapbook" />}
@@ -88,7 +88,7 @@ export function Rituals() {
 
 function EmptyNote({ text }: { text: string }) {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-[20px] border-2 border-dashed border-leaf/20 px-6 py-10 text-center">
+    <div className="flex flex-col items-center gap-2 rounded-card border-2 border-dashed border-leaf/20 px-6 py-10 text-center">
       <Loops className="h-8 w-14 opacity-80" />
       <p className="font-hand text-xl text-muted">{text}</p>
     </div>
@@ -110,7 +110,7 @@ function PassportStamp({ ritual, tz }: { ritual: WeeklyRitual; tz: string }) {
       className={`grid h-12 w-12 shrink-0 place-items-center rounded-full border-2 border-dashed bg-paper text-center leading-none ${STAMP_RING[cat.tone]}`}>
       <span>
         <span className="block text-[8px] font-bold tracking-[0.12em]">{cat.postmark}</span>
-        <span className="block font-display text-[10px] font-semibold">{date}</span>
+        <span className="block font-display text-[10px]">{date}</span>
       </span>
     </span>
   );

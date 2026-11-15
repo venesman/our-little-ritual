@@ -48,14 +48,14 @@ export function Whims() {
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted">Little wants and shared wishes — no pressure, ever.</p>
-        <Link to="/mailbox/whims/new" className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full border-2 border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
+        <Link to="/mailbox/whims/new" className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
           <Plus size={16} aria-hidden="true" /> Add a whim
         </Link>
       </div>
       <ErrorNote>{error}</ErrorNote>
 
       {active.length === 0 ? (
-        <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">the wish jar is empty — add a little whim any time</p>
+        <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">the wish jar is empty — add a little whim any time</p>
       ) : (
         <ul className="space-y-3">{active.map((w) => <li key={w.id}><WhimCard w={w} myId={myId} pName={pName} onChange={load} /></li>)}</ul>
       )}
@@ -113,7 +113,7 @@ function WhimCard({ w, myId, pName, onChange }: { w: Whim; myId: string | null |
         )}
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-muted">{by}</p>
-          <h3 className="font-display text-lg font-semibold leading-tight">{w.name}</h3>
+          <h3 className="font-display text-lg leading-tight">{w.name}</h3>
           <p className="mt-0.5 text-xs text-muted">{[price, `added ${shortDate(w.created_at)}`].filter(Boolean).join(" · ")}</p>
           {w.link && (
             <a href={w.link} target="_blank" rel="noopener noreferrer nofollow" className="mt-1 inline-flex max-w-full items-center gap-1 text-xs font-semibold text-leaf underline underline-offset-4">
@@ -142,7 +142,7 @@ function WhimCard({ w, myId, pName, onChange }: { w: Whim; myId: string | null |
             ))}
             {giverSurprise && (
               <button type="button" disabled={!!busy} onClick={() => void act("reveal", () => revealWhim(w.id))}
-                className="min-h-[36px] rounded-full border-2 border-leaf bg-mustard px-3 text-xs font-semibold text-leaf shadow-print-sm">
+                className="min-h-[36px] rounded-[4px] border-[1.5px] border-leaf bg-mustard px-3 text-xs font-semibold text-leaf shadow-print-sm">
                 <Sparkles size={12} className="mr-1 inline" aria-hidden="true" />Reveal the surprise
               </button>
             )}
@@ -239,7 +239,7 @@ export function WhimEditor() {
           {(Object.keys(KIND_INFO) as WhimKind[]).map((k) => (
             <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)}
               className={`rounded-2xl border-2 p-3 text-left ${kind === k ? "border-leaf bg-leaf text-cream" : "border-leaf/30 bg-paper text-leaf"}`}>
-              <span className="block font-display text-base font-semibold">{KIND_INFO[k].label}</span>
+              <span className="block font-display text-base">{KIND_INFO[k].label}</span>
               <span className={`block text-xs ${kind === k ? "text-cream/85" : "text-muted"}`}>{KIND_INFO[k].hint}</span>
             </button>
           ))}

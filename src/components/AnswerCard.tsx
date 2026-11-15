@@ -29,7 +29,7 @@ export function AnswerCard({ submission, name, tone, mode, delay = 0 }: {
           {answered.map((a, i) => (
             <div key={i} className="rounded-xl bg-cream/70 px-4 py-3">
               <dt className="text-xs font-bold uppercase tracking-[0.12em] text-muted">{a.prompt || `Question ${i + 1}`}</dt>
-              <dd className="mt-0.5 font-display text-lg font-semibold">{a.answer || "—"}</dd>
+              <dd className="mt-0.5 font-display text-lg">{a.answer || "—"}</dd>
               {mode === "guess" && a.guess && <dd className="mt-1 font-hand text-lg text-raspberry-deep">guessed for you: {a.guess}</dd>}
             </div>
           ))}

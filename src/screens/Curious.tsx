@@ -138,14 +138,14 @@ function Lobby({ busy, run }: { busy: string | null; run: Run }) {
 function TopicList({ topics, busy, onPick }: { topics: Topic[]; busy: string | null; onPick: (t: Topic) => void }) {
   if (topics.length === 0) return <p className="font-hand text-lg text-muted">nothing matches — try fewer filters</p>;
   return (
-    <ul className="divide-y divide-dashed divide-leaf/20 rounded-[20px] bg-paper shadow-card">
+    <ul className="divide-y divide-dashed divide-leaf/20 rounded-card bg-paper shadow-card">
       {topics.map((t) => {
         const Icon = AREA[t.area].icon;
         return (
           <li key={t.id} className="flex items-center gap-3 px-4 py-3">
             <Icon size={18} className="shrink-0 text-raspberry-deep" aria-hidden="true" />
             <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-base font-semibold">{t.title}</p>
+              <p className="truncate font-display text-base">{t.title}</p>
               <p className="truncate text-xs text-muted">{t.intro_question}</p>
             </div>
             <Button variant="outline" className="!min-h-[36px] !px-3 !py-1 text-xs" busy={busy === "pick-" + t.id} onClick={() => onPick(t)}>Choose</Button>
@@ -207,7 +207,7 @@ function Notebook({ busy, onPick }: { busy: string | null; onPick: (t: Topic) =>
                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-tomato-deep">
                       {new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" }).format(new Date(h.started_at))} · {FORMAT[h.format].label}
                     </p>
-                    <p className="font-display text-lg font-semibold">{h.topic?.title ?? "A topic"}</p>
+                    <p className="font-display text-lg">{h.topic?.title ?? "A topic"}</p>
                     <p className="text-xs text-muted">{h.discoveries.length} discover{h.discoveries.length === 1 ? "y" : "ies"} · {open === h.id ? "hide notes" : "show notes"}</p>
                   </button>
                   {open === h.id && (
@@ -303,7 +303,7 @@ function SetupView({ s, busy, run }: { s: CuriousState; busy: string | null; run
             return (
               <button key={f} type="button" role="radio" aria-checked={s.format === f} disabled={!ok || busy === "setup"} onClick={() => set({ format: f })}
                 className={`rounded-2xl border-2 px-4 py-3 text-left transition disabled:opacity-40 ${s.format === f ? "border-leaf bg-mustard-soft" : "border-leaf/15 hover:border-leaf/40"}`}>
-                <span className="block font-display text-base font-semibold">{FORMAT[f].label}</span>
+                <span className="block font-display text-base">{FORMAT[f].label}</span>
                 <span className="block text-xs text-muted">{ok ? FORMAT[f].blurb : "Not available for this topic"}</span>
               </button>
             );
@@ -346,7 +346,7 @@ function RoleBrief({ s }: { s: CuriousState }) {
   let body: ReactNode = null;
   if (s.format === "debate" && t.debate_statement) {
     body = <>
-      <p className="font-display text-lg font-semibold">“{t.debate_statement}”</p>
+      <p className="font-display text-lg">“{t.debate_statement}”</p>
       <p className="text-sm">You argue <strong>{mine("for", "against")}</strong>; {pName} argues <strong>{theirs("for", "against")}</strong>. It's a friendly debate — find the best case, not the winning insult.</p>
     </>;
   } else if (s.format === "deep_dive" && t.split_a && t.split_b) {
@@ -458,7 +458,7 @@ function StageTimer({ s, skewMs, busy, run, lengths, guide }: { s: CuriousState;
   return (
     <Card className="!p-5">
       <div className="flex items-center justify-between gap-3">
-        <p className={`font-display text-5xl font-semibold tabular-nums ${running && left === 0 ? "text-tomato" : ""}`} aria-live="polite">{formatClock(left)}</p>
+        <p className={`font-display text-5xl tabular-nums ${running && left === 0 ? "text-tomato" : ""}`} aria-live="polite">{formatClock(left)}</p>
         <div className="flex gap-1.5">
           {running
             ? <Button variant="outline" aria-label="Pause" busy={busy === "timer"} onClick={() => run("timer", () => curiousTimer(s.session_id, "pause"))} className="!px-3"><Pause size={16} /></Button>

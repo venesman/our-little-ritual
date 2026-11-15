@@ -86,7 +86,7 @@ export function Visits() {
       <Plane size={16} className="mt-1 shrink-0 text-tomato" aria-hidden="true" />
       <div className="min-w-0 flex-1">
         {full && <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{STAY_LABEL[v.stay_type ?? "visit"]} · {daysInclusive(v.starts_on, v.ends_on)} {daysInclusive(v.starts_on, v.ends_on) === 1 ? "day" : "days"}</p>}
-        <p className="font-display text-lg font-semibold">{v.title || v.place}</p>
+        <p className="font-display text-lg">{v.title || v.place}</p>
         <p className="text-xs text-muted">{formatDay(v.starts_on)}{v.ends_on && v.ends_on !== v.starts_on ? ` → ${formatDay(v.ends_on)}` : ""}</p>
         {(v.title || where) && <p className="text-xs text-muted">{[v.title ? v.place : "", where].filter(Boolean).join(" · ")}</p>}
         {v.travel === "one" && v.travelled_by && <p className="mt-1 text-sm">{nameOf(v.travelled_by)} travelled to {otherOf(v.travelled_by)}</p>}
@@ -175,7 +175,7 @@ export function Visits() {
             {full && (
               <div className="space-y-2">
                 <label className="flex items-center gap-3 text-sm">
-                  <input type="checkbox" className="h-5 w-5 accent-[#20492F]" checked={draft.with_family} onChange={(e) => setDraft({ ...draft, with_family: e.target.checked })} />
+                  <input type="checkbox" className="h-5 w-5 accent-[#0C1020]" checked={draft.with_family} onChange={(e) => setDraft({ ...draft, with_family: e.target.checked })} />
                   We spent time with family
                 </label>
                 {draft.with_family && <input aria-label="About the family time" className={inputCls} value={draft.family_note} maxLength={280} placeholder="e.g. Stayed at my parents' home, met my grandmother" onChange={(e) => setDraft({ ...draft, family_note: e.target.value })} />}
@@ -203,14 +203,14 @@ export function Visits() {
 
       <section>
         <h2 className="mb-3 font-sans text-xs font-bold uppercase tracking-[0.16em] text-muted">Coming up</h2>
-        {upcoming.length ? <ul className="divide-y divide-dashed divide-leaf/20 rounded-[20px] bg-paper shadow-card">{upcoming.map(row)}</ul>
-          : <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">nothing booked yet — dreaming counts too</p>}
+        {upcoming.length ? <ul className="divide-y divide-dashed divide-leaf/20 rounded-card bg-paper shadow-card">{upcoming.map(row)}</ul>
+          : <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">nothing booked yet — dreaming counts too</p>}
       </section>
       {past.length > 0 && (
         <section>
           <h2 className="mb-3 font-sans text-xs font-bold uppercase tracking-[0.16em] text-muted">Been there together</h2>
           {full && <p className="-mt-2 mb-3 text-xs text-muted">{past.length} {past.length === 1 ? "time" : "times"} together · {togetherDays(past.map((v) => ({ from: v.starts_on, until: v.ends_on }))).size} days (overlaps counted once)</p>}
-          <ul className="divide-y divide-dashed divide-leaf/20 rounded-[20px] bg-paper shadow-card">{past.map(row)}</ul>
+          <ul className="divide-y divide-dashed divide-leaf/20 rounded-card bg-paper shadow-card">{past.map(row)}</ul>
         </section>
       )}
     </div>

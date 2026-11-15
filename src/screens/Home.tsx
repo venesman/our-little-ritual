@@ -61,7 +61,7 @@ export function Home() {
     return (
       <div className="fade-up space-y-6">
         {header(`Hello, ${myName}.`, "Your journal is ready. It begins once your partner joins.")}
-        <div className="overflow-hidden rounded-[20px] bg-paper shadow-card">
+        <div className="overflow-hidden rounded-card bg-paper shadow-card">
           <div className="airmail h-2.5" aria-hidden="true" />
           <div className="p-6">
             <div className="mb-4 flex items-start gap-3">
@@ -100,15 +100,15 @@ export function Home() {
       {/* two people · two places */}
       <section aria-label="Where you both are" className="relative mt-8 grid grid-cols-2 gap-3">
         {places.map((p, i) => (
-          <div key={p.name + i} className={`rounded-[18px] p-4 ${i === 0 ? "bg-leaf text-cream" : "bg-raspberry text-leaf"}`}>
+          <div key={p.name + i} className={`p-4 text-leaf ${i === 0 ? "-rotate-1 bg-gold" : "rotate-1 bg-lilac"}`}>
             <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{p.you ? "You" : "Them"} · {p.city?.trim() || placeFromZone(p.tz)} · {gmtLabel(p.tz, now)}</p>
-            <p className="mt-2 font-display text-[1.65rem] font-semibold leading-none">{clockInZone(now, p.tz)}</p>
+            <p className="mt-2 font-display text-[1.9rem] leading-none">{clockInZone(now, p.tz)}</p>
             <p className="mt-1 truncate text-sm">{p.name}</p>
           </div>
         ))}
         {/* a little airmail flight path between your two places */}
         <svg aria-hidden="true" viewBox="0 0 200 40" preserveAspectRatio="none" className="pointer-events-none absolute -top-7 left-1/4 h-9 w-1/2 overflow-visible">
-          <path d="M2 38 C 60 2, 140 2, 198 38" fill="none" stroke="#20492F" strokeOpacity="0.45" strokeWidth="1.6" strokeDasharray="4 5" vectorEffect="non-scaling-stroke" />
+          <path d="M2 38 C 60 2, 140 2, 198 38" fill="none" stroke="#0C1020" strokeOpacity="0.45" strokeWidth="1.6" strokeDasharray="4 5" vectorEffect="non-scaling-stroke" />
         </svg>
         <span className="absolute left-1/2 top-0 grid h-8 w-8 -translate-x-1/2 -translate-y-[85%] place-items-center rounded-full bg-cream text-tomato shadow-card">
           <Plane size={15} className="rotate-45" aria-hidden="true" />
@@ -136,7 +136,7 @@ export function Home() {
               <p className="font-hand text-lg text-muted">{weekStatus?.revealed ? "you've both shared ✦" : "no rush — any time this week"}</p>
               <Link
                 to={`/rituals/${ritual.weeklyId}`}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 border-leaf bg-mustard px-5 text-sm font-semibold text-leaf shadow-print transition hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-5 text-sm font-semibold text-leaf shadow-print transition hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry"
               >
                 {weekStatus?.revealed ? "See answers" : weekStatus?.my_status === "submitted" ? "View" : weekStatus?.my_status === "draft" ? "Continue" : "Start"}
                 <ArrowRight size={16} aria-hidden="true" />

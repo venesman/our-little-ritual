@@ -51,7 +51,7 @@ export function CallWindowCard({ now, me, partner, partnerName }: {
         </dl>
         <button
           type="button" onClick={() => setPlanning((p) => !p)} aria-expanded={planning}
-          className="mt-3 inline-flex min-h-[40px] items-center gap-1.5 rounded-full border-2 border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+          className="mt-3 inline-flex min-h-[40px] items-center gap-1.5 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
         >
           <CalendarPlus size={15} aria-hidden="true" /> Plan a call date
           <ChevronDown size={15} className={`transition ${planning ? "rotate-180" : ""}`} aria-hidden="true" />
@@ -186,15 +186,15 @@ export function VisitCard({ timeZone }: { timeZone: string }) {
   const s = visitState(visits, new Date(), timeZone);
 
   return (
-    <Link to="/visits" className="block rounded-[20px] focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry">
+    <Link to="/visits" className="block rounded-card focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry">
       {s.kind === "none" ? (
-        <div className="flex items-center gap-3 rounded-[20px] border-2 border-dashed border-leaf/25 px-5 py-4 text-muted hover:border-leaf/50">
+        <div className="flex items-center gap-3 rounded-card border-2 border-dashed border-leaf/25 px-5 py-4 text-muted hover:border-leaf/50">
           <Plane size={18} className="text-tomato" aria-hidden="true" />
           <span className="text-sm font-semibold">When's your next visit? Add it to start a countdown</span>
         </div>
       ) : (
-        <div className="relative overflow-hidden rounded-[20px] bg-tomato-deep p-5 text-cream shadow-card">
-          <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full border-[10px] border-mustard/90" aria-hidden="true" />
+        <div className="relative overflow-hidden bg-cornflower p-5 text-leaf shadow-card">
+          <div className="absolute -right-6 -top-6 grid h-28 w-28 place-items-center rounded-full border-[2.5px] border-cream/80" aria-hidden="true"><div className="h-20 w-20 rounded-full border-[1.5px] border-cream/70" /></div>
           <div className="relative flex items-end justify-between gap-4">
             <div className="min-w-0">
               <p className="text-[10px] font-bold uppercase tracking-[0.16em] opacity-90">
@@ -203,12 +203,12 @@ export function VisitCard({ timeZone }: { timeZone: string }) {
               </p>
               {s.kind === "upcoming" ? (
                 <>
-                  <p className="mt-1 font-display text-5xl font-semibold leading-none">{s.days}</p>
+                  <p className="mt-1 font-display text-6xl leading-none text-cream">{s.days}</p>
                   <p className="mt-1 text-sm">{s.days === 1 ? "day" : "days"} until {s.visit.place}</p>
                 </>
               ) : (
                 <>
-                  <p className="mt-1 font-display text-3xl font-semibold leading-tight">{s.visit.place}</p>
+                  <p className="mt-1 font-display text-3xl leading-tight text-cream">{s.visit.place}</p>
                   <p className="mt-1 text-sm">{s.of ? `Day ${s.day} of ${s.of}` : "Today"} — enjoy every minute ✦</p>
                 </>
               )}

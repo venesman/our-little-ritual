@@ -61,7 +61,7 @@ export function RemindersCard({ userId }: { userId: string }) {
                   <li key={k}>
                     <label className="flex items-center justify-between gap-3 text-sm">
                       {label}
-                      <input type="checkbox" className="h-5 w-5 accent-[#20492F]" checked={prefs[k]} onChange={() => void toggle(k)} />
+                      <input type="checkbox" className="h-5 w-5 accent-[#0C1020]" checked={prefs[k]} onChange={() => void toggle(k)} />
                     </label>
                   </li>
                 ))}

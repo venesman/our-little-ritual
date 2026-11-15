@@ -59,7 +59,7 @@ function useDots(): Record<string, boolean> {
   };
 }
 
-const Dot = () => <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-leaf bg-raspberry" aria-hidden="true" />;
+const Dot = () => <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full border-[1.5px] border-leaf bg-tangerine" aria-hidden="true" />;
 
 export function AppShell() {
   return <ForYouProvider><Shell /></ForYouProvider>;
@@ -70,16 +70,16 @@ function Shell() {
   const dots = useDots();
   return (
     <div className="min-h-[100dvh] md:flex">
-      {/* desktop sidebar — a leaf-green journal spine */}
-      <aside className="sticky top-0 hidden h-[100dvh] w-64 shrink-0 flex-col justify-between bg-leaf px-5 py-8 md:flex">
+      {/* desktop sidebar — a postcard-paper spine with an airmail edge */}
+      <aside className="sticky top-0 hidden h-[100dvh] w-64 shrink-0 flex-col justify-between border-r-[1.5px] border-leaf bg-paper px-5 py-8 md:flex">
         <div className="space-y-10">
-          <Logo tone="cream" />
+          <Logo />
           <nav className="flex flex-col gap-1.5" aria-label="Main">
             {DESKTOP_NAV.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to} to={to} end={end}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-semibold transition ${isActive ? "bg-mustard text-leaf" : "text-cream/80 hover:bg-cream/10 hover:text-cream"}`}
+                  `flex items-center gap-3 rounded-[4px] border-[1.5px] px-4 py-2.5 text-xs font-bold uppercase tracking-[0.1em] transition ${isActive ? "-rotate-1 border-leaf bg-tangerine text-leaf shadow-print-sm" : "border-transparent text-leaf hover:border-leaf/30"}`}
               >
                 <span className="relative"><Icon size={18} aria-hidden="true" />{dots[to] && <Dot />}</span>{label}
                 {dots[to] && <span className="sr-only"> (something new)</span>}
@@ -87,16 +87,16 @@ function Shell() {
             ))}
           </nav>
         </div>
-        <p className="font-hand text-xl leading-snug text-raspberry">two people,<br />two places,<br />one little world.</p>
+        <p className="font-hand text-2xl leading-snug text-raspberry-deep">two people,<br />two places,<br />one little world.</p>
       </aside>
 
       <main className="mx-auto w-full max-w-2xl px-5 pb-28 pt-6 md:pb-12 md:pt-10">
         <div className="no-print mb-6 flex items-center justify-between md:hidden">
           <Logo />
-          <Link to="/settings" aria-label="Settings" className="grid h-11 w-11 place-items-center rounded-full text-leaf hover:bg-leaf-soft"><Settings size={21} aria-hidden="true" /></Link>
+          <Link to="/settings" aria-label="Settings" className="grid h-11 w-11 place-items-center rounded-full text-leaf hover:bg-paper"><Settings size={21} aria-hidden="true" /></Link>
         </div>
         {!online && (
-          <p role="status" className="no-print mb-4 flex items-center gap-2 rounded-xl bg-mustard-soft px-4 py-2 text-sm text-mustard-deep">
+          <p role="status" className="no-print mb-4 flex items-center gap-2 rounded-[4px] border-[1.5px] border-leaf/20 bg-mustard-soft px-4 py-2 text-sm text-mustard-deep">
             <CloudOff size={15} aria-hidden="true" /> You're offline — this is what was last loaded. It'll refresh when you're back online.
           </p>
         )}
@@ -104,14 +104,14 @@ function Shell() {
       </main>
 
       {/* mobile bottom bar */}
-      <nav aria-label="Main" className="pb-safe fixed inset-x-0 bottom-0 z-20 bg-leaf md:hidden">
+      <nav aria-label="Main" className="no-print pb-safe fixed inset-x-0 bottom-0 z-20 border-t-[1.5px] border-leaf bg-paper md:hidden">
         <ul className="mx-auto flex max-w-md justify-around px-2 pt-2">
           {NAV.map(({ to, label, icon: Icon, end }) => (
             <li key={to}>
               <NavLink
                 to={to} end={end}
                 className={({ isActive }) =>
-                  `flex min-w-[58px] flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-[11px] font-semibold transition ${isActive ? "bg-mustard text-leaf" : "text-cream/75"}`}
+                  `flex min-w-[60px] flex-col items-center gap-1 rounded-[4px] border-[1.5px] px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.08em] transition ${isActive ? "-rotate-3 border-leaf bg-tangerine text-leaf" : "border-transparent text-leaf"}`}
               >
                 <span className="relative"><Icon size={21} aria-hidden="true" />{dots[to] && <Dot />}</span>{label}
                 {dots[to] && <span className="sr-only"> (something new)</span>}

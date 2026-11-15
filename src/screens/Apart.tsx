@@ -83,7 +83,7 @@ export function ApartTab() {
       <section>
         <h2 className="mb-2 text-2xl">On the go</h2>
         {open === null ? <Spinner label="Checking the post" /> : open.length === 0 ? (
-          <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">no missions yet — start one above</p>
+          <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">no missions yet — start one above</p>
         ) : <MissionList items={open} />}
       </section>
 
@@ -92,13 +92,13 @@ export function ApartTab() {
           <Shuffle size={15} aria-hidden="true" /> {browse ? "Hide the list" : "Pick one yourself"}
         </button>
         {browse && (
-          <ul className="divide-y divide-dashed divide-leaf/20 rounded-[20px] bg-paper shadow-card">
+          <ul className="divide-y divide-dashed divide-leaf/20 rounded-card bg-paper shadow-card">
             {browse.filter((a) => !filters.type || a.activity_type === filters.type).map((a) => {
               const SI = a.style ? STYLE_ICON[a.style] : Lock;
               return (
                 <li key={a.id} className="flex items-center gap-3 px-5 py-3">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-display text-lg font-semibold">{a.title}</p>
+                    <p className="truncate font-display text-lg">{a.title}</p>
                     <p className="flex items-center gap-1 text-xs text-muted"><SI size={12} aria-hidden="true" />{a.style ? STYLE_LABEL[a.style].label : ""} · {a.share_as ?? ""}</p>
                   </div>
                   <Button variant="outline" className="!min-h-[36px] !px-3 !py-1 text-xs" busy={busy === a.id} onClick={() => void start(a.id)}>Start</Button>
@@ -141,7 +141,7 @@ function MissionList({ items }: { items: MissionSummary[] }) {
             <Link to={`/play/apart/${m.mission_id}`} className="postcard flex items-center gap-3 !p-4 transition hover:-translate-y-px">
               <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${hot ? "bg-tomato-deep text-cream" : "bg-leaf-soft text-leaf"}`}><SI size={17} aria-hidden="true" /></span>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-lg font-semibold">{a.title}</p>
+                <p className="truncate font-display text-lg">{a.title}</p>
                 <p className="text-xs text-muted">{STYLE_LABEL[style].label} · {status}</p>
               </div>
               {a.just_us && <Ticket tone="tomato">Just us</Ticket>}
@@ -214,7 +214,7 @@ export function ApartMission() {
         {entries.length === 0 && summary.partner_entries === 0 && <p className="font-hand text-xl text-muted">nothing yet — you could go first</p>}
         {entries.map((e) => <EntryCard key={e.id} entry={e} who={nameOf(e.user_id)} mine={e.user_id === myId} />)}
         {sealed && summary.partner_entries > 0 && (
-          <div className="flex items-center gap-3 rounded-[20px] border-2 border-dashed border-raspberry px-5 py-4 text-raspberry-deep">
+          <div className="flex items-center gap-3 rounded-card border-2 border-dashed border-raspberry px-5 py-4 text-raspberry-deep">
             <Lock size={18} aria-hidden="true" />
             <p className="text-sm font-semibold">{partnerName} has shared. It opens as soon as you share yours.</p>
           </div>

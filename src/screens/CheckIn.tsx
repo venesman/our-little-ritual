@@ -98,7 +98,7 @@ export function CheckIn() {
         </section>
       ) : shared && data.mine ? (
         <section className="space-y-4">
-          <div className="flex items-center gap-3 rounded-[20px] border-2 border-dashed border-raspberry px-5 py-4 text-raspberry-deep">
+          <div className="flex items-center gap-3 rounded-card border-2 border-dashed border-raspberry px-5 py-4 text-raspberry-deep">
             <Lock size={18} aria-hidden="true" />
             <p className="text-sm font-semibold">Shared. {pName}'s answers — and yours, for them — open once they've shared too.</p>
           </div>
@@ -137,7 +137,7 @@ export function CheckIn() {
               </Field>
             )}
             <label className="flex items-start gap-3 rounded-2xl bg-cream px-4 py-3">
-              <input type="checkbox" className="mt-1 h-5 w-5 accent-[#20492F]" checked={draft.talk_on_call}
+              <input type="checkbox" className="mt-1 h-5 w-5 accent-[#0C1020]" checked={draft.talk_on_call}
                 onChange={(e) => { setDraft({ ...draft, talk_on_call: e.target.checked }); setSavedAt(null); }} />
               <span className="text-sm"><strong className="text-leaf">Let's talk about this on a call</strong><span className="block text-muted">Adds a gentle reminder on both Home screens once you share.</span></span>
             </label>
@@ -157,7 +157,7 @@ export function CheckIn() {
 
 function TalkBanner({ name, busy, onDone }: { name: string; busy: boolean; onDone: () => void }) {
   return (
-    <div className="flex items-start gap-3 rounded-[20px] bg-raspberry-soft px-5 py-4 text-raspberry-deep">
+    <div className="flex items-start gap-3 rounded-card bg-raspberry-soft px-5 py-4 text-raspberry-deep">
       <Phone size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
       <div className="flex-1">
         <p className="text-sm font-semibold">{name} would like to talk about their check-in on your next call.</p>
@@ -211,7 +211,7 @@ function History({ current, tz, onPick }: { current: string; tz: string; onPick:
   return (
     <section className="space-y-2">
       <h2 className="text-2xl">Past check-ins</h2>
-      <ul className="divide-y divide-dashed divide-leaf/20 rounded-[20px] bg-paper shadow-card">
+      <ul className="divide-y divide-dashed divide-leaf/20 rounded-card bg-paper shadow-card">
         {weeks.map((w, i) => {
           const status = w.revealed ? "Both shared" : w.my_status === "submitted" ? "You shared" : w.partner_submitted ? `${partner?.display_name || "Partner"} shared` : w.my_status === "draft" ? "Draft" : "Not done";
           const isOpen = w.week_start === current;
@@ -220,7 +220,7 @@ function History({ current, tz, onPick }: { current: string; tz: string; onPick:
               <button type="button" onClick={() => onPick(i === 0 ? null : w.week_start)} aria-current={isOpen ? "true" : undefined}
                 className={`flex w-full items-center justify-between gap-3 px-5 py-3 text-left ${isOpen ? "bg-mustard-soft" : ""}`}>
                 <span className="min-w-0">
-                  <span className="block font-display text-base font-semibold">{i === 0 ? "This week" : weekLabel(w.week_start, tz)}</span>
+                  <span className="block font-display text-base">{i === 0 ? "This week" : weekLabel(w.week_start, tz)}</span>
                   {w.revealed && <MoodRow m={moods[new Date(w.week_start).toISOString()]} partnerName={partner?.display_name || "Them"} />}
                 </span>
                 <span className="shrink-0 text-xs font-semibold text-muted">{status}</span>

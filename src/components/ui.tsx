@@ -2,8 +2,8 @@ import type React from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 /* ------------------------------------------------------------------ Button
- * primary: mustard with a printed offset shadow (leaf text ≈5.5:1)
- * dark:    leaf with cream text
+ * primary: lime with an ink border and a printed offset shadow
+ * dark:    ink with cream text
  * outline / ghost: quieter actions                                         */
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "dark" | "outline" | "ghost";
@@ -12,14 +12,14 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 export function Button({ variant = "primary", busy = false, className = "", children, disabled, ...props }: ButtonProps) {
   const base =
-    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition " +
-    "focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry focus-visible:ring-offset-2 focus-visible:ring-offset-cream " +
+    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[4px] px-5 py-2.5 text-sm font-bold transition " +
+    "focus:outline-none focus-visible:ring-2 focus-visible:ring-cornflower focus-visible:ring-offset-2 focus-visible:ring-offset-cream " +
     "disabled:cursor-not-allowed disabled:opacity-50";
   const variants = {
     primary:
-      "border-2 border-leaf bg-mustard text-leaf shadow-print hover:-translate-y-px active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
-    dark: "border-2 border-leaf bg-leaf text-cream hover:bg-leaf-deep",
-    outline: "border-2 border-leaf/80 bg-transparent text-leaf hover:bg-leaf-soft/60",
+      "border-[1.5px] border-leaf bg-mustard text-leaf shadow-print hover:-translate-y-px active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+    dark: "border-[1.5px] border-leaf bg-leaf text-cream hover:bg-leaf-deep",
+    outline: "border-[1.5px] border-dashed border-leaf bg-paper/60 text-leaf hover:bg-paper",
     ghost: "text-muted hover:bg-leaf-soft/60 hover:text-leaf",
   };
   return (
@@ -37,8 +37,8 @@ export function Card({ className = "", ...props }: React.HTMLAttributes<HTMLDivE
 
 /* ------------------------------------------------------------------ Fields */
 export const inputCls =
-  "w-full rounded-xl border-[1.5px] border-leaf/30 bg-paper px-4 py-3 text-leaf placeholder-faint " +
-  "focus:border-leaf focus:outline-none focus:ring-2 focus:ring-raspberry/50";
+  "w-full rounded-[4px] border-[1.5px] border-leaf/30 bg-paper px-4 py-3 text-leaf placeholder-faint " +
+  "focus:border-leaf focus:outline-none focus:ring-2 focus:ring-cornflower/40";
 
 export function Field({ label, hint, htmlFor, children }: { label: string; hint?: string; htmlFor: string; children: React.ReactNode }) {
   return (
@@ -53,7 +53,7 @@ export function Field({ label, hint, htmlFor, children }: { label: string; hint?
 export function ErrorNote({ children }: { children: React.ReactNode }) {
   if (!children) return null;
   return (
-    <p role="alert" className="flex items-start gap-2 rounded-xl border-l-4 border-tomato bg-tomato-soft/70 px-4 py-3 text-sm text-leaf">
+    <p role="alert" className="flex items-start gap-2 rounded-[4px] border-[1.5px] border-tomato bg-tomato-soft/70 px-4 py-3 text-sm text-leaf">
       <AlertCircle size={16} className="mt-0.5 shrink-0 text-tomato-deep" aria-hidden="true" />
       <span>{children}</span>
     </p>
@@ -73,12 +73,13 @@ export function Spinner({ label = "Loading" }: { label?: string }) {
 
 /** Two overlapping loops — the brand mark. Two people, two places, one shared middle. */
 export function Loops({ className = "", tone = "colour" }: { className?: string; tone?: "colour" | "cream" }) {
-  const a = tone === "cream" ? "#F4E7DE" : "#E480B4";
+  const a = tone === "cream" ? "#FCF2E8" : "#EA572C";
+  const b = tone === "cream" ? "#DBDE49" : "#4F7FC1";
   return (
     <svg viewBox="0 0 80 48" className={className} aria-hidden="true">
       <circle cx="28" cy="24" r="18" fill="none" stroke={a} strokeWidth="6" />
-      <circle cx="52" cy="24" r="18" fill="none" stroke="#ECB53D" strokeWidth="6" />
-      <circle cx="40" cy="24" r="4" fill="#DD3B26" />
+      <circle cx="52" cy="24" r="18" fill="none" stroke={b} strokeWidth="6" />
+      <circle cx="40" cy="24" r="4" fill="#C3B20D" />
     </svg>
   );
 }
@@ -87,9 +88,9 @@ export function Loops({ className = "", tone = "colour" }: { className?: string;
 export function LoopField({ className = "" }: { className?: string }) {
   return (
     <svg viewBox="200 -60 220 240" className={className} aria-hidden="true">
-      <circle cx="340" cy="34" r="78" fill="none" stroke="#E480B4" strokeWidth="18" />
-      <circle cx="252" cy="62" r="38" fill="none" stroke="#ECB53D" strokeWidth="13" />
-      <circle cx="372" cy="150" r="24" fill="#DD3B26" />
+      <circle cx="340" cy="34" r="78" fill="none" stroke="#EA572C" strokeWidth="18" />
+      <circle cx="252" cy="62" r="38" fill="none" stroke="#4F7FC1" strokeWidth="13" />
+      <circle cx="372" cy="150" r="24" fill="#C3B20D" />
     </svg>
   );
 }
@@ -97,9 +98,9 @@ export function LoopField({ className = "" }: { className?: string }) {
 /** Ticket-style label with notched ends. */
 export function Ticket({ children, tone = "raspberry", className = "" }: { children: React.ReactNode; tone?: "raspberry" | "mustard" | "tomato" | "leaf"; className?: string }) {
   const tones = {
-    raspberry: "bg-raspberry text-leaf",
-    mustard: "bg-mustard text-leaf",
-    tomato: "bg-tomato text-cream",
+    raspberry: "bg-lilac text-leaf",
+    mustard: "bg-gold text-leaf",
+    tomato: "bg-tomato text-leaf",
     leaf: "bg-leaf text-cream",
   };
   return (
@@ -113,14 +114,14 @@ export function Ticket({ children, tone = "raspberry", className = "" }: { child
 export function Stamp({ top, main, bottom, className = "" }: { top: string; main: string; bottom?: string; className?: string }) {
   return (
     <div
-      className={`stamp-in grid h-24 w-24 shrink-0 place-items-center rounded-full border-[2.5px] border-dashed border-tomato p-1 text-center text-tomato-deep ${className}`}
+      className={`stamp-in grid h-24 w-24 shrink-0 place-items-center rounded-full border-[2.5px] border-cornflower-deep p-1 text-center text-cornflower-deep ${className}`}
       style={{ transform: "rotate(-8deg)" }}
       aria-hidden="true"
     >
-      <div className="grid h-full w-full place-items-center rounded-full border border-tomato/60">
+      <div className="grid h-full w-full place-items-center rounded-full border-[1.5px] border-cornflower-deep/70">
         <div className="leading-tight">
           <div className="text-[8px] font-bold uppercase tracking-[0.18em]">{top}</div>
-          <div className="font-display text-lg font-bold">{main}</div>
+          <div className="font-display text-lg">{main}</div>
           {bottom && <div className="text-[8px] font-bold uppercase tracking-[0.18em]">{bottom}</div>}
         </div>
       </div>
@@ -132,7 +133,7 @@ export function Logo({ className = "", tone = "leaf" }: { className?: string; to
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
       <Loops className="h-7 w-11" tone={tone === "cream" ? "cream" : "colour"} />
-      <span className={`font-display text-lg font-semibold ${tone === "cream" ? "text-cream" : "text-leaf"}`} style={{ fontVariationSettings: '"SOFT" 100, "WONK" 1' }}>
+      <span className={`font-display text-xl ${tone === "cream" ? "text-cream" : "text-leaf"}`} style={{}}>
         Our Little Ritual
       </span>
     </span>

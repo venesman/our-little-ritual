@@ -64,7 +64,7 @@ export function WelcomeBack({ userId, ritualId }: { userId: string; ritualId?: s
       <p className="font-hand text-2xl text-raspberry-deep">welcome back ✦</p>
       <p className="mt-1 text-sm">{waiting.length ? "Lovely to see you. A few things are waiting just below — no rush." : "Lovely to see you. Pick up wherever feels easy."}</p>
       {ritualId && data.ritual_open && (
-        <Link to={`/rituals/${ritualId}`} className="mt-3 inline-flex min-h-[40px] items-center gap-2 rounded-full border-2 border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print-sm">
+        <Link to={`/rituals/${ritualId}`} className="mt-3 inline-flex min-h-[40px] items-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print-sm">
           Start with this week's ritual <ArrowRight size={15} aria-hidden="true" />
         </Link>
       )}

@@ -45,10 +45,10 @@ export function Play() {
         <p className="font-hand text-2xl text-raspberry-deep">{mode === "call" ? "on a call? open this together" : mode === "quiz" ? "who knows more? let's find out" : mode === "create" ? "make something together" : "together, on your own time"}</p>
         <h1 className="text-4xl">Play With Me</h1>
       </header>
-      <div className="grid grid-cols-2 gap-1 rounded-2xl bg-leaf p-1" role="radiogroup" aria-label="How are you playing?">
+      <div className="grid grid-cols-2 gap-1 rounded-card border-[1.5px] border-leaf bg-paper p-1" role="radiogroup" aria-label="How are you playing?">
         {([["call", "On a call", Phone], ["apart", "Apart, anytime", Hourglass], ["quiz", "Quiz Time", Trophy], ["create", "Creative Corner", Palette]] as const).map(([m, label, I]) => (
           <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-2 py-2.5 text-sm font-semibold transition ${mode === m ? "bg-mustard text-leaf" : "text-cream/80"}`}>
+            className={`inline-flex items-center justify-center gap-1.5 rounded-[4px] px-2 py-2.5 text-sm font-semibold transition ${mode === m ? "border-[1.5px] border-leaf bg-mustard text-leaf" : "border-[1.5px] border-transparent text-leaf/70"}`}>
             <I size={16} aria-hidden="true" />{label}
           </button>
         ))}
@@ -204,7 +204,7 @@ function PlayTab({ onCurious }: { onCurious: () => void }) {
       <button type="button" onClick={onCurious} className="postcard notebook flex w-full items-center gap-3 !p-4 text-left transition hover:-translate-y-px">
         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mustard-soft text-mustard-deep"><BookOpenCheck size={18} aria-hidden="true" /></span>
         <span className="min-w-0">
-          <span className="block font-display text-lg font-semibold">The Curious Club</span>
+          <span className="block font-display text-lg">The Curious Club</span>
           <span className="block text-sm text-muted">A mini research date: look something up, present it in a minute, talk it through.</span>
         </span>
       </button>
@@ -296,7 +296,7 @@ function PlanView({ state, skewMs, busy, favs, onAdvance, onReplace, onTimer, on
 
 function PlanTimeline({ plan, busy, onReplace }: { plan: PlanStep[]; busy: string | null; onReplace: (itemId: string) => void }) {
   return (
-    <ol className="rounded-[20px] bg-paper p-2 shadow-card" aria-label="Your call plan">
+    <ol className="rounded-card bg-paper p-2 shadow-card" aria-label="Your call plan">
       {plan.map((s, i) => {
         const Icon = s.status === "done" ? CircleCheck : s.status === "skipped" ? Redo2 : s.is_current ? CircleDot : Circle;
         return (
@@ -304,7 +304,7 @@ function PlanTimeline({ plan, busy, onReplace }: { plan: PlanStep[]; busy: strin
             <Icon size={18} className={s.status === "done" ? "text-leaf" : s.status === "skipped" ? "text-faint" : s.is_current ? "text-mustard-deep" : "text-faint"} aria-hidden="true" />
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{i + 1}. {SLOT_LABEL[s.slot]} · {s.planned_minutes} min</p>
-              <p className={`truncate font-display text-base font-semibold ${s.status === "skipped" ? "text-faint line-through" : ""}`}>{s.activity.title}</p>
+              <p className={`truncate font-display text-base ${s.status === "skipped" ? "text-faint line-through" : ""}`}>{s.activity.title}</p>
             </div>
             <span className="sr-only">{s.status === "shown" ? "now" : s.status}</span>
             {s.status === "planned" && (
@@ -378,7 +378,7 @@ function SharedTimer({ state, skewMs, busy, onAction }: {
       <div className="flex items-center gap-4">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">Shared timer · a guide, not a rule</p>
-          <p className={`font-display text-5xl font-semibold tabular-nums leading-none ${finished ? "text-tomato-deep" : ""}`} aria-live="polite">
+          <p className={`font-display text-5xl tabular-nums leading-none ${finished ? "text-tomato-deep" : ""}`} aria-live="polite">
             {finished ? "Time!" : formatClock(left)}
           </p>
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-leaf-soft"><div className="h-full rounded-full bg-raspberry transition-[width] duration-300" style={{ width: `${pct}%` }} /></div>
@@ -387,10 +387,10 @@ function SharedTimer({ state, skewMs, busy, onAction }: {
         <div className="flex shrink-0 flex-col gap-2">
           {running ? (
             <button type="button" onClick={() => onAction("pause")} disabled={busy === "timer"} aria-label="Pause timer"
-              className="grid h-12 w-12 place-items-center rounded-full border-2 border-leaf bg-mustard text-leaf shadow-print-sm"><Pause size={18} /></button>
+              className="grid h-12 w-12 place-items-center rounded-[4px] border-[1.5px] border-leaf bg-mustard text-leaf shadow-print-sm"><Pause size={18} /></button>
           ) : (
             <button type="button" onClick={() => onAction("start")} disabled={busy === "timer"} aria-label="Start timer"
-              className="grid h-12 w-12 place-items-center rounded-full border-2 border-leaf bg-mustard text-leaf shadow-print-sm"><PlayIcon size={18} /></button>
+              className="grid h-12 w-12 place-items-center rounded-[4px] border-[1.5px] border-leaf bg-mustard text-leaf shadow-print-sm"><PlayIcon size={18} /></button>
           )}
           <button type="button" onClick={() => onAction("reset", state.current ? state.current.activity.minutes * 60 : undefined)} disabled={busy === "timer"} aria-label="Reset timer"
             className="grid h-12 w-12 place-items-center rounded-full border-2 border-leaf/25 text-muted"><RotateCcw size={17} /></button>
@@ -509,13 +509,13 @@ function FavouritesTab({ onPlay }: { onPlay: () => void }) {
   };
 
   const list = (items: Favourite[], empty: string) => items.length === 0
-    ? <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">{empty}</p>
+    ? <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">{empty}</p>
     : (
-      <ul className="divide-y divide-dashed divide-leaf/20 rounded-[20px] bg-paper shadow-card">
+      <ul className="divide-y divide-dashed divide-leaf/20 rounded-card bg-paper shadow-card">
         {items.map((f) => (
           <li key={f.id} className="flex items-center gap-3 px-5 py-3">
             <div className="min-w-0 flex-1">
-              <p className="truncate font-display text-lg font-semibold">{f.activity.title}</p>
+              <p className="truncate font-display text-lg">{f.activity.title}</p>
               <p className="text-xs text-muted">{PLAY_CATEGORY[f.activity.category].label} · {f.activity.minutes} min{f.activity.mode === "apart" ? " · apart" : ""}{f.activity.just_us ? " · just us" : ""}</p>
             </div>
             <Button variant="outline" className="!min-h-[36px] !px-3 !py-1 text-xs" onClick={() => void playNow(f.activity)}>{f.activity.mode === "apart" ? "Start" : "Play now"}</Button>
@@ -548,7 +548,7 @@ function HistoryTab() {
   const [sessions, setSessions] = useState<PastSession[] | null>(null);
   useEffect(() => { listPastSessions().then(setSessions).catch(() => setSessions([])); }, []);
   if (sessions === null) return <Spinner label="Opening the logbook" />;
-  if (sessions.length === 0) return <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">your play sessions will collect here</p>;
+  if (sessions.length === 0) return <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">your play sessions will collect here</p>;
   return (
     <ul className="space-y-3">
       {sessions.map((s) => {

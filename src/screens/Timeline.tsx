@@ -97,7 +97,7 @@ export function Timeline() {
       </div>
 
       {shown.length === 0 ? (
-        <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">
+        <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">
           add milestones with a date in Our Story, or a trip in the Scrapbook, and they'll appear here
         </p>
       ) : (
@@ -129,7 +129,7 @@ export function Timeline() {
         </div>
       )}
       {suggestions.length > 0 && (
-        <div className="rounded-[20px] bg-paper p-4 shadow-card">
+        <div className="rounded-card bg-paper p-4 shadow-card">
           <p className="font-hand text-xl text-raspberry-deep">add to your story</p>
           <p className="mb-2 text-xs text-muted">Things that happened before you used the app count too. If you only know the month or year, that's fine.</p>
           <div className="flex flex-wrap gap-1.5">
@@ -153,7 +153,7 @@ function Item({ e }: { e: TimelineEvent }) {
     <div className={`flex items-center gap-3 rounded-2xl bg-paper p-3 shadow-card ${e.upcoming ? "border-2 border-dashed border-leaf/30" : ""}`}>
       <div className="min-w-0 flex-1">
         <p className="text-[11px] font-semibold text-muted">{range(e)} · {labelOf(e)}{e.upcoming && e.kind !== "visit" ? " · planned" : ""}</p>
-        <p className="font-display text-lg font-semibold leading-tight">{e.title}</p>
+        <p className="font-display text-lg leading-tight">{e.title}</p>
         {e.subtitle && <p className="line-clamp-2 text-sm text-muted">{e.subtitle}</p>}
       </div>
       {e.photo && <Thumb path={e.photo} />}

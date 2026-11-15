@@ -71,14 +71,14 @@ function Phrasebook({ deck, nameOf, myId, onEdit, onChange }: { deck: Card[]; na
     <div className="space-y-5">
       <ErrorNote>{error}</ErrorNote>
       {groups.map(([c, list]) => (
-        <section key={c} className="rounded-[20px] bg-paper p-4 shadow-card">
+        <section key={c} className="rounded-card bg-paper p-4 shadow-card">
           <h2 className="mb-2 font-sans text-xs font-bold uppercase tracking-[0.16em] text-muted">{c === "ours" ? "Words we taught each other" : CATEGORY_LABEL[c]}</h2>
           <ul className="divide-y divide-dashed divide-leaf/15">
             {list.map((w) => (
               <li key={w.key} className="flex items-start gap-3 py-2.5">
                 <span className="mt-0.5 w-14 shrink-0 text-[10px] font-bold uppercase tracking-wide text-muted">{LANG_LABEL[w.lang]}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="font-display text-lg font-semibold leading-tight">{w.phrase}</p>
+                  <p className="font-display text-lg leading-tight">{w.phrase}</p>
                   <p className="text-sm text-muted">{w.meaning}</p>
                   {w.pronunciation && <p className="text-xs italic text-muted">say: {w.pronunciation}</p>}
                   {w.note && <p className="text-xs text-muted">{w.note}</p>}
@@ -118,7 +118,7 @@ function Flashcards({ deck }: { deck: Card[] }) {
         <button type="button" role="radio" aria-checked={meaningFirst} className={chip(meaningFirst)} onClick={() => { setMeaningFirst(true); setFlipped(false); }}>Meaning first · say it on a call</button>
       </div>
       <button type="button" onClick={() => setFlipped(!flipped)} aria-label={flipped ? "Show the front" : "Turn the card over"}
-        className="flex min-h-[220px] w-full flex-col items-center justify-center gap-2 rounded-[24px] bg-paper px-6 py-8 text-center shadow-card">
+        className="flex min-h-[220px] w-full flex-col items-center justify-center gap-2 rounded-card bg-paper px-6 py-8 text-center shadow-card">
         <span className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted">{LANG_LABEL[c.lang]}{LANG_NATIVE[c.lang] ? ` · ${LANG_NATIVE[c.lang]}` : ""}</span>
         {!flipped ? (
           <>
@@ -161,7 +161,7 @@ function Quiz({ deck, pool }: { deck: Card[]; pool: Card[] }) {
   const q = qs[i];
   return (
     <div className="space-y-3">
-      <div className="rounded-[24px] bg-paper px-6 py-7 text-center shadow-card">
+      <div className="rounded-card bg-paper px-6 py-7 text-center shadow-card">
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted">{LANG_LABEL[q.card.lang]} · {i + 1} of {qs.length}</p>
         <p className="mt-1 font-display text-3xl leading-tight">{q.card.phrase}</p>
         <p className="mt-1 text-xs text-muted">What does it mean?</p>

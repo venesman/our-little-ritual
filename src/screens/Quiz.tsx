@@ -91,7 +91,7 @@ export function QuizTab() {
               <li key={m.id}>
                 <Link to={`/play/quiz/${m.id}`} className="postcard flex items-center gap-3 !p-4 transition hover:-translate-y-px">
                   <div className="min-w-0 flex-1">
-                    <p className="font-display text-lg font-semibold">{scoreLine(m.scores, myId, me?.display_name || "You", partner?.display_name || "Partner")}</p>
+                    <p className="font-display text-lg">{scoreLine(m.scores, myId, me?.display_name || "You", partner?.display_name || "Partner")}</p>
                     <p className="truncate text-xs text-muted">{shortDate(m.finished_at ?? m.created_at)} · {m.categories.map(catLabel).join(" · ")}</p>
                   </div>
                 </Link>
@@ -145,7 +145,7 @@ export function QuizMatchScreen() {
           <p className="font-display text-2xl text-muted">–</p>
           <div><p className="truncate text-sm font-semibold text-muted">{partner?.display_name || "Partner"}</p><p className="font-display text-4xl">{m.partner_score}</p></div>
         </div>
-        {m.status === "finished" && <p className="mt-2 font-display text-lg font-semibold">{verdict(m.my_score, m.partner_score, pName)}</p>}
+        {m.status === "finished" && <p className="mt-2 font-display text-lg">{verdict(m.my_score, m.partner_score, pName)}</p>}
         {m.status === "active" && <p className="mt-2 text-xs text-muted">{pName}'s score only counts questions you've both answered — no peeking.</p>}
         {m.status === "ended" && <p className="mt-2 text-sm text-muted">This match was ended early.</p>}
       </header>
@@ -154,14 +154,14 @@ export function QuizMatchScreen() {
       {/* what to do now */}
       {!over && m.next === "pick" && current && (
         <section className="postcard space-y-3 !p-5" aria-label="Pick a category">
-          <p className="font-display text-lg font-semibold">Round {current.round_no}: your pick</p>
+          <p className="font-display text-lg">Round {current.round_no}: your pick</p>
           <div className="grid gap-2">
             {current.offered.map((c) => (
               <button key={c} type="button" disabled={!!busy} onClick={async () => {
                 setBusy(c); setError(null);
                 try { await pickCategory(current.id, c); const s = await matchState(id); setM(s); setPlaying(s.rounds.find((r) => r.id === current.id) ?? null); }
                 catch (e) { setError(friendlyError(e)); } finally { setBusy(null); }
-              }} className="min-h-[52px] rounded-2xl border-2 border-leaf bg-paper px-4 text-left font-display text-lg font-semibold text-leaf shadow-print-sm transition hover:-translate-y-px">
+              }} className="min-h-[52px] rounded-2xl border-2 border-leaf bg-paper px-4 text-left font-display text-lg text-leaf shadow-print-sm transition hover:-translate-y-px">
                 {catLabel(c)}
               </button>
             ))}
@@ -170,13 +170,13 @@ export function QuizMatchScreen() {
       )}
       {!over && m.next === "play" && current && (
         <section className="postcard space-y-3 !p-5">
-          <p className="font-display text-lg font-semibold">Round {current.round_no} · {catLabel(current.category)}</p>
+          <p className="font-display text-lg">Round {current.round_no} · {catLabel(current.category)}</p>
           <p className="text-sm text-muted">{current.picker_id === myId ? "You picked this one." : `${pName} picked this one.`} 3 questions, 20 seconds each.</p>
           <Button onClick={() => setPlaying(current)}>{current.my_done > 0 ? "Carry on" : "Play the round"}</Button>
         </section>
       )}
       {!over && m.next === "wait" && (
-        <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">
+        <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">
           {current ? `waiting for ${pName} to pick round ${current.round_no}` : `all done — waiting for ${pName} to finish`}
         </p>
       )}
@@ -212,7 +212,7 @@ function RoundRow({ r, myId, pName, showReview }: { r: QuizRound; myId: string |
   return (
     <li className="rounded-2xl bg-paper p-3 shadow-card">
       <button type="button" onClick={() => setOpen((v) => !v)} disabled={!showReview} className="flex w-full items-center gap-3 text-left">
-        <span className="font-display text-sm font-semibold text-muted">R{r.round_no}</span>
+        <span className="font-display text-sm text-muted">R{r.round_no}</span>
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{catLabel(r.category)}</span>
           <span className="block text-[11px] text-muted">picked by {r.picker_id === myId ? "you" : pName}</span>
@@ -308,7 +308,7 @@ function PlayRound({ round, partnerName, onDone }: { round: QuizRound; partnerNa
           <div className="h-2 overflow-hidden rounded-full bg-leaf-soft" role="progressbar" aria-label="Time left" aria-valuemin={0} aria-valuemax={20} aria-valuenow={Math.ceil(left)}>
             <div className={`h-full rounded-full transition-[width] duration-100 ${left < 6 ? "bg-tomato" : "bg-mustard"}`} style={{ width: `${(left / 20) * 100}%` }} />
           </div>
-          <p className="font-display text-xl font-semibold leading-snug">{q.question}</p>
+          <p className="font-display text-xl leading-snug">{q.question}</p>
           <div className="grid gap-2">
             {q.options.map((o, i) => {
               const isRight = result && i === result.right;
@@ -326,7 +326,7 @@ function PlayRound({ round, partnerName, onDone }: { round: QuizRound; partnerNa
           </div>
           {result && (
             <div className="space-y-2">
-              <p className="font-display text-lg font-semibold">{result.timed_out ? "Time's up!" : result.correct ? "Right! ✦" : "Not quite"}</p>
+              <p className="font-display text-lg">{result.timed_out ? "Time's up!" : result.correct ? "Right! ✦" : "Not quite"}</p>
               {result.partner
                 ? <p className="text-sm text-muted">{partnerName} {result.partner.correct ? "got it right" : result.partner.choice < 0 ? "ran out of time" : "missed this one"}.</p>
                 : <p className="text-sm text-muted">{partnerName} hasn't played this one yet.</p>}
@@ -391,7 +391,7 @@ export function QuizQuestions() {
       </form>
 
       {list === null ? <Spinner label="Loading" /> : list.length === 0 ? (
-        <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">no questions of your own yet</p>
+        <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">no questions of your own yet</p>
       ) : (
         <ul className="space-y-2">
           {list.map((q) => (
@@ -504,13 +504,13 @@ function LiveMatch({ initial, onReload }: { initial: QuizMatch; onReload: () => 
   if (m.live_phase === "lobby") {
     body = m.started_by === myId ? (
       <div className="postcard space-y-2 !p-5 text-center">
-        <p className="font-display text-lg font-semibold">Waiting for {pName} to join…</p>
+        <p className="font-display text-lg">Waiting for {pName} to join…</p>
         <p className="text-sm text-muted">Ask them to open Play → Quiz Time (it's also in their "For you" on Home).</p>
         <span className="mx-auto block h-3 w-3 animate-pulse rounded-full bg-raspberry" aria-hidden="true" />
       </div>
     ) : (
       <div className="postcard space-y-3 !p-5 text-center">
-        <p className="font-display text-lg font-semibold">{pName} started a live match</p>
+        <p className="font-display text-lg">{pName} started a live match</p>
         <Button busy={busy === "join"} onClick={async () => {
           setBusy("join"); try { await liveJoin(m.id); await refresh(); } catch (e) { setError(friendlyError(e)); } finally { setBusy(null); }
         }}>Join</Button>
@@ -519,17 +519,17 @@ function LiveMatch({ initial, onReload }: { initial: QuizMatch; onReload: () => 
   } else if (m.live_phase === "pick" && round) {
     body = round.picker_id === myId ? (
       <section className="postcard space-y-3 !p-5" aria-label="Pick a category">
-        <p className="font-display text-lg font-semibold">Your pick for round {round.round_no}</p>
+        <p className="font-display text-lg">Your pick for round {round.round_no}</p>
         <div className="grid gap-2">
           {round.offered.map((c) => (
             <button key={c} type="button" disabled={!!busy} onClick={async () => {
               setBusy(c); try { await pickCategory(round.id, c); await refresh(); } catch (e) { setError(friendlyError(e)); } finally { setBusy(null); }
-            }} className="min-h-[52px] rounded-2xl border-2 border-leaf bg-paper px-4 text-left font-display text-lg font-semibold text-leaf shadow-print-sm">{catLabel(c)}</button>
+            }} className="min-h-[52px] rounded-2xl border-2 border-leaf bg-paper px-4 text-left font-display text-lg text-leaf shadow-print-sm">{catLabel(c)}</button>
           ))}
         </div>
       </section>
     ) : (
-      <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">{pName} is picking round {round.round_no}'s category…</p>
+      <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">{pName} is picking round {round.round_no}'s category…</p>
     );
   } else if (m.live_phase === "question") {
     body = countdown > 0 ? (
@@ -543,7 +543,7 @@ function LiveMatch({ initial, onReload }: { initial: QuizMatch; onReload: () => 
         <div className="h-2 overflow-hidden rounded-full bg-leaf-soft" role="progressbar" aria-label="Time left" aria-valuemin={0} aria-valuemax={m.seconds} aria-valuenow={Math.ceil(left)}>
           <div className={`h-full rounded-full ${left < 6 ? "bg-tomato" : "bg-mustard"}`} style={{ width: `${(left / m.seconds) * 100}%` }} />
         </div>
-        <p className="font-display text-xl font-semibold leading-snug">{q.question}</p>
+        <p className="font-display text-xl leading-snug">{q.question}</p>
         <div className="grid gap-2">
           {q.options.map((o, i) => (
             <button key={i} type="button" disabled={!!mine || left <= 0} onClick={() => void answer(i)}
@@ -560,7 +560,7 @@ function LiveMatch({ initial, onReload }: { initial: QuizMatch; onReload: () => 
     const pId = m.partner_id;
     body = rv ? (
       <section className="postcard space-y-3 !p-5">
-        <p className="font-display text-lg font-semibold leading-snug">{rv.question}</p>
+        <p className="font-display text-lg leading-snug">{rv.question}</p>
         <div className="grid gap-2">
           {rv.options.map((o, i) => {
             const me1 = qs.mine && qs.mine.choice === i; const them = qs.partner && qs.partner !== "hidden" && qs.partner.choice === i;

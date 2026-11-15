@@ -120,7 +120,7 @@ export function CreativeTab() {
                     {c.cover_path || c.preview ? <Pic path={c.cover_path ?? c.preview} className="h-full w-full object-cover" />
                       : <p className="p-3 font-hand text-lg leading-snug text-leaf">{c.title}</p>}
                   </div>
-                  <p className="mt-2 truncate font-display text-sm font-semibold">{c.kind === "mixtape" && c.settings.name ? c.settings.name : c.title || FORMATS[c.kind].label}</p>
+                  <p className="mt-2 truncate font-display text-sm">{c.kind === "mixtape" && c.settings.name ? c.settings.name : c.title || FORMATS[c.kind].label}</p>
                   <p className="text-[11px] text-muted">{FORMATS[c.kind].label}</p>
                 </Link>
               </li>
@@ -263,7 +263,7 @@ function Fold({ c, myId, pName, busy, onAdd }: { c: Creation; myId: string | nul
       </div>
     );
   }
-  if (mine) return <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">your half is folded away — waiting for {pName}</p>;
+  if (mine) return <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">your half is folded away — waiting for {pName}</p>;
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted">
@@ -373,7 +373,7 @@ function Board({ c, myId, nameOf, busy, onAdd, onRemove }: {
   useEffect(() => { setFile(null); setCap(""); }, [c.parts.length]);
   return (
     <div className="space-y-3">
-      {c.parts.length === 0 ? <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">pin the first photo</p> : (
+      {c.parts.length === 0 ? <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">pin the first photo</p> : (
         <ul className="grid grid-cols-2 gap-3">
           {c.parts.map((p, i) => (
             <li key={p.id} className={`rounded-sm bg-paper p-1.5 pb-2 shadow-card ${i % 2 ? "rotate-1" : "-rotate-1"}`}>

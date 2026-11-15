@@ -11,13 +11,13 @@ type Point = { x: number; y: number };
 type Stroke = { color: string; size: number; erase: boolean; points: Point[] };
 
 const COLOURS = [
-  { name: "Leaf", hex: "#20492F" },
-  { name: "Raspberry", hex: "#E480B4" },
-  { name: "Mustard", hex: "#ECB53D" },
-  { name: "Tomato", hex: "#DD3B26" },
+  { name: "Leaf", hex: "#0C1020" },
+  { name: "Raspberry", hex: "#EA572C" },
+  { name: "Mustard", hex: "#DBDE49" },
+  { name: "Tomato", hex: "#EA572C" },
   { name: "Ink", hex: "#1F1B18" },
 ];
-const PAPER = "#FBF5F0";
+const PAPER = "#FFFAF3";
 const LOGICAL_W = 800; // strokes are stored in a fixed 800×600 space, so they scale with the screen
 const LOGICAL_H = 600;
 

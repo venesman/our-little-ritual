@@ -84,16 +84,16 @@ export function Mailbox() {
           <h1 className="text-4xl">Our Mailbox</h1>
         </div>
         {section === "letters" && (
-          <Link to="/mailbox/new" className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
+          <Link to="/mailbox/new" className="inline-flex min-h-[44px] items-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
             <PenLine size={16} aria-hidden="true" /> Write
           </Link>
         )}
       </header>
 
-      <div className="grid grid-cols-2 rounded-full bg-leaf p-1" role="tablist" aria-label="Mailbox">
+      <div className="grid grid-cols-2 rounded-card border-[1.5px] border-leaf bg-paper p-1" role="tablist" aria-label="Mailbox">
         {([["letters", "Letters"], ["whims", "Whims"]] as const).map(([k, label]) => (
           <button key={k} role="tab" aria-selected={section === k} onClick={() => setParams(k === "whims" ? { section: "whims" } : {}, { replace: true })}
-            className={`min-h-[40px] rounded-full text-sm font-semibold ${section === k ? "bg-mustard text-leaf" : "text-cream"}`}>{label}</button>
+            className={`min-h-[40px] rounded-[4px] border-[1.5px] text-sm font-semibold ${section === k ? "border-leaf bg-mustard text-leaf" : "border-transparent text-leaf/70"}`}>{label}</button>
         ))}
       </div>
 
@@ -110,14 +110,14 @@ export function Mailbox() {
       {tab === "inbox" && sealed.length > 0 && (
         <ul className="space-y-2" aria-label="Letters on their way">
           {sealed.map((s) => (
-            <li key={s.id} className="envelope relative overflow-hidden rounded-[18px] bg-paper px-4 pb-3 pt-[4.5rem] shadow-card">
+            <li key={s.id} className="envelope relative overflow-hidden rounded-card bg-paper px-4 pb-3 pt-[4.5rem] shadow-card">
               {/* envelope flap + wax seal */}
               <span aria-hidden="true" className="envelope-flap absolute inset-x-0 top-0 h-12" />
-              <span aria-hidden="true" className="absolute left-1/2 top-7 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-tomato font-display text-lg text-cream shadow-[0_2px_0_0_#A82815]">
+              <span aria-hidden="true" className="absolute left-1/2 top-7 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-tomato font-display text-lg text-cream shadow-[0_2px_0_0_#B23A14]">
                 {KIND[s.kind].stamp}
               </span>
               <div className="text-center">
-                <p className="font-display text-base font-semibold">A sealed {KIND[s.kind].label.toLowerCase()} from {pName}</p>
+                <p className="font-display text-base">A sealed {KIND[s.kind].label.toLowerCase()} from {pName}</p>
                 <p className="text-xs text-muted">Opens {formatInZone(new Date(s.reveal_at), tz)}</p>
               </div>
               <span className="sr-only">Sealed until then.</span>
@@ -127,7 +127,7 @@ export function Mailbox() {
       )}
 
       {letters === null ? <Spinner label="Checking the post" /> : lists[tab].length === 0 ? (
-        <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">{empty[tab]}</p>
+        <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">{empty[tab]}</p>
       ) : (
         <ul className="space-y-2">
           {lists[tab].map((l) => {
@@ -142,7 +142,7 @@ export function Mailbox() {
                   className={`postcard flex items-center gap-3 !p-4 transition hover:-translate-y-px ${!mine && !l.opened_at ? "ring-2 ring-raspberry" : ""}`}>
                   <Stamp kind={l.kind} size="sm" />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-display text-lg font-semibold">{l.title || KIND[l.kind].label}</p>
+                    <p className="truncate font-display text-lg">{l.title || KIND[l.kind].label}</p>
                     <p className="truncate text-xs text-muted">{status}{l.voice_path ? " · 🎙" : ""}{l.image_path ? " · 📷" : ""}{l.song_url ? " · 🎵" : ""}</p>
                   </div>
                   {!mine && !l.opened_at && <span className="rounded-full bg-raspberry px-2 py-0.5 text-[11px] font-bold text-leaf">New</span>}

@@ -29,7 +29,7 @@ export function PersonalityList() {
           return (
             <li key={q.code}>
               <Link to={`/play/personality/${q.code}`} className="flex h-full flex-col justify-between rounded-2xl bg-paper p-3 shadow-card transition hover:-translate-y-px">
-                <p className="font-display text-sm font-semibold leading-snug">{q.title}</p>
+                <p className="font-display text-sm leading-snug">{q.title}</p>
                 <p className={`mt-2 text-[11px] font-semibold ${e?.partner_taken && !e?.mine ? "text-raspberry-deep" : "text-muted"}`}>{state === null ? "…" : status}</p>
               </Link>
             </li>
@@ -43,9 +43,9 @@ export function PersonalityList() {
 function ResultCard({ quiz, result, who, tone }: { quiz: PQuiz; result: number; who: string; tone: "mustard" | "raspberry" }) {
   const r = quiz.results[result];
   return (
-    <div className={`rounded-[20px] border-2 p-4 shadow-card ${tone === "mustard" ? "border-mustard bg-mustard-soft/50" : "border-raspberry bg-raspberry-soft/50"}`}>
+    <div className={`rounded-card border-2 p-4 shadow-card ${tone === "mustard" ? "border-mustard bg-mustard-soft/50" : "border-raspberry bg-raspberry-soft/50"}`}>
       <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted">{who}</p>
-      <p className="font-display text-2xl font-semibold leading-tight">{r.name}</p>
+      <p className="font-display text-2xl leading-tight">{r.name}</p>
       <p className="mt-1 text-sm">{r.text}</p>
       <p className="mt-2 font-hand text-lg leading-snug text-raspberry-deep">For you two: {r.us}</p>
     </div>
@@ -94,7 +94,7 @@ export function PersonalityQuiz() {
             {entry.my_row && <SaveToScrapbook kind="personality" refId={entry.my_row} prompt />}
           </>
         ) : (
-          <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">{pName}'s card appears once they've taken it too</p>
+          <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">{pName}'s card appears once they've taken it too</p>
         )}
         <Button variant="ghost" onClick={start}><RotateCcw size={14} aria-hidden="true" /> Retake</Button>
       </div>
@@ -139,7 +139,7 @@ export function PersonalityQuiz() {
       <div className="flex items-center justify-between"><Ticket tone="mustard">{quiz.title}</Ticket><p className="text-sm font-semibold text-muted">{i + 1} of 6</p></div>
       <div className="h-1.5 overflow-hidden rounded-full bg-leaf-soft"><div className="h-full rounded-full bg-mustard" style={{ width: `${(i / 6) * 100}%` }} /></div>
       <section className="postcard space-y-4 !p-5">
-        <p className="font-display text-xl font-semibold leading-snug">{q.q}</p>
+        <p className="font-display text-xl leading-snug">{q.q}</p>
         <div className="grid gap-2">
           {q.a.map((a, k) => (
             <button key={k} type="button" disabled={busy} onClick={async () => {

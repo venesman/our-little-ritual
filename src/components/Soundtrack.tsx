@@ -81,7 +81,7 @@ export function OurSoundtrack() {
       )}
 
       {items === null ? null : shown.length === 0 ? (
-        <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">
+        <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">
           {day ? "no songs from that day" : "songs you share in letters or add here will gather into your soundtrack"}
         </p>
       ) : months.map(([ym, list]) => (

@@ -14,7 +14,7 @@ export function Welcome() {
           <LoopField className="h-full w-full" />
         </div>
         <svg viewBox="0 0 100 100" className="pointer-events-none absolute -bottom-14 right-8 hidden h-40 w-40 md:block" aria-hidden="true">
-          <circle cx="50" cy="50" r="36" fill="none" stroke="#ECB53D" strokeWidth="10" />
+          <circle cx="50" cy="50" r="36" fill="none" stroke="#DBDE49" strokeWidth="10" />
         </svg>
         <div className="relative"><Logo tone="cream" /></div>
         <div className="relative mt-24 max-w-sm md:mt-0">

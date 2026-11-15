@@ -59,7 +59,7 @@ export function Keepsake() {
       {!k ? (!error && <Spinner label="Opening your year" />) : (
         <article className="print-doc space-y-5">
           {/* cover */}
-          <section className="break-inside-avoid rounded-[24px] bg-leaf px-6 py-10 text-center text-cream shadow-card">
+          <section className="break-inside-avoid rounded-card bg-leaf px-6 py-10 text-center text-cream shadow-card">
             <p className="font-hand text-3xl text-mustard">our year together</p>
             <h1 className="font-display text-7xl text-cream">{k.year}</h1>
             <p className="mt-2 text-sm text-cream/80">{names}{k.year === current ? " · so far" : ""}</p>
@@ -157,7 +157,7 @@ function Back() {
 
 function Section({ hand, title, children }: { hand: string; title: string; children: React.ReactNode }) {
   return (
-    <section className="break-inside-avoid rounded-[20px] bg-paper p-5 shadow-card">
+    <section className="break-inside-avoid rounded-card bg-paper p-5 shadow-card">
       <p className="font-hand text-xl text-raspberry-deep">{hand}</p>
       <h2 className="mb-3 text-2xl">{title}</h2>
       {children}

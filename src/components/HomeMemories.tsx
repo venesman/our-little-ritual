@@ -62,7 +62,7 @@ export function OnThisDay() {
       </div>
       <div className="min-w-0">
         <p className="font-hand text-lg text-raspberry-deep">{hit.label}</p>
-        <p className="truncate font-display text-base font-semibold">{hit.m.title}</p>
+        <p className="truncate font-display text-base">{hit.m.title}</p>
       </div>
     </Link>
   );

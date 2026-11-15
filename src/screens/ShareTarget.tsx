@@ -20,8 +20,8 @@ export function ShareTarget() {
     <div className="fade-up space-y-4">
       <p className="font-hand text-2xl text-raspberry-deep">a song to share</p>
       <h1 className="text-3xl">Where should it go?</h1>
-      <Link to={`/mailbox/new?song=${enc}`} className="postcard flex items-center gap-3 !p-4"><Mail size={20} aria-hidden="true" /><span className="font-display text-lg font-semibold">Add it to a letter</span></Link>
-      <Link to={`/us?tab=story&song=${enc}`} className="postcard flex items-center gap-3 !p-4"><Music2 size={20} aria-hidden="true" /><span className="font-display text-lg font-semibold">Add it to our soundtrack</span></Link>
+      <Link to={`/mailbox/new?song=${enc}`} className="postcard flex items-center gap-3 !p-4"><Mail size={20} aria-hidden="true" /><span className="font-display text-lg">Add it to a letter</span></Link>
+      <Link to={`/us?tab=story&song=${enc}`} className="postcard flex items-center gap-3 !p-4"><Music2 size={20} aria-hidden="true" /><span className="font-display text-lg">Add it to our soundtrack</span></Link>
     </div>
   );
 }

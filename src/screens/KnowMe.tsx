@@ -82,7 +82,7 @@ export function KnowMeScreen() {
       <header>
         <p className="font-hand text-2xl text-raspberry-deep">how well do you know me?</p>
         {game.status === "finished" && mine && theirs && (
-          <p className="font-display text-xl font-semibold">You knew {pName} {theirs.score}/10 · {pName} knew you {mine.score}/10 ✦</p>
+          <p className="font-display text-xl">You knew {pName} {theirs.score}/10 · {pName} knew you {mine.score}/10 ✦</p>
         )}
       </header>
       <ErrorNote>{error}</ErrorNote>
@@ -127,7 +127,7 @@ function AboutMe({ r, pName, onDone }: { r: KnowMeRound; pName: string; onDone: 
   const [error, setError] = useState<string | null>(null);
   return (
     <section className="postcard space-y-3 !p-5" aria-label="About you">
-      <p className="font-display text-lg font-semibold">About you</p>
+      <p className="font-display text-lg">About you</p>
       {!r.answered ? (
         <>
           <p className="text-sm text-muted">Answer honestly — {pName} won't see these until they've guessed.</p>
@@ -171,7 +171,7 @@ function AboutMe({ r, pName, onDone }: { r: KnowMeRound; pName: string; onDone: 
 function AboutThem({ r, pName, onDone }: { r: KnowMeRound; pName: string; onDone: () => Promise<void> }) {
   return (
     <section className="postcard space-y-3 !p-5" aria-label={`About ${pName}`}>
-      <p className="font-display text-lg font-semibold">About {pName}</p>
+      <p className="font-display text-lg">About {pName}</p>
       {!r.guessed ? (
         <>
           <p className="text-sm text-muted">What would {pName} say? Go with your gut.</p>

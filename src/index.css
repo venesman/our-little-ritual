@@ -6,14 +6,15 @@
   html { -webkit-text-size-adjust: 100%; }
   body {
     @apply bg-cream font-sans text-leaf antialiased;
-    /* paper grain */
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .13 0 0 0 0 .29 0 0 0 0 .18 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    /* fine printed dot screen, like the back of a postcard */
+    background-image: radial-gradient(rgba(12,16,32,0.05) 1px, transparent 1.2px);
+    background-size: 7px 7px;
   }
   /* 16px inputs stop iOS Safari zooming when a field is focused. */
   input, select, textarea { font-size: 16px; }
   h1, h2, h3 {
-    @apply font-display font-semibold tracking-tight text-leaf;
-    font-variation-settings: "SOFT" 100, "WONK" 1;
+    @apply font-display font-normal text-leaf;
+    letter-spacing: -0.005em;
   }
   ::selection { @apply bg-raspberry-soft; }
 }
@@ -21,14 +22,26 @@
 @layer components {
   /* Postcard: cream paper with a thin inset double rule, like a printed card. */
   .postcard {
-    @apply relative rounded-[20px] bg-paper p-6 shadow-card;
-    outline: 1.5px solid rgba(32, 73, 47, 0.18);
-    outline-offset: -8px;
+    @apply relative rounded-card bg-paper p-6 shadow-card;
+    outline: 1px solid rgba(12, 16, 32, 0.14);
+    outline-offset: -7px;
   }
+  /* A postcard with an airmail edge along the top. */
+  .postcard-air { @apply overflow-hidden; padding-top: calc(1.5rem + 9px); }
+  .postcard-air::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 9px;
+    background: repeating-linear-gradient(135deg, #EA572C 0 12px, #FFFAF3 12px 20px, #4F7FC1 20px 32px, #FFFAF3 32px 40px);
+  }
+  /* Polaroid-style photo: white border, deeper bottom, a gentle tilt. */
+  .polaroid { @apply bg-white p-2 pb-7 shadow-photo; }
+  /* Washi tape strip for pinning photos. */
+  .tape { background: rgba(219, 222, 73, 0.85); }
+  /* Perforated stamp edge. */
+  .perforated { background: radial-gradient(circle at 4px 4px, #FFFAF3 3px, transparent 3.5px) -4px -4px / 8px 8px; padding: 6px; }
   /* Airmail edge for letter-like cards (invitations). */
   .airmail {
     background-image: repeating-linear-gradient(135deg,
-      #DD3B26 0 12px, transparent 12px 20px, #20492F 20px 32px, transparent 32px 40px);
+      #EA572C 0 12px, transparent 12px 20px, #4F7FC1 20px 32px, transparent 32px 40px);
   }
   /* Ticket: notched ends cut with radial masks. */
   .ticket {

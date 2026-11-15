@@ -19,7 +19,7 @@ export function SongCard({ song, note, compact }: { song: Song; note?: string | 
         {cover ? <img src={cover} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center"><Music2 size={20} aria-hidden="true" /></div>}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="truncate font-display text-lg font-semibold leading-tight">{song.title || "A song for you"}</p>
+        <p className="truncate font-display text-lg leading-tight">{song.title || "A song for you"}</p>
         <p className="truncate text-sm text-cream/80">{[song.artist, song.album].filter(Boolean).join(" · ") || "Open in Spotify"}</p>
         {note && <p className="mt-1 font-hand text-base leading-snug text-mustard">“{note}”</p>}
       </div>
@@ -72,7 +72,7 @@ export function SongPicker({ value, onChange, note, onNote, noteLabel = "Why thi
         <button type="button" disabled={busy} onClick={async () => {
           if (link) { void use(link); return; }
           try { const t = await navigator.clipboard.readText(); setLink(t); void use(t); } catch { setError("Paste the link into the box, then tap Add."); }
-        }} className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border-2 border-leaf bg-mustard px-3 text-sm font-semibold text-leaf">
+        }} className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-3 text-sm font-semibold text-leaf">
           <ClipboardPaste size={15} aria-hidden="true" /> {busy ? "Finding…" : link ? "Add" : "Paste"}
         </button>
       </div>

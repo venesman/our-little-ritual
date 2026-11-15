@@ -42,7 +42,7 @@ export function OurStory() {
         <LayerTitle n={1} title="About each of us" />
         {me && <PersonCard person={me} isMe onError={setError} />}
         {partner ? <PersonCard person={partner} isMe={false} onError={setError} />
-          : <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">your partner's page appears once they join</p>}
+          : <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-6 text-center font-hand text-xl text-muted">your partner's page appears once they join</p>}
       </section>
 
       <section className="space-y-3">
@@ -64,7 +64,7 @@ export function OurStory() {
 function LayerTitle({ n, title }: { n: number; title: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="grid h-8 w-8 place-items-center rounded-full bg-mustard font-display text-sm font-bold text-leaf">{n}</span>
+      <span className="grid h-8 w-8 place-items-center rounded-full bg-mustard font-display text-sm text-leaf">{n}</span>
       <h2 className="text-2xl">{title}</h2>
     </div>
   );
@@ -400,7 +400,7 @@ function MilestonesSection({ onError }: { onError: (e: string | null) => void })
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
                   {m.tag ? TAG_LABEL[m.tag] : MILESTONE_LABEL[m.kind]}{m.happened_on ? ` · ${fmtPrecise(m.happened_on, m.date_precision)}` : ""}{m.happened_on && m.happened_on > todayIso() ? " · planned" : ""}
                 </p>
-                <p className="font-display text-lg font-semibold">{m.title}</p>
+                <p className="font-display text-lg">{m.title}</p>
                 {m.note && <p className="text-sm text-muted">{m.note}</p>}
                 {docs !== null && (() => { const n = docs.filter((d) => d.attached_kind === "milestone" && d.ref_id === m.id).length; return (
                   <button type="button" onClick={() => setOpenDocs(openDocs === m.id ? null : m.id)} className="mt-1 flex items-center gap-1 text-xs font-semibold text-leaf">

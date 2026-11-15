@@ -180,7 +180,7 @@ export function ExportStory() {
               <legend className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-leaf">{title}</legend>
               {keys.map(([k, label]) => (
                 <label key={k} className="flex items-center gap-3 text-sm">
-                  <input type="checkbox" className="h-5 w-5 accent-[#20492F]" checked={inc[k]} onChange={(e) => setInc({ ...inc, [k]: e.target.checked })} />
+                  <input type="checkbox" className="h-5 w-5 accent-[#0C1020]" checked={inc[k]} onChange={(e) => setInc({ ...inc, [k]: e.target.checked })} />
                   {label}
                 </label>
               ))}
@@ -201,7 +201,7 @@ export function ExportStory() {
             <h2 className="text-lg">Written words</h2>
             <p className="text-muted">Each of you decides whether your own written words (ritual answers, mission notes, letters) can appear in the other's export. Private messages never do unless you choose to include them.</p>
             <label className="flex items-center gap-3">
-              <input type="checkbox" className="h-5 w-5 accent-[#20492F]" checked={iAllow}
+              <input type="checkbox" className="h-5 w-5 accent-[#0C1020]" checked={iAllow}
                 onChange={async (e) => { const on = e.target.checked; try { await setExportMyWords(on); setConsent({ ...consent, [myId!]: on }); } catch (err) { setError(friendlyError(err)); } }} />
               Let my written words appear in {partner.display_name}'s export
             </label>
@@ -238,7 +238,7 @@ export function ExportStory() {
       </div>
 
       {/* The printable document */}
-      <article className="print-doc space-y-7 rounded-[20px] bg-white p-6 text-[15px] leading-relaxed text-black shadow-card">
+      <article className="print-doc space-y-7 rounded-card bg-white p-6 text-[15px] leading-relaxed text-black shadow-card">
         <header className="space-y-1 border-b border-black/20 pb-5">
           <p className="text-xs uppercase tracking-[0.2em] text-black/60">Personal relationship record</p>
           <h1 className="font-display text-3xl">{people.map((p) => p.display_name).join(" & ")}</h1>
@@ -432,7 +432,7 @@ function PrintMemory({ m, photos, nameOf, photoSource, left, onToggle }: {
         {kindLabel(m)} · {memoryDate(m)}{m.place ? ` · ${m.place}` : ""} · {memorySource(m)}
         <LeaveOut left={left} onToggle={onToggle} edit={m.kind === "moment" ? `/us/moment/${m.ref_id}` : undefined} />
       </p>
-      <h3 className="font-display text-lg font-semibold">{m.title}</h3>
+      <h3 className="font-display text-lg">{m.title}</h3>
       {m.caption && <p className="whitespace-pre-wrap">{m.caption}</p>}
       {(m.parts ?? []).filter((p) => p.body || p.answers?.some((a) => a.answer)).map((p, i) => (
         <div key={i} className="mt-1">

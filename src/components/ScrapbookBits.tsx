@@ -23,11 +23,11 @@ export function SaveToScrapbook({ kind, refId, prompt }: { kind: MemoryKind; ref
           <BookHeart size={20} />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-display text-lg font-semibold leading-tight">Keep this in our scrapbook?</p>
+          <p className="font-display text-lg leading-tight">Keep this in our scrapbook?</p>
           {error && <p className="text-xs text-tomato-deep">{error}</p>}
         </div>
         <button type="button" disabled={busy} onClick={() => void save()}
-          className="inline-flex min-h-[40px] shrink-0 items-center rounded-full border-2 border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print-sm">Keep it</button>
+          className="inline-flex min-h-[40px] shrink-0 items-center rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print-sm">Keep it</button>
       </div>
     );
   }
