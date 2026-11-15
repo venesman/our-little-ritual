@@ -148,3 +148,26 @@ select set_config('request.jwt.claim.sub', :'C', false);
 set role authenticated;
 select tests.expect((select count(*) from public.export_activity_summary(current_date - 70, current_date)) = 0, 'no space → no summary');
 reset role;
+
+-- "Our photo": only your own scrapbook photos; both of you see it; others can't set or see it.
+select set_config('request.jwt.claim.sub', :'B', false);
+set role authenticated;
+select id as cover from public.moment_photos limit 1 \gset
+select public.set_cover_photo(:'cover');
+select tests.expect((public.cover_photo() ->> 'id') = :'cover', 'cover photo set');
+reset role;
+select set_config('request.jwt.claim.sub', :'A', false);
+set role authenticated;
+select tests.expect((public.cover_photo() ->> 'moment_title') is not null, 'partner sees the same cover');
+select tests.expect_error('select public.set_cover_photo(gen_random_uuid())', 'your own scrapbook photos');
+reset role;
+select set_config('request.jwt.claim.sub', :'D', false);
+set role authenticated;
+select tests.expect_error(format('select public.set_cover_photo(%L)', :'cover'), 'your own scrapbook photos');
+select tests.expect(public.cover_photo() is null, 'other couples never see it');
+reset role;
+select set_config('request.jwt.claim.sub', :'A', false);
+set role authenticated;
+select public.set_cover_photo(null);
+select tests.expect(public.cover_photo() is null, 'cover can be cleared');
+reset role;

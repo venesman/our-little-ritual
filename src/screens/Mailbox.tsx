@@ -94,13 +94,17 @@ export function Mailbox() {
       {tab === "inbox" && sealed.length > 0 && (
         <ul className="space-y-2" aria-label="Letters on their way">
           {sealed.map((s) => (
-            <li key={s.id} className="flex items-center gap-3 overflow-hidden rounded-[20px] border-l-[6px] border-raspberry bg-paper px-4 py-3 shadow-card">
-              <Stamp kind={s.kind} size="sm" />
-              <div className="min-w-0 flex-1">
+            <li key={s.id} className="envelope relative overflow-hidden rounded-[18px] bg-paper px-4 pb-3 pt-[4.5rem] shadow-card">
+              {/* envelope flap + wax seal */}
+              <span aria-hidden="true" className="envelope-flap absolute inset-x-0 top-0 h-12" />
+              <span aria-hidden="true" className="absolute left-1/2 top-7 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-tomato font-display text-lg text-cream shadow-[0_2px_0_0_#A82815]">
+                {KIND[s.kind].stamp}
+              </span>
+              <div className="text-center">
                 <p className="font-display text-base font-semibold">A sealed {KIND[s.kind].label.toLowerCase()} from {pName}</p>
                 <p className="text-xs text-muted">Opens {formatInZone(new Date(s.reveal_at), tz)}</p>
               </div>
-              <Lock size={16} className="text-raspberry-deep" aria-hidden="true" />
+              <span className="sr-only">Sealed until then.</span>
             </li>
           ))}
         </ul>
@@ -366,7 +370,7 @@ export function LetterView() {
     <div className="fade-up space-y-5">
       <Link to="/mailbox" className="inline-flex items-center gap-1.5 text-sm font-semibold text-leaf"><ArrowLeft size={15} aria-hidden="true" /> Mailbox</Link>
       <ErrorNote>{error}</ErrorNote>
-      <article className="postcard space-y-4">
+      <article className="postcard unfold space-y-4">
         <div className="airmail -mt-1 h-2 rounded-full" aria-hidden="true" />
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">

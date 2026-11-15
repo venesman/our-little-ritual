@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "../lib/supabase";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Camera, FileDown, ImagePlus, MapPin, Mic, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
@@ -152,6 +153,7 @@ function Polaroid({ m, tilt, onOpen }: { m: Memory; tilt: number; onOpen: () => 
           : <p className="line-clamp-6 p-3 font-hand text-lg leading-snug text-leaf">{words || m.title}</p>}
         {hasVoice(m) && <span className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-paper/90 text-raspberry-deep"><Mic size={13} aria-label="Has a voice note" /></span>}
         {imagesOf(m).length > 1 && <span className="absolute bottom-1.5 right-1.5 rounded-full bg-paper/90 px-2 text-[11px] font-bold text-leaf">+{imagesOf(m).length - 1}</span>}
+        {m.kind === "moment" && <TripStamp place={m.place} date={m.starts_on} />}
       </div>
       <p className="mt-2 truncate font-display text-sm font-semibold">{m.title || KIND_LABEL[m.kind]}</p>
       <p className="truncate text-[11px] text-muted">{memoryDate(m)} · {author(m.authors)}</p>
@@ -165,6 +167,7 @@ function MemorySheet({ m, onClose, onChanged }: { m: Memory; onClose: () => void
   const author = useAuthorLabel();
   const { myId, partner, me } = usePeople();
   const [caption, setCaption] = useState(m.caption);
+  const [coverSet, setCoverSet] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const nameOf = (id: string | null) => (id === myId ? me?.display_name || "You" : partner?.display_name || "Partner");
@@ -187,7 +190,18 @@ function MemorySheet({ m, onClose, onChanged }: { m: Memory; onClose: () => void
 
         <div className="mt-4 space-y-3">
           {m.kind === "moment" && m.caption && <p className="whitespace-pre-wrap">{m.caption}</p>}
-          {(m.photos ?? []).map((p) => <SignedImage key={p.id} bucket={BUCKET.moment} path={p.path} note={p.taken_at ? `Taken ${fmtDay(p.taken_at)}` : undefined} />)}
+          {(m.photos ?? []).map((p) => (
+            <div key={p.id}>
+              <SignedImage bucket={BUCKET.moment} path={p.path} note={p.taken_at ? `Taken ${fmtDay(p.taken_at)}` : undefined} />
+              <button type="button" disabled={busy === "cover-" + p.id} onClick={async () => {
+                setBusy("cover-" + p.id); setError(null);
+                const { error: err } = await supabase.rpc("set_cover_photo", { p_photo: p.id });
+                setBusy(null); if (err) setError(friendlyError(err)); else setCoverSet(p.id);
+              }} className="mt-1 text-xs font-semibold text-leaf underline underline-offset-4">
+                {coverSet === p.id ? "Our photo on Home ✓" : "Use as our photo on Home"}
+              </button>
+            </div>
+          ))}
           {(m.parts ?? []).map((p, i) => (
             <div key={i} className="rounded-2xl bg-paper p-4 shadow-card">
               {p.user_id && (m.parts?.length ?? 0) > 1 && <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{nameOf(p.user_id)}</p>}
@@ -381,5 +395,20 @@ function PendingThumb({ file, onRemove }: { file: File; onRemove: () => void }) 
       <button type="button" aria-label="Don't add this photo" onClick={onRemove} className="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-paper shadow-card"><X size={13} /></button>
       <p className="mt-0.5 text-[10px] text-muted">to add</p>
     </div>
+  );
+}
+
+/** A small passport stamp on trip polaroids: the first place and the month. */
+function TripStamp({ place, date }: { place?: string; date?: string }) {
+  const where = (place ?? "").split(/[·,]/)[0].trim().toUpperCase().slice(0, 12);
+  const when = date ? new Intl.DateTimeFormat("en-GB", { month: "short", year: "2-digit", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`)).toUpperCase() : "";
+  if (!where && !when) return null;
+  return (
+    <span aria-hidden="true" className="absolute left-1.5 top-1.5 grid h-14 w-14 -rotate-12 place-items-center rounded-full border-2 border-dashed border-cream/90 bg-leaf/45 text-center leading-none text-cream backdrop-blur-[1px]">
+      <span>
+        <span className="block px-1 text-[8px] font-bold tracking-[0.08em]">{where}</span>
+        <span className="block font-display text-[10px] font-semibold">{when}</span>
+      </span>
+    </span>
   );
 }

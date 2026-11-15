@@ -63,3 +63,13 @@
   .print-doc .overflow-x-auto { overflow: visible !important; }
   .print-doc table { min-width: 0 !important; }
 }
+
+/* Mailbox: sealed letters look like a closed envelope */
+.envelope-flap {
+  background: linear-gradient(to bottom right, transparent 49.5%, rgb(32 73 47 / 0.12) 50%) left / 50% 100% no-repeat,
+              linear-gradient(to bottom left, transparent 49.5%, rgb(32 73 47 / 0.12) 50%) right / 50% 100% no-repeat;
+}
+/* A letter opening: a gentle unfold (skipped for people who prefer less motion) */
+@keyframes unfold { from { opacity: 0; transform: perspective(800px) rotateX(-18deg) translateY(-8px); transform-origin: top; } to { opacity: 1; transform: none; } }
+.unfold { animation: unfold 0.55s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .unfold { animation: none; } }

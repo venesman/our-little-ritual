@@ -1,14 +1,15 @@
+import { OnThisDay, OurPhoto } from "../components/HomeMemories";
 import { ForYouLine, WelcomeBack } from "../components/ForYouLine";
 import { RecentMemories } from "../components/ScrapbookBits";
 import { MailboxCard } from "../components/MailboxCard";
 import { CheckinCard } from "../components/CheckinCard";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Send } from "lucide-react";
+import { ArrowRight, Plane, Send } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useSpace } from "../hooks/useSpace";
 import { clockInZone, formatInZone, gmtLabel, longDateInZone, nextRelease, placeFromZone, relativeFromNow } from "../lib/time";
-import { Card, ErrorNote, Loops, Stamp, Ticket } from "../components/ui";
+import { Card, ErrorNote, Stamp, Ticket } from "../components/ui";
 import { RitualPostcard } from "../components/RitualPostcard";
 import { CallWindowCard, NudgeCard, VisitCard } from "../components/HomeCards";
 import { useCurrentRitual } from "../hooks/useCurrentRitual";
@@ -94,6 +95,8 @@ export function Home() {
     <div className="fade-up space-y-6">
       {header("Hello, you two.")}
 
+      <OurPhoto />
+
       {/* two people · two places */}
       <section aria-label="Where you both are" className="relative mt-8 grid grid-cols-2 gap-3">
         {places.map((p, i) => (
@@ -103,8 +106,12 @@ export function Home() {
             <p className="mt-1 truncate text-sm">{p.name}</p>
           </div>
         ))}
-        <span className="absolute left-1/2 top-0 grid h-8 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-cream shadow-card">
-          <Loops className="h-5 w-8" />
+        {/* a little airmail flight path between your two places */}
+        <svg aria-hidden="true" viewBox="0 0 200 40" preserveAspectRatio="none" className="pointer-events-none absolute -top-7 left-1/4 h-9 w-1/2 overflow-visible">
+          <path d="M2 38 C 60 2, 140 2, 198 38" fill="none" stroke="#20492F" strokeOpacity="0.45" strokeWidth="1.6" strokeDasharray="4 5" vectorEffect="non-scaling-stroke" />
+        </svg>
+        <span className="absolute left-1/2 top-0 grid h-8 w-8 -translate-x-1/2 -translate-y-[85%] place-items-center rounded-full bg-cream text-tomato shadow-card">
+          <Plane size={15} className="rotate-45" aria-hidden="true" />
         </span>
       </section>
 
@@ -142,6 +149,8 @@ export function Home() {
       <CheckinCard partnerName={partnerName} />
 
       <MailboxCard timeZone={myTz} />
+
+      <OnThisDay />
 
       <RecentMemories />
 
