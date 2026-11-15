@@ -1,0 +1,82 @@
+import { supabase } from "./supabase";
+
+/**
+ * Gentle reminders via web push. Opt-in per phone. The public key comes from
+ * VITE_VAPID_PUBLIC_KEY; the private key lives only in Supabase secrets.
+ */
+export const VAPID_PUBLIC_KEY = (import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined) ?? "";
+
+export type ReminderSupport = "ok" | "not-configured" | "unsupported" | "ios-needs-home-screen" | "denied";
+
+export const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+export const isStandalone = () =>
+  window.matchMedia?.("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+
+export function reminderSupport(): ReminderSupport {
+  if (!VAPID_PUBLIC_KEY) return "not-configured";
+  if (isIOS() && !isStandalone()) return "ios-needs-home-screen";
+  if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) return "unsupported";
+  if (Notification.permission === "denied") return "denied";
+  return "ok";
+}
+
+function urlB64ToUint8Array(b64: string) {
+  const pad = "=".repeat((4 - (b64.length % 4)) % 4);
+  const raw = atob((b64 + pad).replace(/-/g, "+").replace(/_/g, "/"));
+  return Uint8Array.from(raw, (c) => c.charCodeAt(0));
+}
+
+async function registration() {
+  const reg = (await navigator.serviceWorker.getRegistration()) ?? (await navigator.serviceWorker.register("/sw.js"));
+  await navigator.serviceWorker.ready;
+  return reg;
+}
+
+/** Is this phone currently subscribed? */
+export async function currentSubscription(): Promise<PushSubscription | null> {
+  if (!("serviceWorker" in navigator) || !("PushManager" in window)) return null;
+  const reg = await navigator.serviceWorker.getRegistration();
+  return (await reg?.pushManager.getSubscription()) ?? null;
+}
+
+export async function turnOnReminders(): Promise<void> {
+  const permission = await Notification.requestPermission();
+  if (permission !== "granted") throw new Error("Notifications weren't allowed. You can allow them in your phone's settings for this app.");
+  const reg = await registration();
+  const sub = (await reg.pushManager.getSubscription())
+    ?? (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(VAPID_PUBLIC_KEY) }));
+  const j = sub.toJSON();
+  const { error } = await supabase.rpc("save_push_subscription", {
+    p_endpoint: j.endpoint, p_p256dh: j.keys?.p256dh, p_auth: j.keys?.auth, p_user_agent: navigator.userAgent.slice(0, 300),
+  });
+  if (error) throw error;
+}
+
+export async function turnOffReminders(): Promise<void> {
+  const sub = await currentSubscription();
+  if (!sub) return;
+  await supabase.rpc("delete_push_subscription", { p_endpoint: sub.endpoint });
+  await sub.unsubscribe();
+}
+
+export interface ReminderPrefs { remind_monday: boolean; remind_midweek: boolean; remind_letters: boolean }
+export async function getReminderPrefs(userId: string): Promise<ReminderPrefs | null> {
+  const { data, error } = await supabase.from("profiles").select("remind_monday, remind_midweek, remind_letters").eq("id", userId).maybeSingle();
+  return error ? null : (data as ReminderPrefs | null);
+}
+export async function setReminderPrefs(p: Partial<ReminderPrefs>) {
+  const { error } = await supabase.rpc("set_reminder_prefs", {
+    p_monday: p.remind_monday ?? null, p_midweek: p.remind_midweek ?? null, p_letters: p.remind_letters ?? null,
+  });
+  if (error) throw error;
+}
+
+export async function sendTestReminder(): Promise<string> {
+  const { data, error } = await supabase.functions.invoke("send-reminders", { body: { test: true } });
+  if (error) {
+    const ctx = (error as { context?: Response }).context;
+    try { const body = await ctx?.json(); if (body?.error) return body.error as string; } catch { /* ignore */ }
+    return "The reminder service isn't set up yet — see the setup steps.";
+  }
+  return (data as { sent?: number })?.sent ? "Sent! It should appear on this phone in a moment." : "No reminder could be delivered to this phone.";
+}

@@ -16,6 +16,9 @@ export interface Profile {
   languages_spoken: string[];
   languages_learning: string[];
   sharing_now: string;
+  remind_monday?: boolean;
+  remind_midweek?: boolean;
+  remind_letters?: boolean;
 }
 
 export const PROFILE_COLUMNS =

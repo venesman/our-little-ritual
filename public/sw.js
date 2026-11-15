@@ -1,8 +1,10 @@
 /* Our Little Ritual — service worker.
  * Keeps the app shell available so it opens quickly from the home screen.
  * It never caches Supabase or any other site: your data always comes fresh
- * from the server, and nothing private is stored by this worker. */
-const CACHE = "olr-shell-v1";
+ * from the server, and nothing private is stored by this worker.
+ * It also shows gentle reminders (web push) when you've turned them on —
+ * reminders never contain private content. */
+const CACHE = "olr-shell-v2";
 const SHELL = ["/", "/manifest.webmanifest", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png", "/favicon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -43,4 +45,31 @@ self.addEventListener("fetch", (event) => {
       })),
     );
   }
+});
+
+// Gentle reminders: show the notification the server sent (title/body only).
+self.addEventListener("push", (event) => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
+  const title = data.title || "Our Little Ritual";
+  event.waitUntil(self.registration.showNotification(title, {
+    body: data.body || "",
+    icon: "/icon-192.png",
+    badge: "/icon-192.png",
+    tag: data.tag || "olr",
+    data: { url: typeof data.url === "string" && data.url.startsWith("/") ? data.url : "/" },
+  }));
+});
+
+// Tapping a reminder opens (or focuses) the app on the right screen.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = (event.notification.data && event.notification.data.url) || "/";
+  event.waitUntil((async () => {
+    const all = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    for (const c of all) {
+      if (new URL(c.url).origin === self.location.origin) { await c.focus(); if ("navigate" in c) await c.navigate(url); return; }
+    }
+    await self.clients.openWindow(url);
+  })());
 });

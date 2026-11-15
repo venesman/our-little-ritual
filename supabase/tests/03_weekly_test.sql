@@ -77,6 +77,10 @@ select tests.expect((select count(*) from public.weekly_activities w join public
 -- ----------------------------------------- a full cycle of 42 weeks (Just us switched off)
 select id as rel from public.relationships where name = 'Our corner' \gset
 update public.relationships set include_just_us_weekly = false where id = :'rel';
+-- Week 1 was drawn before the switch went off; make it a core ritual so the cycle counts are exact.
+update public.weekly_activities w set activity_id = (select id from public.activities where code = 1)
+ where w.relationship_id = :'rel' and w.week_number = 1
+   and exists (select 1 from public.activities a where a.id = w.activity_id and a.just_us);
 do $$
 declare rel uuid := (select id from public.relationships where name = 'Our corner');
         base timestamptz := public.ritual_week_start(now());

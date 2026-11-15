@@ -77,6 +77,8 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
   Chile's summer, 7 am in winter). Existing weeks move by the same hour; nothing is lost. If pg_cron is on, the Monday
   scheduler moves too.
 
+- **`0016_gentle_reminders.sql`**: gentle reminders (web push) — see "Setting up gentle reminders" below.
+
 ## 2. Deploy on Vercel
 
 1. [vercel.com](https://vercel.com) → **Add New → Project** → import `venesman/our-little-ritual`.
@@ -98,6 +100,25 @@ npm run dev                  # http://localhost:5173
 ```
 
 ---
+
+## Setting up gentle reminders (one time)
+
+Reminders are opt-in on each phone, at most two a week (Monday when the postcard opens; Thursday 7 pm in your own time only
+if something is still waiting), plus optional letter reminders. They never contain private content.
+
+1. **Supabase → SQL Editor:** run `0016_gentle_reminders.sql`.
+2. **Supabase → Database → Extensions:** turn on `pg_cron` and `pg_net`.
+3. **Supabase → Edge Functions → Deploy a new function → Via Editor:** name it `send-reminders`, paste
+   `supabase/functions/send-reminders/index.ts`, deploy. In the function's settings, turn **off** "Enforce JWT verification"
+   (the function checks a schedule secret or your sign-in itself).
+4. **Edge Functions → Secrets:** add `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (`mailto:` + an email you're
+   happy for Apple/Google's push services to see) and `CRON_SECRET` (a long random string).
+5. **Supabase → SQL Editor:** open `supabase/reminders_schedule.sql`, replace the two placeholders, run it once.
+6. **Vercel → Settings → Environment Variables:** add `VITE_VAPID_PUBLIC_KEY` (the public key only), then redeploy.
+7. On each phone: **Settings → Gentle reminders → Turn on**, then **Send a test reminder**. iPhone: open the app from the
+   Home Screen icon first (iOS 16.4+).
+
+Generate new keys any time with `npx web-push generate-vapid-keys` (then update steps 4 and 6; each phone turns reminders on again).
 
 ## Design system — "Retro Travel Journal"
 
@@ -146,7 +167,7 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 523 checks plus 7 concurrency scripts. Phase 5: 90 activities (15 per
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers the checks below plus 7 concurrency scripts and a privacy audit that every new table must pass. Phase 5: 90 activities (15 per
 category, every mood/energy/type covered), one shared session for both partners, every filter respected, no repeats then a
 reshuffle, "nothing matches" message, timer start/pause/reset maths, playing a chosen favourite, private vs shared favourites,
 outsiders blocked, and both phones opening Play / tapping "another one" at the same instant. Phase 6: every plan length

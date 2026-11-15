@@ -51,6 +51,8 @@ insert into auth.users (id, email) values ('00000000-0000-0000-0000-00000000f101
 insert into public.relationships (name, status, created_by) values ('Scrapbook test', 'active', '00000000-0000-0000-0000-00000000f101') returning id as grel \gset
 insert into public.relationship_members (relationship_id, user_id, role) values (:'grel', '00000000-0000-0000-0000-00000000f101', 'creator'), (:'grel', '00000000-0000-0000-0000-00000000f102', 'partner');
 select public.assign_weekly_activity(:'grel', public.ritual_week_start(now())) as gweek \gset
+-- Use a written-answer ritual so the test doesn't depend on the random draw.
+update public.weekly_activities set activity_id = (select id from public.activities where code = 1) where id = :'gweek';
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000f101', false);
 set role authenticated;

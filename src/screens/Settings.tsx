@@ -9,6 +9,7 @@ import { friendlyError } from "../lib/errors";
 import { detectTimezone, isValidTimezone, listTimezones } from "../lib/time";
 import { Button, Card, ErrorNote, Field, inputCls } from "../components/ui";
 import { InvitePanel } from "./pair/InvitePanel";
+import { RemindersCard } from "../components/RemindersCard";
 
 export function Settings() {
   const { session, signOut } = useAuth();
@@ -96,6 +97,8 @@ export function Settings() {
           </div>
         </form>
       </Card>
+
+      {space?.relationship.status === "active" && <RemindersCard userId={userId} />}
 
       {space && <JustUsMondaysCard on={space.relationship.include_just_us_weekly} onChange={async (v) => {
         setError(null);
