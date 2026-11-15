@@ -111,7 +111,12 @@ export function Settings() {
             <h3 className="mb-2 font-sans text-sm font-medium text-leaf">Members</h3>
             <ul className="space-y-1 text-muted">
               {space.members.map((m) => (
-                <li key={m.user_id}>{m.profile?.display_name || "—"}{m.user_id === userId ? " (you)" : ""} · {m.profile?.timezone.replace(/_/g, " ")}</li>
+                <li key={m.user_id}>
+                  {m.profile?.display_name || "—"}{m.user_id === userId ? " (you)" : ""} · {m.profile?.timezone.replace(/_/g, " ")}
+                  {" · "}{m.profile?.free_from && m.profile?.free_to
+                    ? `free ${m.profile.free_from.slice(0, 5)}–${m.profile.free_to.slice(0, 5)}`
+                    : "free hours not set"}
+                </li>
               ))}
             </ul>
             {!partner && <div className="mt-4"><InvitePanel /></div>}

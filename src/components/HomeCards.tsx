@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CalendarHeart, Heart, Phone, Plane } from "lucide-react";
-import { dayLabel, formatRange, nextSharedWindow } from "../lib/callWindow";
+import { dayLabel, formatRange, nextSharedWindow, nextWindowFor, prettyTime } from "../lib/callWindow";
+import { placeFromZone } from "../lib/time";
 import { ago, recentNudges, sendNudge, summarise, type Nudge } from "../lib/nudges";
 import { formatDay, listVisits, visitState, type Visit } from "../lib/visits";
 import { friendlyError } from "../lib/errors";
@@ -23,7 +24,19 @@ export function CallWindowCard({ now, me, partner, partnerName }: {
   } else if (!partner.from) {
     body = <><h2 className="text-lg">Best time to call</h2><p className="text-sm text-muted">Waiting for {partnerName} to add their free hours in Settings.</p></>;
   } else if (!w) {
-    body = <><h2 className="text-lg">Best time to call</h2><p className="text-sm text-muted">Your usual free hours don't overlap. Try widening yours a little in Settings.</p></>;
+    const theirs = nextWindowFor(now, partner);
+    body = (
+      <>
+        <h2 className="text-lg">Best time to call</h2>
+        <p className="text-sm text-muted">Your usual free hours don't overlap right now.</p>
+        <dl className="mt-2 grid grid-cols-[auto,1fr] gap-x-3 gap-y-0.5 text-sm text-muted">
+          <dt>You</dt><dd className="text-leaf">{prettyTime(me.from)} – {prettyTime(me.to!)} <span className="text-muted">({placeFromZone(me.timeZone)})</span></dd>
+          <dt>{partnerName}</dt><dd className="text-leaf">{prettyTime(partner.from)} – {prettyTime(partner.to!)} <span className="text-muted">({placeFromZone(partner.timeZone)})</span></dd>
+          {theirs && <><dt>In your time</dt><dd className="text-leaf">{formatRange(theirs, me.timeZone)}</dd></>}
+        </dl>
+        <p className="mt-2 text-xs text-muted">If a place looks wrong, fix the time zone in Settings.</p>
+      </>
+    );
   } else {
     body = (
       <>

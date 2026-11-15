@@ -53,8 +53,8 @@ export function SpaceProvider({ children }: { children: ReactNode }) {
     const onFocus = () => { if (document.visibilityState === "visible") void refresh(); };
     document.addEventListener("visibilitychange", onFocus);
     const waiting = space?.relationship.status === "pending";
-    const timer = waiting ? window.setInterval(() => void refresh(), 15000) : undefined;
-    return () => { document.removeEventListener("visibilitychange", onFocus); if (timer) clearInterval(timer); };
+    const timer = window.setInterval(() => { if (document.visibilityState === "visible") void refresh(); }, waiting ? 15000 : 60000);
+    return () => { document.removeEventListener("visibilitychange", onFocus); clearInterval(timer); };
   }, [userId, refresh, space?.relationship.status]);
 
   return <SpaceContext.Provider value={{ profile, space, loading, error, refresh }}>{children}</SpaceContext.Provider>;

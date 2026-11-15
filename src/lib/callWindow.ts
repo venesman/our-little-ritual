@@ -79,6 +79,20 @@ export function formatRange(w: Interval, timeZone: string): string {
   return `${f(w.start)} – ${f(w.end)}`;
 }
 
+/** The partner's next free window (now or upcoming), to show in your own time. */
+export function nextWindowFor(now: Date, p: Person): Interval | null {
+  if (!p.from || !p.to) return null;
+  const t = now.getTime();
+  return windowsAround(now, p.timeZone, p.from, p.to).find((w) => w.end > t) ?? null;
+}
+
+/** "18:00" -> "6:00 pm" */
+export function prettyTime(hhmm: string): string {
+  const [h, m] = hhmm.split(":").map(Number);
+  const suffix = h >= 12 ? "pm" : "am";
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, "0")} ${suffix}`;
+}
+
 /** "today" / "tomorrow" / "Tue" for the window's start, in a zone. */
 export function dayLabel(ms: number, now: Date, timeZone: string): string {
   const a = localDate(new Date(ms), timeZone), b = localDate(now, timeZone);

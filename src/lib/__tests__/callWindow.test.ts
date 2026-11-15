@@ -50,3 +50,15 @@ describe("nextSharedWindow — Kuching ↔ Santiago", () => {
     expect(nextSharedWindow(new Date(), vee, { timeZone: "America/Santiago", from: null, to: null })).toBeNull();
   });
 });
+
+describe("Vee's real hours (reported 15 Nov)", () => {
+  it("7 pm–12 am Kuching and 6 am–12 pm Santiago overlap 7–11 pm / 8 am–12 pm", () => {
+    const w = nextSharedWindow(new Date("2026-11-15T02:11:00Z"),
+      { timeZone: "Asia/Kuching", from: "19:00", to: "00:00" },
+      { timeZone: "America/Santiago", from: "06:00", to: "12:00" })!;
+    expect(new Date(w.start).toISOString()).toBe("2026-11-15T11:00:00.000Z");
+    expect(new Date(w.end).toISOString()).toBe("2026-11-15T15:00:00.000Z");
+    expect(formatRange(w, "Asia/Kuching")).toMatch(/7:00\s?pm – 11:00\s?pm/i);
+    expect(formatRange(w, "America/Santiago")).toMatch(/8:00\s?am – 12:00\s?pm/i);
+  });
+});
