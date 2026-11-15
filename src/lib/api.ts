@@ -6,7 +6,22 @@ export interface Profile {
   timezone: string;
   free_from: string | null; // "HH:MM:SS" local time
   free_to: string | null;
+  // "Our Story" — individual profile (all optional; activities fall back to general wording)
+  current_city: string | null;
+  current_country: string | null;
+  home_country: string | null;
+  institution: string | null;
+  situation: string | null;
+  interests: string[];
+  languages_spoken: string[];
+  languages_learning: string[];
+  sharing_now: string;
 }
+
+export const PROFILE_COLUMNS =
+  "id, display_name, timezone, free_from, free_to, current_city, current_country, home_country, institution, situation, interests, languages_spoken, languages_learning, sharing_now";
+
+export type ProfilePatch = Partial<Omit<Profile, "id">>;
 
 export interface Relationship {
   id: string;
@@ -15,6 +30,7 @@ export interface Relationship {
   created_by: string;
   created_at: string;
   activated_at: string | null;
+  include_just_us_weekly: boolean;
 }
 
 export interface Member {
@@ -42,11 +58,16 @@ function check<T>(res: { data: T; error: unknown }): T {
 }
 
 export async function getMyProfile(userId: string): Promise<Profile | null> {
-  return check(await supabase.from("profiles").select("id, display_name, timezone, free_from, free_to").eq("id", userId).maybeSingle());
+  return check(await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", userId).maybeSingle());
 }
 
 export async function updateMyProfile(userId: string, patch: Partial<Pick<Profile, "display_name" | "timezone" | "free_from" | "free_to">>) {
   check(await supabase.from("profiles").update(patch).eq("id", userId));
+}
+
+/** Either partner can edit either profile ("both edit everything"); the server whitelists fields. */
+export async function updateMemberProfile(userId: string, patch: ProfilePatch) {
+  check(await supabase.rpc("update_member_profile", { p_user: userId, p_patch: patch }));
 }
 
 /** The caller's space, or null if they haven't created or joined one. RLS limits every query to their own data. */
@@ -58,7 +79,7 @@ export async function getMySpace(userId: string): Promise<Space | null> {
   const relId = mine.relationship_id as string;
 
   const [rel, members, invites] = await Promise.all([
-    supabase.from("relationships").select("id, name, status, created_by, created_at, activated_at").eq("id", relId).single(),
+    supabase.from("relationships").select("id, name, status, created_by, created_at, activated_at, include_just_us_weekly").eq("id", relId).single(),
     supabase.from("relationship_members").select("user_id, role, joined_at").eq("relationship_id", relId).eq("status", "active").order("joined_at"),
     supabase
       .from("invitations")
@@ -75,7 +96,7 @@ export async function getMySpace(userId: string): Promise<Space | null> {
   const inviteRows = check(invites) as OpenInvitation[];
 
   const profiles = check(
-    await supabase.from("profiles").select("id, display_name, timezone, free_from, free_to").in("id", memberRows.map((m) => m.user_id)),
+    await supabase.from("profiles").select(PROFILE_COLUMNS).in("id", memberRows.map((m) => m.user_id)),
   ) as Profile[];
 
   return {

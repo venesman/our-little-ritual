@@ -4,7 +4,8 @@ import { supabase } from "./supabase";
 export type PlayCategory = "guess_discover" | "creative_chaos" | "virtual_date_night" | "heart_to_heart" | "silly_random" | "future_adventures";
 export type Mood = "romantic" | "playful" | "silly" | "creative" | "deep" | "relaxed";
 export type Energy = "low" | "medium" | "high";
-export type PlayType = "talking" | "guessing" | "drawing" | "storytelling" | "virtual_date";
+export type PlayType = "talking" | "guessing" | "drawing" | "storytelling" | "virtual_date" | "photo" | "writing" | "research";
+export type ApartStyle = "solo" | "relay" | "same";
 
 export interface PlayActivity {
   id: string;
@@ -19,9 +20,21 @@ export interface PlayActivity {
   activity_type: PlayType;
   moods: Mood[];
   materials: string | null;
+  mode?: "call" | "apart";
+  style?: ApartStyle | null;
+  just_us?: boolean;
+  needs?: string[];
+  fallback_instructions?: string | null;
+  share_as?: string | null;
 }
 
-export interface PlayFilters { minutes?: number; moods?: Mood[]; energy?: Energy; type?: PlayType }
+export interface PlayFilters { minutes?: number; moods?: Mood[]; energy?: Energy; type?: PlayType; mode?: "apart"; just_us?: boolean }
+
+export const STYLE_LABEL: Record<ApartStyle, { label: string; hint: string }> = {
+  solo:  { label: "Solo, then share",       hint: "Each do it on your own time. Both answers open once you've both shared." },
+  relay: { label: "Relay over days",        hint: "Take turns whenever you have a moment. You'll see each turn as it lands." },
+  same:  { label: "Same thing, separately", hint: "Do the same thing at different times, then compare. Opens once you've both shared." },
+};
 
 export type PlanSlot = "warm_up" | "guessing" | "creative" | "date" | "heart" | "future" | "closing";
 export const PLAN_LENGTHS = [15, 30, 45, 60, 90] as const;
@@ -71,8 +84,14 @@ export const TYPES: { value: PlayType; label: string }[] = [
   { value: "storytelling", label: "Storytelling" },
   { value: "virtual_date", label: "Virtual date" },
 ];
+export const APART_TYPES: { value: PlayType; label: string }[] = [
+  { value: "photo", label: "Photo" },
+  { value: "writing", label: "Writing" },
+  { value: "drawing", label: "Drawing" },
+  { value: "research", label: "Research" },
+];
 export const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-export const typeLabel = (t: PlayType) => TYPES.find((x) => x.value === t)?.label ?? t;
+export const typeLabel = (t: PlayType) => [...TYPES, ...APART_TYPES].find((x) => x.value === t)?.label ?? t;
 
 function check<T>(res: { data: T; error: unknown }): T {
   if (res.error) throw res.error;
@@ -110,10 +129,13 @@ export async function togglePlayFavourite(activityId: string, scope: "mine" | "o
   return check(await supabase.rpc("toggle_play_favourite", { p_activity: activityId, p_scope: scope })) as boolean;
 }
 
+export const ACTIVITY_COLUMNS =
+  "id, code, title, category, description, instructions, prompts, minutes, energy, activity_type, moods, materials, mode, style, just_us, needs, fallback_instructions, share_as";
+
 export interface Favourite { id: string; scope: "mine" | "ours"; user_id: string; activity: PlayActivity }
 export async function listFavourites(): Promise<Favourite[]> {
   return check(await supabase.from("play_favourites")
-    .select("id, scope, user_id, activity:play_activities(id, code, title, category, description, instructions, prompts, minutes, energy, activity_type, moods, materials)")
+    .select(`id, scope, user_id, activity:play_activities(${ACTIVITY_COLUMNS})`)
     .order("created_at", { ascending: false })) as unknown as Favourite[];
 }
 

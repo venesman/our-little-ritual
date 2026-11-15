@@ -4,6 +4,7 @@ import { canPromptInstall, isInstalled, isIOS, onInstallChange, promptInstall } 
 import { useAuth } from "../hooks/useAuth";
 import { useSpace } from "../hooks/useSpace";
 import { renameRelationship, updateMyProfile } from "../lib/api";
+import { setIncludeJustUsWeekly } from "../lib/story";
 import { friendlyError } from "../lib/errors";
 import { detectTimezone, isValidTimezone, listTimezones } from "../lib/time";
 import { Button, Card, ErrorNote, Field, inputCls } from "../components/ui";
@@ -96,6 +97,11 @@ export function Settings() {
         </form>
       </Card>
 
+      {space && <JustUsMondaysCard on={space.relationship.include_just_us_weekly} onChange={async (v) => {
+        setError(null);
+        try { await setIncludeJustUsWeekly(v); await refresh(); } catch (err) { setError(friendlyError(err)); }
+      }} />}
+
       <InstallCard />
 
       {space && (
@@ -134,6 +140,25 @@ export function Settings() {
 
       <Button variant="outline" onClick={signOut}><LogOut size={16} />Sign out</Button>
     </div>
+  );
+}
+
+function JustUsMondaysCard({ on, onChange }: { on: boolean; onChange: (v: boolean) => Promise<void> }) {
+  const [busy, setBusy] = useState(false);
+  return (
+    <Card className="flex items-start justify-between gap-4">
+      <div>
+        <h2 className="text-xl">Just us rituals on Mondays</h2>
+        <p className="mt-1 text-sm text-muted">
+          Mixes six personal rituals (made from Our Story) into the Monday rotation. Either of you can switch it; it applies to both. Takes effect from the next new week.
+        </p>
+      </div>
+      <button type="button" role="switch" aria-checked={on} aria-label="Include Just us rituals on Mondays" disabled={busy}
+        onClick={async () => { setBusy(true); try { await onChange(!on); } finally { setBusy(false); } }}
+        className={`relative mt-1 h-8 w-14 shrink-0 rounded-full border-2 border-leaf transition ${on ? "bg-leaf" : "bg-paper"} disabled:opacity-60`}>
+        <span className={`absolute top-0.5 h-6 w-6 rounded-full transition-all ${on ? "left-[26px] bg-mustard" : "left-0.5 bg-leaf/40"}`} />
+      </button>
+    </Card>
   );
 }
 

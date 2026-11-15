@@ -79,9 +79,11 @@ export function Home() {
 
   /* ---------------------------------------------- paired: journal opening page */
   const partnerTz = partner.profile?.timezone ?? "UTC";
+  // Location labels come from Our Story ("current city") when set, otherwise from the time zone.
+  const myCity = me?.profile?.current_city ?? null;
   const places = [
-    { name: myName, tz: myTz, you: true },
-    { name: partnerName, tz: partnerTz, you: false },
+    { name: myName, tz: myTz, you: true, city: myCity },
+    { name: partnerName, tz: partnerTz, you: false, city: partner.profile?.current_city ?? null },
   ];
 
   return (
@@ -92,7 +94,7 @@ export function Home() {
       <section aria-label="Where you both are" className="relative mt-8 grid grid-cols-2 gap-3">
         {places.map((p, i) => (
           <div key={p.name + i} className={`rounded-[18px] p-4 ${i === 0 ? "bg-leaf text-cream" : "bg-raspberry text-leaf"}`}>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{p.you ? "You" : "Them"} · {placeFromZone(p.tz)} · {gmtLabel(p.tz, now)}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{p.you ? "You" : "Them"} · {p.city?.trim() || placeFromZone(p.tz)} · {gmtLabel(p.tz, now)}</p>
             <p className="mt-2 font-display text-[1.65rem] font-semibold leading-none">{clockInZone(now, p.tz)}</p>
             <p className="mt-1 truncate text-sm">{p.name}</p>
           </div>

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from "react-router-dom";
-import { Dices, Home, Settings, Stamp } from "lucide-react";
+import { BookHeart, Dices, Home, Settings, Stamp } from "lucide-react";
 import { Logo } from "./ui";
 
 /**
@@ -10,6 +10,7 @@ const NAV = [
   { to: "/", label: "Home", icon: Home, end: true },
   { to: "/rituals", label: "Rituals", icon: Stamp, end: false },
   { to: "/play", label: "Play", icon: Dices, end: false },
+  { to: "/story", label: "Our Story", icon: BookHeart, end: false },
   { to: "/settings", label: "Settings", icon: Settings, end: false },
 ] as const;
 
@@ -42,13 +43,13 @@ export function AppShell() {
 
       {/* mobile bottom bar */}
       <nav aria-label="Main" className="pb-safe fixed inset-x-0 bottom-0 z-20 bg-leaf md:hidden">
-        <ul className="mx-auto flex max-w-md justify-around px-4 pt-2">
+        <ul className="mx-auto flex max-w-md justify-around px-2 pt-2">
           {NAV.map(({ to, label, icon: Icon, end }) => (
             <li key={to}>
               <NavLink
                 to={to} end={end}
                 className={({ isActive }) =>
-                  `flex min-w-[64px] flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-[11px] font-semibold transition ${isActive ? "bg-mustard text-leaf" : "text-cream/75"}`}
+                  `flex min-w-[58px] flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-[11px] font-semibold transition ${isActive ? "bg-mustard text-leaf" : "text-cream/75"}`}
               >
                 <Icon size={21} aria-hidden="true" />{label}
               </NavLink>

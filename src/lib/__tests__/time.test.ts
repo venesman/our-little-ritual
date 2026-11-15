@@ -37,3 +37,15 @@ describe("time zone labels", () => {
   it("Santiago is GMT-4 in June", () => expect(gmtLabel("America/Santiago", new Date("2026-06-15T00:00:00Z"))).toBe("GMT-4"));
   it("combines place and offset", () => expect(zoneLabel("America/Santiago", new Date("2026-11-15T00:00:00Z"))).toBe("Santiago · GMT-3"));
 });
+
+import { suggestZones } from "../time";
+describe("suggestZones", () => {
+  const zones = ["Asia/Kuching", "Asia/Kuala_Lumpur", "America/Santiago", "America/Punta_Arenas", "Pacific/Easter", "Europe/Stockholm"];
+  it("matches the city first, then the country list", () => {
+    expect(suggestZones("Kuching", "Malaysia", zones)).toEqual(["Asia/Kuching", "Asia/Kuala_Lumpur"]);
+    expect(suggestZones("Santiago", "Chile", zones)[0]).toBe("America/Santiago");
+  });
+  it("suggests nothing when it doesn't know", () => {
+    expect(suggestZones("", "Atlantis", zones)).toEqual([]);
+  });
+});

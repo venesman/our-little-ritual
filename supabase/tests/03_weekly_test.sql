@@ -4,11 +4,16 @@
 \set ON_ERROR_STOP 1
 
 -- ------------------------------------------------------ the library
-select tests.expect((select count(*) from public.activities) = 42, '42 activities seeded');
+select tests.expect((select count(*) from public.activities where not just_us) = 42, '42 core activities seeded');
+select tests.expect((select count(*) from public.activities where just_us) = 6, '6 Just us rituals seeded');
 select tests.expect((select count(distinct category) from public.activities) = 6, 'six categories');
-select tests.expect(not exists (select category from public.activities group by category having count(*) <> 7),
-                    'seven activities in every category');
-select tests.expect((select count(distinct code) from public.activities) = 42, 'activity codes are unique');
+select tests.expect(not exists (select category from public.activities where not just_us group by category having count(*) <> 7),
+                    'seven core activities in every category');
+select tests.expect(not exists (select category from public.activities group by category having count(*) <> 8),
+                    'one Just us ritual per category keeps the rotation balanced (8 each)');
+select tests.expect((select count(distinct code) from public.activities) = 48, 'activity codes are unique');
+select tests.expect(not exists (select 1 from public.activities where just_us and cardinality(needs) > 0 and fallback_instructions is null),
+                    'every Just us ritual that needs profile details has a general fallback');
 
 -- ------------------------------------------- the Monday 12:00 UTC boundary
 select tests.expect(public.ritual_week_start('2026-11-16 11:59:59+00') = '2026-11-09 12:00+00', 'Mon 11:59 UTC still belongs to last week');
@@ -31,7 +36,7 @@ set role authenticated;
 select tests.expect_error('select * from public.ensure_current_ritual()', 'not part of a space');
 select tests.expect_error('select public.generate_weekly_rituals()', 'permission denied');
 select tests.expect_error(format('select public.assign_weekly_activity(gen_random_uuid(), %L)', public.ritual_week_start(now())), 'permission denied');
-select tests.expect((select count(*) from public.activities) = 42, 'signed-in users can read the library');
+select tests.expect((select count(*) from public.activities) = 48, 'signed-in users can read the library');
 reset role;
 
 select set_config('request.jwt.claim.sub', '00000000-0000-0000-0000-00000000000d', false);  -- Dave, pending
@@ -67,8 +72,9 @@ select public.generate_weekly_rituals();
 select tests.expect((select count(*) from public.weekly_activities w join public.relationships r on r.id = w.relationship_id
                      where r.name = 'Our corner') = 1, 'scheduler is idempotent');
 
--- ----------------------------------------- a full cycle of 42 weeks
+-- ----------------------------------------- a full cycle of 42 weeks (Just us switched off)
 select id as rel from public.relationships where name = 'Our corner' \gset
+update public.relationships set include_just_us_weekly = false where id = :'rel';
 do $$
 declare rel uuid := (select id from public.relationships where name = 'Our corner');
         base timestamptz := public.ritual_week_start(now());
@@ -81,6 +87,9 @@ end $$;
 select tests.expect((select count(*) from public.weekly_activities where relationship_id = :'rel') = 42, '42 weeks recorded');
 select tests.expect((select count(distinct activity_id) from public.weekly_activities where relationship_id = :'rel') = 42,
                     'no activity repeats within the cycle');
+select tests.expect(not exists (select 1 from public.weekly_activities w join public.activities a on a.id = w.activity_id
+                                 where w.relationship_id = :'rel' and a.just_us and w.week_number > 1),
+                    'with the switch off, no Just us rituals are picked');
 select tests.expect(not exists (
   select a.category from public.weekly_activities w join public.activities a on a.id = w.activity_id
    where w.relationship_id = :'rel' group by a.category having count(*) <> 7), 'each category used exactly 7 times');

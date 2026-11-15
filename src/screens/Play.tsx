@@ -1,6 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bookmark, BookmarkCheck, CalendarClock, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, X } from "lucide-react";
+import { Bookmark, BookmarkCheck, CalendarClock, Sparkles, Phone, Hourglass, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, X } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePlaySession } from "../hooks/usePlaySession";
+import { usePeople } from "../hooks/usePeople";
+import { personalise } from "../lib/tokens";
+import { startMission } from "../lib/apart";
+import { ApartTab } from "./Apart";
 import { useSpace } from "../hooks/useSpace";
 import { useAuth } from "../hooks/useAuth";
 import {
@@ -17,6 +22,9 @@ export function Play() {
   const { space } = useSpace();
   const active = space?.relationship.status === "active";
   const [tab, setTab] = useState<Tab>("play");
+  const [params, setParams] = useSearchParams();
+  const mode: "call" | "apart" = params.get("mode") === "apart" ? "apart" : "call";
+  const setMode = (m: "call" | "apart") => setParams(m === "apart" ? { mode: "apart" } : {}, { replace: true });
 
   if (!active) {
     return (
@@ -30,9 +38,18 @@ export function Play() {
   return (
     <div className="fade-up space-y-5">
       <header>
-        <p className="font-hand text-2xl text-raspberry-deep">on a call? open this together</p>
+        <p className="font-hand text-2xl text-raspberry-deep">{mode === "call" ? "on a call? open this together" : "together, on your own time"}</p>
         <h1 className="text-4xl">Play With Me</h1>
       </header>
+      <div className="grid grid-cols-2 gap-1 rounded-2xl bg-leaf p-1" role="radiogroup" aria-label="How are you playing?">
+        {([["call", "On a call", Phone], ["apart", "Apart, anytime", Hourglass]] as const).map(([m, label, I]) => (
+          <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
+            className={`inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${mode === m ? "bg-mustard text-leaf" : "text-cream/80"}`}>
+            <I size={16} aria-hidden="true" />{label}
+          </button>
+        ))}
+      </div>
+      {mode === "apart" ? <ApartTab /> : <>
       <div className="inline-flex rounded-full border-2 border-leaf/20 p-1" role="tablist" aria-label="Play sections">
         {(["play", "favourites", "history"] as Tab[]).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
@@ -44,6 +61,7 @@ export function Play() {
       {tab === "play" && <PlayTab />}
       {tab === "favourites" && <FavouritesTab onPlay={() => setTab("play")} />}
       {tab === "history" && <HistoryTab />}
+      </>}
     </div>
   );
 }
@@ -136,6 +154,7 @@ function PlayTab() {
           <div className="flex flex-wrap gap-2">
             <FavButton label="Save for me" active={favs.mine.has(current.activity.id)} icon="heart" onClick={() => favs.toggle(current.activity.id, "mine")} />
             <FavButton label="Our Favourite Things" active={favs.ours.has(current.activity.id)} icon="bookmark" onClick={() => favs.toggle(current.activity.id, "ours")} />
+            <JustUsChip on={!!filters.just_us} onChange={(v) => { const f = { ...filters, just_us: v || undefined }; setFilters(f); void draw(f); }} />
           </div>
         </>
       ) : (
@@ -144,7 +163,10 @@ function PlayTab() {
           <div className="relative space-y-3">
             <h2 className="max-w-[15rem] text-2xl text-cream">No more "what should we do?"</h2>
             <p className="max-w-[18rem] text-sm text-cream/85">Pick a vibe or let us surprise you. You'll both see the same activity, live.</p>
-            <Button onClick={() => draw({})} busy={busy === "draw"}><Dices size={16} aria-hidden="true" /> Surprise us</Button>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button onClick={() => draw(filters.just_us ? { just_us: true } : {})} busy={busy === "draw"}><Dices size={16} aria-hidden="true" /> Surprise us</Button>
+              <JustUsChip on={!!filters.just_us} onChange={(v) => setFilters({ ...filters, just_us: v || undefined })} dark />
+            </div>
           </div>
         </Card>
       )}
@@ -279,9 +301,11 @@ function PlanTimeline({ plan, busy, onReplace }: { plan: PlanStep[]; busy: strin
   );
 }
 
-function ActivityCard({ activity, done }: { activity: PlayActivity; done?: boolean }) {
+export function ActivityCard({ activity, done }: { activity: PlayActivity; done?: boolean }) {
   const cat = PLAY_CATEGORY[activity.category];
   const Icon = cat.icon;
+  const { me, partner } = usePeople();
+  const text = personalise(activity.instructions, activity.fallback_instructions, me, partner);
   return (
     <article className="postcard fade-up" key={activity.id}>
       <div className="flex items-start justify-between gap-3">
@@ -298,9 +322,13 @@ function ActivityCard({ activity, done }: { activity: PlayActivity; done?: boole
         <span className="rounded-full bg-leaf-soft px-2.5 py-1 text-leaf">{activity.minutes} min</span>
         <span className="rounded-full bg-mustard-soft px-2.5 py-1 text-mustard-deep">{cap(activity.energy)} energy</span>
         <span className="rounded-full bg-raspberry-soft px-2.5 py-1 text-raspberry-deep">{typeLabel(activity.activity_type)}</span>
+        {activity.just_us && <span className="inline-flex items-center gap-1 rounded-full bg-tomato-deep px-2.5 py-1 text-cream"><Sparkles size={11} aria-hidden="true" />Just us</span>}
         {done && <span className="rounded-full bg-leaf px-2.5 py-1 text-cream">Done ✓</span>}
       </div>
-      <p className="mt-4 leading-relaxed">{activity.instructions}</p>
+      <p className="mt-4 leading-relaxed">{text.text}</p>
+      {activity.just_us && !text.personal && (
+        <p className="mt-2 text-xs text-muted">General version — add your cities, home countries and languages in Our Story to make this one yours.</p>
+      )}
       {activity.prompts.length > 0 && (
         <ul className="mt-3 flex flex-wrap gap-1.5">
           {activity.prompts.map((p) => <li key={p} className="rounded-full border border-leaf/20 px-3 py-1 text-sm text-muted">{p}</li>)}
@@ -356,6 +384,18 @@ function SharedTimer({ state, skewMs, busy, onAction }: {
         ))}
       </div>
     </Card>
+  );
+}
+
+/** "Just us": only activities made from your Our Story profiles. Off = the general library. */
+export function JustUsChip({ on, onChange, dark }: { on: boolean; onChange: (v: boolean) => void; dark?: boolean }) {
+  return (
+    <button type="button" onClick={() => onChange(!on)} aria-pressed={on}
+      title="Only activities made from your Our Story profiles"
+      className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-full border-2 px-4 text-sm font-semibold transition ${
+        on ? "border-tomato-deep bg-tomato-deep text-cream" : dark ? "border-cream/40 text-cream/90 hover:border-cream" : "border-leaf/20 text-muted hover:border-leaf/50"}`}>
+      <Sparkles size={15} aria-hidden="true" /> Just us{on ? " ✓" : ""}
+    </button>
   );
 }
 
@@ -438,9 +478,11 @@ function FavouritesTab({ onPlay }: { onPlay: () => void }) {
   const ours = favs.list.filter((f) => f.scope === "ours");
   const mine = favs.list.filter((f) => f.scope === "mine");
 
+  const navigate = useNavigate();
   const playNow = async (a: PlayActivity) => {
     setError(null);
     try {
+      if (a.mode === "apart") { navigate(`/play/apart/${await startMission({}, a.id)}`); return; }
       const sid = state?.session_id ?? (await startPlaySession());
       apply(await drawPlayActivity(sid, state?.filters ?? {}, a.id));
       onPlay();
@@ -455,9 +497,9 @@ function FavouritesTab({ onPlay }: { onPlay: () => void }) {
           <li key={f.id} className="flex items-center gap-3 px-5 py-3">
             <div className="min-w-0 flex-1">
               <p className="truncate font-display text-lg font-semibold">{f.activity.title}</p>
-              <p className="text-xs text-muted">{PLAY_CATEGORY[f.activity.category].label} · {f.activity.minutes} min</p>
+              <p className="text-xs text-muted">{PLAY_CATEGORY[f.activity.category].label} · {f.activity.minutes} min{f.activity.mode === "apart" ? " · apart" : ""}{f.activity.just_us ? " · just us" : ""}</p>
             </div>
-            <Button variant="outline" className="!min-h-[36px] !px-3 !py-1 text-xs" onClick={() => void playNow(f.activity)}>Play now</Button>
+            <Button variant="outline" className="!min-h-[36px] !px-3 !py-1 text-xs" onClick={() => void playNow(f.activity)}>{f.activity.mode === "apart" ? "Start" : "Play now"}</Button>
             <button type="button" aria-label={`Remove ${f.activity.title}`} onClick={() => void favs.toggle(f.activity.id, f.scope)} className="grid h-9 w-9 place-items-center rounded-full text-muted hover:bg-tomato-soft"><X size={15} /></button>
           </li>
         ))}

@@ -7,6 +7,8 @@ import { shapeFor } from "../lib/answerShape";
 import { friendlyError } from "../lib/errors";
 import { useAuth } from "../hooks/useAuth";
 import { useSpace } from "../hooks/useSpace";
+import { usePeople } from "../hooks/usePeople";
+import { personalise } from "../lib/tokens";
 import { formatInZone } from "../lib/time";
 import { RitualPostcard } from "../components/RitualPostcard";
 import { AnswerForm } from "../components/AnswerForm";
@@ -89,7 +91,7 @@ export function RitualDetail() {
           <div className="mt-5 space-y-5">
             <section>
               <h3 className="font-sans text-xs font-bold uppercase tracking-[0.16em] text-leaf">How it works</h3>
-              <p className="mt-1.5 leading-relaxed">{ritual.activity.instructions}</p>
+              <PersonalInstructions instructions={ritual.activity.instructions} fallback={ritual.activity.fallback_instructions} justUs={!!ritual.activity.just_us} />
             </section>
             {ritual.activity.guiding_questions.length > 0 && !mode && (
               <section>
@@ -151,5 +153,18 @@ export function RitualDetail() {
         />
       ) : null}
     </div>
+  );
+}
+
+function PersonalInstructions({ instructions, fallback, justUs }: { instructions: string; fallback?: string | null; justUs: boolean }) {
+  const { me, partner } = usePeople();
+  const t = personalise(instructions, fallback, me, partner);
+  return (
+    <>
+      <p className="mt-1.5 leading-relaxed">{t.text}</p>
+      {justUs && !t.personal && fallback && (
+        <p className="mt-1.5 text-xs text-muted">General version — fill in Our Story to make this one yours.</p>
+      )}
+    </>
   );
 }

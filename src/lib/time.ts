@@ -88,3 +88,29 @@ export function placeFromZone(timeZone: string): string {
   const last = timeZone.split("/").pop() ?? timeZone;
   return last.replace(/_/g, " ");
 }
+
+/* A few countries to time zones, for suggestions in Our Story. Anything else falls back to matching the city. */
+const COUNTRY_ZONES: Record<string, string[]> = {
+  malaysia: ["Asia/Kuala_Lumpur", "Asia/Kuching"],
+  chile: ["America/Santiago", "America/Punta_Arenas", "Pacific/Easter"],
+  sweden: ["Europe/Stockholm"],
+  argentina: ["America/Argentina/Buenos_Aires"], peru: ["America/Lima"], bolivia: ["America/La_Paz"],
+  brazil: ["America/Sao_Paulo", "America/Manaus"], colombia: ["America/Bogota"], ecuador: ["America/Guayaquil"],
+  uruguay: ["America/Montevideo"], paraguay: ["America/Asuncion"], mexico: ["America/Mexico_City"],
+  spain: ["Europe/Madrid"], "united kingdom": ["Europe/London"], uk: ["Europe/London"], norway: ["Europe/Oslo"],
+  denmark: ["Europe/Copenhagen"], finland: ["Europe/Helsinki"], germany: ["Europe/Berlin"],
+  singapore: ["Asia/Singapore"], indonesia: ["Asia/Jakarta", "Asia/Makassar"], brunei: ["Asia/Brunei"],
+  thailand: ["Asia/Bangkok"], japan: ["Asia/Tokyo"], australia: ["Australia/Sydney", "Australia/Perth"],
+};
+
+const norm = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[\s-]+/g, "_").trim();
+
+/** Time zones that match a city (by name) or a country (from a short list). Best guesses first; never decides for you. */
+export function suggestZones(city: string | null | undefined, country: string | null | undefined, zones: string[] = listTimezones()): string[] {
+  const out: string[] = [];
+  const c = city ? norm(city) : "";
+  if (c) for (const z of zones) if (norm(z.split("/").pop() ?? "") === c) out.push(z);
+  const k = country ? country.trim().toLowerCase() : "";
+  for (const z of COUNTRY_ZONES[k] ?? []) if (!out.includes(z) && zones.includes(z)) out.push(z);
+  return out.slice(0, 4);
+}

@@ -6,13 +6,12 @@
 \set D '00000000-0000-0000-0000-00000000000d'
 
 -- ------------------------------------------------------------ library
-select tests.expect((select count(*) from public.play_activities) = 90, '90 play activities seeded');
-select tests.expect(not exists (select category from public.play_activities group by category having count(*) <> 15), '15 per category');
+select tests.expect((select count(*) from public.play_activities where mode = 'call' and not just_us) = 90, '90 general on-a-call activities');
+select tests.expect(not exists (select category from public.play_activities where mode = 'call' and not just_us group by category having count(*) <> 15), '15 per category');
 select tests.expect((select count(distinct category) from public.play_activities) = 6, 'six categories');
--- every mood, energy and type has activities to draw from
-select tests.expect((select count(*) from (select distinct unnest(moods) from public.play_activities) m) = 6, 'all six moods covered');
-select tests.expect((select count(distinct energy) from public.play_activities) = 3, 'all three energy levels covered');
-select tests.expect((select count(distinct activity_type) from public.play_activities) = 5, 'all five types covered');
+select tests.expect((select count(*) from (select distinct unnest(moods) from public.play_activities where mode = 'call' and not just_us) m) = 6, 'all six moods covered');
+select tests.expect((select count(distinct energy) from public.play_activities where mode = 'call' and not just_us) = 3, 'all three energy levels covered');
+select tests.expect((select count(distinct activity_type) from public.play_activities where mode = 'call' and not just_us) = 5, 'all five call types covered');
 
 -- -------------------------------------------------------- who can play
 select set_config('request.jwt.claim.sub', :'C', false);

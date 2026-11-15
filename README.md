@@ -52,6 +52,13 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **Phase 6 — `0007_call_session_mode.sql`**: Call Session Mode (planned sequences). Also tightens access so the app can only
   call the documented functions, not internal helpers. Nothing to change in Vercel.
 
+- **Personalisation — `0008_our_story_and_apart.sql` then `0009_just_us_and_apart_content.sql`** (run both, in that order):
+  Our Story profiles (editable by both of you), life updates, shared profile and milestones; the "Just us" switch for
+  Mondays (on by default); Apart, anytime missions; a private storage bucket **apart-media**; and the approved content
+  (6 Just us rituals, 21 Just us Play activities, 20 Apart activities, 4 wording edits). Supabase may warn about
+  "destructive operations" — that's the `drop constraint` that is replaced by a wider one straight after; nothing is deleted.
+  Afterwards, **Storage** should list `apart-media` marked *Private*. Nothing to change in Vercel.
+
 ## 2. Deploy on Vercel
 
 1. [vercel.com](https://vercel.com) → **Add New → Project** → import `venesman/our-little-ritual`.
@@ -121,12 +128,17 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 246 checks. Phase 5: 90 activities (15 per
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 322 checks. Phase 5: 90 activities (15 per
 category, every mood/energy/type covered), one shared session for both partners, every filter respected, no repeats then a
 reshuffle, "nothing matches" message, timer start/pause/reset maths, playing a chosen favourite, private vs shared favourites,
 outsiders blocked, and both phones opening Play / tapping "another one" at the same instant. Phase 6: every plan length
 adds up, every step fits its theme and minutes, no duplicates, partner sees and drives the same plan, done/skip/replace,
-finishing, re-planning, leaving the plan, outsiders blocked, internal helpers not callable from the app. 246 checks in total. Phase 4: visits shared between the
+finishing, re-planning, leaving the plan, outsiders blocked, internal helpers not callable from the app. Personalisation: either partner can edit either profile but no one else can;
+fields are validated and unknown fields ignored; home country is stored apart from current location; life updates removable
+only by their author; shared profile and milestones private to the couple; the Monday switch (48 rituals with Just us on, 42
+with it off, all six Just us rituals come up); Just us and Apart filters; call plans never use Apart or Just us activities;
+every Just us activity has a general fallback; Apart solo missions stay sealed until both share while relays are visible as
+you go; Apart photos follow the same rule in storage; closed missions refuse entries; at most six open missions. 322 checks in total. Phase 4: visits shared between the
 two of you and invisible to others, date validation, nudge rate limits (per minute and per day), no nudges before your
 partner joins, free hours editable only by their owner. Unit tests cover the call-overlap maths for Kuching ↔ Santiago in
 both Chile summer and winter time, windows past midnight, and "happening now". Earlier phases: Phase 3: a partner can't see a
@@ -161,6 +173,12 @@ redeeming the same link at the same instant → exactly one gets in**.
 | `play_sessions` | one live session per call: filters, current activity, shared timer, round |
 | `play_session_items` | every activity drawn in a session (done / skipped), for no-repeats and history |
 | `play_favourites` | "Saved for me" (private) and "Our Favourite Things to Do" (shared) |
+| `profiles` (Our Story fields) | current city / country, home country, school or workplace, what you're doing now, interests, languages, "into right now" |
+| `life_updates` | short news posts; each person removes only their own |
+| `relationship_profile` | shared interests, things you enjoy together, shared goals |
+| `milestones` | milestones, important dates and memories |
+| `apart_missions` / `apart_entries` | Apart, anytime missions and what each of you shared |
+| storage `apart-media` | private Apart photos and drawings at `<space>/<mission>/<person>/<file>` |
 
 ## How Play With Me stays in sync
 
@@ -178,6 +196,21 @@ redeeming the same link at the same instant → exactly one gets in**.
 - Each step gets an activity that suits its theme and fits its length, with no duplicates in the plan.
 - **Done · next** / **Skip** move both phones to the next step and set the shared timer to it; **Replace** swaps any upcoming or
   current step. "Leave the plan" or "Surprise us" switches back to free play. Ending the session saves it to History.
+
+## Our Story and "Just us"
+
+- Three layers, all editable by both of you: **About each of us** → **Right now** → **Us**.
+- "Just us" activities contain placeholders such as `[your current city]` or `[their home country]`. Each phone fills them
+  from the two profiles ("your" = whoever is reading). If a detail is missing, the activity shows its general version instead.
+- Nationality, home country and university are never used as where someone lives now.
+- **Play → On a call / Apart, anytime**, plus a **Just us** chip: off = the general library, on = only personal activities.
+- **Settings → Just us rituals on Mondays** (on by default) mixes six personal rituals into the weekly rotation (8 per category).
+
+## Apart, anytime
+
+- Missions you each do on your own time. *Solo, then share* and *Same thing, separately* stay sealed until you've both shared
+  (enforced by the database and storage, like the weekly reveal). *Relay* missions show each turn as it lands.
+- Up to six missions on the go; "Mark as finished" moves one to Past missions. Everything shared stays saved.
 
 ## How the sealed reveal works
 
@@ -208,4 +241,5 @@ Migrations live in `supabase/migrations/` and are applied in order. History is n
 3. ✅ Submission & reveal — drafts, private-until-both-submit, enforced by RLS and storage policies
 4. ✅ Quick wins — installable app, visit countdown, "thinking of you", best time to call
 5. ✅ Play With Me — 90 call activities, filters + Surprise us, live shared screen and timer, favourites, history
-6. ✅ Call Session Mode — planned sequences for 15–90 minute calls, done / skip / replace, saved to history · 7. The Curious Club · 8. Weekly check-in · 9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline
+6. ✅ Call Session Mode — planned sequences for 15–90 minute calls, done / skip / replace, saved to history
+6b. ✅ Personalisation — Our Story, Just us activities and Monday rituals, Apart, anytime missions · 7. The Curious Club · 8. Weekly check-in · 9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline

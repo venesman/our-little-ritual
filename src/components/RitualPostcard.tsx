@@ -19,7 +19,10 @@ export function RitualPostcard({ ritual, size = "full", children }: { ritual: We
     <article className={`postcard ${compact ? "p-5" : ""}`}>
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <Ticket tone={cat.tone}>{cat.label}</Ticket>
+          <div className="flex flex-wrap gap-1.5">
+            <Ticket tone={cat.tone}>{cat.label}</Ticket>
+            {ritual.activity.just_us && <Ticket tone="tomato">Just us</Ticket>}
+          </div>
           <h2 className={`mt-3 leading-tight ${compact ? "text-xl" : "text-[1.75rem]"}`}>{ritual.activity.title}</h2>
           <p className={`mt-2 text-muted ${compact ? "text-sm" : ""}`}>{ritual.activity.description}</p>
         </div>
