@@ -1,3 +1,4 @@
+import { CheckinCard } from "../components/CheckinCard";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, Send } from "lucide-react";
@@ -136,6 +137,8 @@ export function Home() {
           </RitualPostcard>
         )}
       </section>
+
+      <CheckinCard partnerName={partnerName} />
 
       <NudgeCard myId={session!.user.id} partnerId={partner.user_id} partnerName={partnerName} timeZone={myTz} />
 

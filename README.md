@@ -63,6 +63,9 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
   live research sessions, private notes, discoveries, favourites and the 109 approved topics. Turns on Realtime for
   `curious_sessions` (the app falls back to a 3-second check). Nothing to change in Vercel.
 
+- **Phase 8 — `0012_weekly_checkin.sql`**: the weekly check-in (questions, mood words, bonus prompts, private-until-both-share).
+  Nothing to change in Vercel.
+
 ## 2. Deploy on Vercel
 
 1. [vercel.com](https://vercel.com) → **Add New → Project** → import `venesman/our-little-ritual`.
@@ -132,7 +135,7 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 388 checks plus 7 concurrency scripts. Phase 5: 90 activities (15 per
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 423 checks plus 7 concurrency scripts. Phase 5: 90 activities (15 per
 category, every mood/energy/type covered), one shared session for both partners, every filter respected, no repeats then a
 reshuffle, "nothing matches" message, timer start/pause/reset maths, playing a chosen favourite, private vs shared favourites,
 outsiders blocked, and both phones opening Play / tapping "another one" at the same instant. Phase 6: every plan length
@@ -147,7 +150,10 @@ place-tagged and Just us topics; place topics appear under Just us only for coun
 format/difficulty/area filters; setup validation; notes private during research (even to direct queries) and open once
 presenting starts; https-only sources (max 5) and valid verdicts only; stale or double taps never skip a step; timer
 pause/skip/lengths; shared discoveries (remove only your own) and favourites; unused sessions discarded, finished ones kept;
-other couples see nothing; and both phones opening it / tapping "start researching" at the same instant. Phase 4: visits shared between the
+other couples see nothing; and both phones opening it / tapping "start researching" at the same instant. Check-in: only
+real past/current weeks since your space began; drafts private; shared check-ins locked; partner answers hidden (even by
+direct query) until both share; mood words from the list, max 3; can't share an empty check-in; same bonus prompt for both;
+call reminder shows once shared and clears for both; late check-ins sealed the same way; no score columns. Phase 4: visits shared between the
 two of you and invisible to others, date validation, nudge rate limits (per minute and per day), no nudges before your
 partner joins, free hours editable only by their owner. Unit tests cover the call-overlap maths for Kuching ↔ Santiago in
 both Chile summer and winter time, windows past midnight, and "happening now". Earlier phases: Phase 3: a partner can't see a
@@ -192,6 +198,8 @@ redeeming the same link at the same instant → exactly one gets in**.
 | `curious_notes` | each person's summary, source links and Fact or Fiction verdicts (private until presenting) |
 | `curious_discoveries` | discoveries you save together (will feed the Scrapbook) |
 | `curious_favourites` | your shared favourite topics |
+| `checkin_prompts` | the 12 rotating bonus prompts |
+| `checkins` | each person's weekly check-in: three answers, bonus, up to 3 mood words, call reminder; draft or shared |
 | storage `apart-media` | private Apart photos and drawings at `<space>/<mission>/<person>/<file>` |
 
 ## How Play With Me stays in sync
@@ -235,6 +243,13 @@ redeeming the same link at the same instant → exactly one gets in**.
   suggested structure (introduce · discovery · why it matters · surprise). Then discuss and save discoveries.
 - The app never answers Fact or Fiction claims or invents sources; topic cards are starting points, not verified facts.
 
+## Weekly check-in
+
+- Opens with each ritual week (Monday 12:00 UTC); a card on Home shows the status (never the content).
+- Three questions every week, up to three mood words, one rotating bonus prompt — all optional. No scores, streaks or charts.
+- Drafts are private; sharing locks it; your partner's answers open only once both have shared (enforced by the database).
+- "Let's talk about this on a call" shows a reminder on both Home screens until either of you taps "We talked about it".
+
 ## How the sealed reveal works
 
 - **Drafts** save to the server as you type and are visible only to you — never to your partner, even after the reveal.
@@ -266,4 +281,6 @@ Migrations live in `supabase/migrations/` and are applied in order. History is n
 5. ✅ Play With Me — 90 call activities, filters + Surprise us, live shared screen and timer, favourites, history
 6. ✅ Call Session Mode — planned sequences for 15–90 minute calls, done / skip / replace, saved to history
 6b. ✅ Personalisation — Our Story, Just us activities and Monday rituals, Apart, anytime missions
-7. ✅ The Curious Club — 109 topics, six formats, live research → present → discuss, discoveries, favourites, history · 8. Weekly check-in · 9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline
+7. ✅ The Curious Club — 109 topics, six formats, live research → present → discuss, discoveries, favourites, history
+8. ✅ Weekly check-in — three gentle questions, mood words, bonus prompt, sealed until both share
+9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline
