@@ -16,7 +16,9 @@ import { RitualDetail } from "./screens/RitualDetail";
 import { Visits } from "./screens/Visits";
 import { Play } from "./screens/Play";
 import { ApartMission } from "./screens/Apart";
-import { OurStory } from "./screens/OurStory";
+import { Us } from "./screens/Us";
+import { MomentEditor } from "./screens/Scrapbook";
+import { ExportStory } from "./screens/Export";
 import { CheckIn } from "./screens/CheckIn";
 import { LetterComposer, LetterView, Mailbox } from "./screens/Mailbox";
 
@@ -38,7 +40,11 @@ export default function App() {
             <Route path="visits" element={<Visits />} />
             <Route path="play" element={<Play />} />
             <Route path="play/apart/:missionId" element={<ApartMission />} />
-            <Route path="story" element={<OurStory />} />
+            <Route path="us" element={<Us />} />
+            <Route path="us/moment/new" element={<MomentEditor />} />
+            <Route path="us/moment/:id" element={<MomentEditor />} />
+            <Route path="us/export" element={<ExportStory />} />
+            <Route path="story" element={<Navigate to="/us?tab=story" replace />} />
             <Route path="checkin" element={<CheckIn />} />
             <Route path="mailbox" element={<Mailbox />} />
             <Route path="mailbox/new" element={<LetterComposer />} />

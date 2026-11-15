@@ -10,7 +10,7 @@ const NAV = [
   { to: "/", label: "Home", icon: Home, end: true },
   { to: "/rituals", label: "Rituals", icon: Stamp, end: false },
   { to: "/play", label: "Play", icon: Dices, end: false },
-  { to: "/story", label: "Our Story", icon: BookHeart, end: false },
+  { to: "/us", label: "Us", icon: BookHeart, end: false },
   { to: "/mailbox", label: "Mailbox", icon: Mail, end: false },
 ] as const;
 // The desktop sidebar has room for Settings too; on phones it's the gear at the top.
@@ -39,7 +39,7 @@ export function AppShell() {
       </aside>
 
       <main className="mx-auto w-full max-w-2xl px-5 pb-28 pt-6 md:pb-12 md:pt-10">
-        <div className="mb-6 flex items-center justify-between md:hidden">
+        <div className="no-print mb-6 flex items-center justify-between md:hidden">
           <Logo />
           <Link to="/settings" aria-label="Settings" className="grid h-11 w-11 place-items-center rounded-full text-leaf hover:bg-leaf-soft"><Settings size={21} aria-hidden="true" /></Link>
         </div>

@@ -1,0 +1,59 @@
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { BookHeart, Check } from "lucide-react";
+import { getFeed, imagesOf, isSaved, setEntry, signedUrl, type Memory, type MemoryKind } from "../lib/scrapbook";
+import { friendlyError } from "../lib/errors";
+
+/** "Save to scrapbook" for things that are open to both of you (revealed rituals, open Apart missions). */
+export function SaveToScrapbook({ kind, refId }: { kind: MemoryKind; refId: string }) {
+  const [saved, setSaved] = useState<boolean | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => { isSaved(kind, refId).then(setSaved).catch(() => setSaved(false)); }, [kind, refId]);
+  if (saved === null) return null;
+  return (
+    <div className="space-y-1">
+      <button type="button" disabled={busy} aria-pressed={saved} onClick={async () => {
+        setBusy(true); setError(null);
+        try { await setEntry(kind, refId, !saved); setSaved(!saved); } catch (e) { setError(friendlyError(e)); } finally { setBusy(false); }
+      }} className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 px-5 text-sm font-semibold transition ${saved ? "border-leaf bg-leaf text-cream" : "border-leaf bg-paper text-leaf hover:bg-leaf-soft"}`}>
+        {saved ? <Check size={16} aria-hidden="true" /> : <BookHeart size={16} aria-hidden="true" />}{saved ? "In our scrapbook" : "Save to scrapbook"}
+      </button>
+      {error && <p className="text-xs text-tomato-deep">{error}</p>}
+    </div>
+  );
+}
+
+/** Home: the three most recent memories, polaroid-style. */
+export function RecentMemories() {
+  const [items, setItems] = useState<Memory[] | null>(null);
+  useEffect(() => { getFeed().then((f) => setItems(f.slice(0, 3))).catch(() => setItems([])); }, []);
+  if (!items || items.length === 0) return null;
+  return (
+    <section aria-label="Recent memories" className="space-y-2">
+      <div className="flex items-baseline justify-between">
+        <p className="font-hand text-xl text-raspberry-deep">recent memories</p>
+        <Link to="/us" className="text-sm font-semibold text-leaf">Scrapbook →</Link>
+      </div>
+      <ul className="grid grid-cols-3 gap-2">
+        {items.map((m, i) => <li key={m.kind + m.ref_id}><MiniPolaroid m={m} tilt={[-2, 1.5, -1][i]} /></li>)}
+      </ul>
+    </section>
+  );
+}
+
+function MiniPolaroid({ m, tilt }: { m: Memory; tilt: number }) {
+  const first = imagesOf(m)[0];
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => { if (first) void signedUrl(first.bucket, first.path).then(setUrl); }, [first?.bucket, first?.path]); // eslint-disable-line react-hooks/exhaustive-deps
+  const words = m.parts?.find((p) => p.body?.trim())?.body ?? m.caption;
+  return (
+    <Link to="/us" style={{ transform: `rotate(${tilt}deg)` }} className="block rounded-sm bg-paper p-1.5 pb-2 shadow-card">
+      <div className="aspect-square overflow-hidden rounded-sm bg-cream">
+        {first ? (url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <div className="h-full w-full animate-pulse bg-leaf-soft" />)
+          : <p className="line-clamp-5 p-2 font-hand text-sm leading-tight text-leaf">{words || m.title}</p>}
+      </div>
+      <p className="mt-1 truncate text-[11px] font-semibold">{m.title}</p>
+    </Link>
+  );
+}

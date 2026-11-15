@@ -51,3 +51,15 @@
 .notebook {
   background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 27px, rgb(32 73 47 / 0.06) 27px, rgb(32 73 47 / 0.06) 28px);
 }
+
+/* Export our story: print only the document */
+@media print {
+  @page { margin: 14mm; }
+  body { background: #fff !important; }
+  nav, aside, .no-print { display: none !important; }
+  main { max-width: none !important; padding: 0 !important; }
+  .print-doc { box-shadow: none !important; padding: 0 !important; border-radius: 0 !important; }
+  .break-inside-avoid { break-inside: avoid; }
+  .print-doc .overflow-x-auto { overflow: visible !important; }
+  .print-doc table { min-width: 0 !important; }
+}

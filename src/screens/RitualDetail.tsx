@@ -1,3 +1,4 @@
+import { SaveToScrapbook } from "../components/ScrapbookBits";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, MailCheck } from "lucide-react";
@@ -123,6 +124,7 @@ export function RitualDetail() {
             <AnswerCard submission={mine} name={myName} tone="mustard" mode={mode} delay={justRevealed ? 150 : 0} />
             <AnswerCard submission={theirs} name={partnerName} tone="raspberry" mode={mode} delay={justRevealed ? 450 : 0} />
           </div>
+          <SaveToScrapbook kind="ritual" refId={ritual.weeklyId} />
         </section>
       ) : iShared && mine ? (
         <section className="space-y-4">

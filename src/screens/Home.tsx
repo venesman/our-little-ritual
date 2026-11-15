@@ -1,3 +1,4 @@
+import { RecentMemories } from "../components/ScrapbookBits";
 import { MailboxCard } from "../components/MailboxCard";
 import { CheckinCard } from "../components/CheckinCard";
 import { useEffect, useState } from "react";
@@ -138,6 +139,8 @@ export function Home() {
           </RitualPostcard>
         )}
       </section>
+
+      <RecentMemories />
 
       <MailboxCard timeZone={myTz} />
 

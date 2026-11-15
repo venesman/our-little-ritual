@@ -70,6 +70,9 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
   for Sound of My Day and two Apart missions. Adds a private storage bucket **letters** and lets `ritual-media` / `apart-media`
   accept audio. Afterwards, **Storage** should list `letters` marked *Private*. Nothing to change in Vercel.
 
+- **Phase 10 — `0014_scrapbook.sql`**: Our Scrapbook, trips & moments (photos with their dates) and the export summary.
+  Adds a private storage bucket **moments**. Afterwards, **Storage** should list `moments` marked *Private*. Nothing to change in Vercel.
+
 ## 2. Deploy on Vercel
 
 1. [vercel.com](https://vercel.com) → **Add New → Project** → import `venesman/our-little-ritual`.
@@ -139,7 +142,7 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 478 checks plus 7 concurrency scripts. Phase 5: 90 activities (15 per
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 523 checks plus 7 concurrency scripts. Phase 5: 90 activities (15 per
 category, every mood/energy/type covered), one shared session for both partners, every filter respected, no repeats then a
 reshuffle, "nothing matches" message, timer start/pause/reset maths, playing a chosen favourite, private vs shared favourites,
 outsiders blocked, and both phones opening Play / tapping "another one" at the same instant. Phase 6: every plan length
@@ -162,7 +165,11 @@ couples can write; drafts and their files invisible to the partner; files only i
 future letters without a date, past or >5-year dates refused; sent letters can't be edited or deleted (nor their files);
 scheduled letters show only as sealed envelopes (kind + date) and can't be read or opened early; open, love, take back
 (only until opened); a scheduled letter opens on its date; other couples see nothing. Voice: only Sound of My Day and two
-Apart missions accept voice; voice-only answers can be shared; partner hears it only after the reveal / once both shared. Phase 4: visits shared between the
+Apart missions accept voice; voice-only answers can be shared; partner hears it only after the reveal / once both shared.
+Scrapbook: loved letters, discoveries and milestones appear automatically; rituals and missions can be saved only once open
+to both; sealed letters and other couples' items never appear; remove (original kept), put back, captions; trips dated before
+using the app, date checks, 12 photos max, implausible camera dates dropped; photos visible to both, attached ones can't be
+deleted directly; check-ins never included; export summary counts only your own space. Phase 4: visits shared between the
 two of you and invisible to others, date validation, nudge rate limits (per minute and per day), no nudges before your
 partner joins, free hours editable only by their owner. Unit tests cover the call-overlap maths for Kuching ↔ Santiago in
 both Chile summer and winter time, windows past midnight, and "happening now". Earlier phases: Phase 3: a partner can't see a
@@ -211,6 +218,9 @@ redeeming the same link at the same instant → exactly one gets in**.
 | `checkins` | each person's weekly check-in: three answers, bonus, up to 3 mood words, call reminder; draft or shared |
 | `letters` | letters: kind, title, body, photo, voice note, draft/sent, reveal date, opened, loved |
 | storage `letters` | private letter photos and voice notes at `<space>/<letter>/<sender>/<file>` |
+| `scrapbook_entries` | what's saved or removed from the scrapbook, and captions |
+| `moments` / `moment_photos` | trips & moments you add (any date) and their photos with the date each was taken |
+| storage `moments` | private trip photos at `<space>/<moment>/<uploader>/<file>` |
 | storage `apart-media` | private Apart photos and drawings at `<space>/<mission>/<person>/<file>` |
 
 ## How Play With Me stays in sync
@@ -268,6 +278,17 @@ redeeming the same link at the same instant → exactly one gets in**.
 - One photo and one voice note (up to 2 minutes, recorded in the browser) per letter. Take a letter back until it's opened.
 - "Letters we love" is shared. On phones, Mailbox is in the bottom bar and Settings is the gear at the top.
 
+## Our Scrapbook and "Export our story"
+
+- **Us → Scrapbook**: a polaroid gallery grouped by month, filterable by type, category, month and year. Each memory shows its
+  date and author. Revealed rituals and open Apart missions have a "Save to scrapbook" button; loved letters, Curious Club
+  discoveries and milestones appear automatically. Removing never deletes the original. Check-ins stay out.
+- **Add a trip or moment**: title, places, dates (any time, even before you used the app), caption and up to 12 photos. The
+  date each photo was taken is read from the file when the phone saved it.
+- **Export our story**: pick a date range and what to include → a Word document (opens in Google Docs / Drive) or
+  Print / Save as PDF. It has a cover, a "Time together" table, a month-by-month summary of shared activities (counts only),
+  and dated memories with photos. Letters are left out unless you tick them. It reports what's in the app — it's not legal advice.
+
 ## How the sealed reveal works
 
 - **Drafts** save to the server as you type and are visible only to you — never to your partner, even after the reveal.
@@ -302,4 +323,5 @@ Migrations live in `supabase/migrations/` and are applied in order. History is n
 7. ✅ The Curious Club — 109 topics, six formats, live research → present → discuss, discoveries, favourites, history
 8. ✅ Weekly check-in — three gentle questions, mood words, bonus prompt, sealed until both share
 9. ✅ Mailbox + voice notes — letters, scheduled reveals, photos, voice notes (also in Sound of My Day and two Apart missions)
-10. Scrapbook · 11. Creative Corner · 12. Timeline
+10. ✅ Scrapbook — polaroid gallery, trips with dated photos, Export our story (Word / PDF)
+11. Creative Corner · 12. Timeline

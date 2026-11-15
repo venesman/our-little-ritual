@@ -1,3 +1,4 @@
+import { SaveToScrapbook } from "../components/ScrapbookBits";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Camera, Check, Dices, Hourglass, ImagePlus, Link2, Lock, PenLine, Repeat, Send, Shuffle, X } from "lucide-react";
@@ -242,6 +243,8 @@ export function ApartMission() {
           prompt={style === "relay" && entries.length > 0 ? "Add the next turn" : "Your part"}
         />
       )}
+
+      {(style === "relay" ? entries.length > 0 : summary.visible) && <SaveToScrapbook kind="mission" refId={missionId} />}
 
       {!closed ? (
         <div className="border-t border-dashed border-leaf/25 pt-4">
