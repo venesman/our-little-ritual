@@ -87,6 +87,10 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **`0022_quiz_live.sql`**: Quiz Duel live on a call — one opens a live match, the other joins, both see each question at the same moment (3-2-1), race the shared clock and see the answers together. Adds Realtime on `quiz_matches` (no answers in that row).
 - **`0023_personality_quizzes.sql`**: 12 personality quizzes (words in `src/lib/personality.ts`; partner's card hidden until you've taken it, optional guess, scrapbook) and 150 more starter questions (`supabase/quiz/more_questions.tsv`).
 - **`0024_know_me.sql`**: How well do you know me? — 40 questions; a game has a round about each of you (answer privately → partner guesses → you mark the guesses); answers hidden until guessed; scrapbook; For you.
+- **`0025_music.sql`**: a Spotify song on a letter (sealed with it), and Our Soundtrack in Our Story; private `songs` folder for covers. Then deploy the **`song-details`** Edge Function (below).
+
+### Setting up song details (one time)
+Supabase → **Edge Functions → Deploy a new function** → name it `song-details` → paste `supabase/functions/song-details/index.ts` → Deploy. Leave "Enforce JWT verification" **on** (it only serves signed-in members). No secrets needed. Without it, songs still work — you just type the title and artist yourself and there's no cover.
 
 ## 2. Deploy on Vercel
 

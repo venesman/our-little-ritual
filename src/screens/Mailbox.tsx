@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Whims } from "./Whims";
+import { SongCard, SongPicker } from "../components/Song";
+import { findSongLink, lookUpSong, setLetterSong, type Song } from "../lib/music";
 import { ArrowLeft, Camera, Heart, Lock, MailOpen, PenLine, Send, Trash2, Undo2, X } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
 import { useSpace } from "../hooks/useSpace";
@@ -141,7 +143,7 @@ export function Mailbox() {
                   <Stamp kind={l.kind} size="sm" />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-display text-lg font-semibold">{l.title || KIND[l.kind].label}</p>
-                    <p className="truncate text-xs text-muted">{status}{l.voice_path ? " · 🎙" : ""}{l.image_path ? " · 📷" : ""}</p>
+                    <p className="truncate text-xs text-muted">{status}{l.voice_path ? " · 🎙" : ""}{l.image_path ? " · 📷" : ""}{l.song_url ? " · 🎵" : ""}</p>
                   </div>
                   {!mine && !l.opened_at && <span className="rounded-full bg-raspberry px-2 py-0.5 text-[11px] font-bold text-leaf">New</span>}
                   {l.loved && <Heart size={16} className="fill-raspberry text-raspberry" aria-label="In Letters we love" />}
@@ -177,6 +179,9 @@ export function LetterComposer() {
   const [voice, setVoice] = useState<RecordedVoice | null>(null);
   const [dropVoice, setDropVoice] = useState(false);
   const [dropPhoto, setDropPhoto] = useState(false);
+  const [song, setSong] = useState<Song | null>(null);
+  const [songNote, setSongNote] = useState("");
+  const [songDirty, setSongDirty] = useState(false);
   const [when, setWhen] = useState<"now" | "later">("now");
   const [revealLocal, setRevealLocal] = useState("");
   const [busy, setBusy] = useState<"save" | "send" | "delete" | null>(null);
@@ -189,6 +194,7 @@ export function LetterComposer() {
     getLetter(id).then((l) => {
       if (!l || l.sender_id !== myId || l.status !== "draft") { navigate(`/mailbox/${id}`, { replace: true }); return; }
       setLetter(l); setKind(l.kind); setTitle(l.title); setBody(l.body);
+      if (l.song_url) { setSong({ url: l.song_url, title: l.song_title ?? "", artist: l.song_artist ?? "", album: l.song_album ?? "", cover_path: l.song_cover_path ?? null }); setSongNote(l.song_note ?? ""); }
       if (l.image_path) void signedLetterUrl(l.image_path).then(setPhotoUrl);
     }).catch((e) => setError(friendlyError(e))).finally(() => setLoading(false));
   }, [id, myId, navigate]);
@@ -200,6 +206,12 @@ export function LetterComposer() {
   }, [photo]);
 
   useEffect(() => { if (kind === "future") setWhen("later"); }, [kind]);
+  // shared from Spotify (Android share menu): /mailbox/new?song=<link>
+  useEffect(() => {
+    const shared = findSongLink(new URLSearchParams(window.location.search).get("song"));
+    if (!shared || id) return;
+    void lookUpSong(shared).then((s) => { setSong({ url: s.url, title: s.title, artist: s.artist, album: s.album, cover_path: s.cover_path }); setSongDirty(true); });
+  }, [id]);
 
   if (space?.relationship.status !== "active") return <Navigate404 />;
   if (loading) return <Spinner label="Opening your draft" />;
@@ -221,6 +233,7 @@ export function LetterComposer() {
       current = (await getLetter(draftId))!;
       for (const f of oldFiles) void removeLetterFile(f);
     }
+    if (songDirty) { await setLetterSong(draftId, song, songNote); current = (await getLetter(draftId))!; setSongDirty(false); }
     setLetter(current); setPhoto(null); setVoice(null); setDropPhoto(false); setDropVoice(false);
     if (!letter) navigate(`/mailbox/${draftId}/edit`, { replace: true });
     return current;
@@ -292,6 +305,8 @@ export function LetterComposer() {
         <Button variant="outline" type="button" className="!min-h-[38px] !px-3 text-xs" onClick={() => fileInput.current?.click()}>
           <Camera size={15} aria-hidden="true" /> {shownPhoto ? "Change photo" : "Add a photo"}
         </Button>
+
+        <SongPicker value={song} onChange={(s) => { setSong(s); setSongDirty(true); setSaved(false); }} note={songNote} onNote={(n) => { setSongNote(n); setSongDirty(true); setSaved(false); }} />
 
         {letter?.voice_path && !dropVoice && !voice ? (
           <div>
@@ -400,6 +415,7 @@ export function LetterView() {
         {l.body && <p className="whitespace-pre-wrap font-hand text-2xl leading-relaxed">{l.body}</p>}
         {l.image_path && (photo ? <img src={photo} alt="Photo in the letter" className="w-full rounded-xl bg-cream object-contain" /> : <div className="h-48 animate-pulse rounded-xl bg-leaf-soft" />)}
         {l.voice_path && <VoicePlayer bucket={LETTER_BUCKET} path={l.voice_path} seconds={l.voice_seconds} />}
+        {l.song_url && <SongCard song={{ url: l.song_url, title: l.song_title ?? "", artist: l.song_artist ?? "", album: l.song_album ?? "", cover_path: l.song_cover_path ?? null }} note={l.song_note} />}
       </article>
 
       <div className="flex flex-wrap items-center gap-2">

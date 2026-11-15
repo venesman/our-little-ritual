@@ -1,3 +1,4 @@
+import { ShareTarget } from "./screens/ShareTarget";
 import { KnowMeScreen } from "./screens/KnowMe";
 import { PersonalityQuiz } from "./screens/Personality";
 import { QuizMatchScreen, QuizQuestions } from "./screens/Quiz";
@@ -61,6 +62,7 @@ export default function App() {
             <Route path="mailbox/:id/edit" element={<LetterComposer />} />
             <Route path="mailbox/:id" element={<LetterView />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="share" element={<ShareTarget />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

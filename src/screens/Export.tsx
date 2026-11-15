@@ -8,11 +8,12 @@ import { KIND as LETTER_KIND, type LetterKind } from "../lib/mailbox";
 import { friendlyError } from "../lib/errors";
 import { Button, Card, ErrorNote, Field, Spinner, inputCls } from "../components/ui";
 import { memoryDate } from "./Scrapbook";
+import { soundtrackFeed, type SoundtrackItem } from "../lib/music";
 
-type Include = { moments: boolean; milestones: boolean; rituals: boolean; missions: boolean; discoveries: boolean; letters: boolean; summary: boolean; photos: boolean };
+type Include = { moments: boolean; milestones: boolean; rituals: boolean; missions: boolean; discoveries: boolean; letters: boolean; soundtrack: boolean; summary: boolean; photos: boolean };
 const INCLUDE_LABEL: Record<keyof Include, string> = {
   moments: "Trips & moments", milestones: "Milestones", rituals: "Weekly rituals (both answers)", missions: "Apart missions",
-  discoveries: "Curious Club discoveries", letters: "Letters (private — off by default)", summary: "Month-by-month summary of shared activities", photos: "Include photos",
+  discoveries: "Curious Club discoveries", letters: "Letters (private — off by default)", soundtrack: "Our Soundtrack (song, artist, date, who shared it)", summary: "Month-by-month summary of shared activities", photos: "Include photos",
 };
 
 const dayOf = (m: Memory) => (m.starts_on ?? m.at).slice(0, 10);
@@ -32,7 +33,9 @@ export function ExportStory() {
   const [error, setError] = useState<string | null>(null);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState(new Date().toISOString().slice(0, 10));
-  const [inc, setInc] = useState<Include>({ moments: true, milestones: true, rituals: true, missions: false, discoveries: false, letters: false, summary: true, photos: true });
+  const [inc, setInc] = useState<Include>({ moments: true, milestones: true, rituals: true, missions: false, discoveries: false, letters: false, soundtrack: false, summary: true, photos: true });
+  const [songs, setSongs] = useState<SoundtrackItem[]>([]);
+  useEffect(() => { if (inc.soundtrack && !songs.length) soundtrackFeed().then(setSongs).catch(() => {}); }, [inc.soundtrack, songs.length]);
   const [busy, setBusy] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,13 +57,14 @@ export function ExportStory() {
       || (m.kind === "mission" && inc.missions) || (m.kind === "discovery" && inc.discoveries) || (m.kind === "letter" && inc.letters);
   }).sort((a, b) => dayOf(a).localeCompare(dayOf(b))), [feed, from, to, inc]);
   const trips = items.filter((m) => m.kind === "moment");
+  const soundtrack = inc.soundtrack ? songs.filter((x) => (!from || x.on >= from) && (!to || x.on <= to)).sort((a, b) => a.on.localeCompare(b.on)) : [];
   const people = [me, partner].filter(Boolean);
   const summaryRows = inc.summary ? summary.filter((r) => r.rituals_both + r.checkins_both + r.letters + r.play_sessions + r.curious_sessions + r.apart_missions > 0) : [];
 
   const download = async () => {
     setBusy("docx"); setError(null);
     try {
-      const blob = await buildDocx({ items, trips, summaryRows, inc, from, to, people: people.map((p) => p!), nameOf });
+      const blob = await buildDocx({ items, trips, summaryRows, inc, from, to, people: people.map((p) => p!), nameOf, soundtrack });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `Our-story-${from}-to-${to}.docx`;
@@ -169,7 +173,15 @@ export function ExportStory() {
             {items.map((m) => <PrintMemory key={m.kind + m.ref_id} m={m} photos={inc.photos} nameOf={nameOf} />)}
           </section>
         )}
-        {items.length === 0 && trips.length === 0 && summaryRows.length === 0 && <p>Nothing in this date range yet.</p>}
+        {soundtrack.length > 0 && (
+          <section className="space-y-2">
+            <h2 className="font-display text-xl">Our Soundtrack</h2>
+            <ul className="list-disc space-y-1 pl-5 text-sm">
+              {soundtrack.map((x) => <li key={x.source + x.id}>{fmtDate(x.on)} — {x.title}{x.artist ? ` · ${x.artist}` : ""} (shared by {nameOf(x.by)}){x.note ? ` — “${x.note}”` : ""}</li>)}
+            </ul>
+          </section>
+        )}
+        {items.length === 0 && trips.length === 0 && summaryRows.length === 0 && soundtrack.length === 0 && <p>Nothing in this date range yet.</p>}
       </article>
     </div>
   );
@@ -228,8 +240,8 @@ async function imageForDocx(bucket: string, path: string): Promise<{ data: Array
   return { data: await blob.arrayBuffer(), type: path.endsWith(".png") ? "png" : "jpg", width: Math.round(bmp.width * scale), height: Math.round(bmp.height * scale) };
 }
 
-async function buildDocx({ items, trips, summaryRows, inc, from, to, people, nameOf }: {
-  items: Memory[]; trips: Memory[]; summaryRows: MonthSummary[]; inc: Include; from: string; to: string;
+async function buildDocx({ items, trips, summaryRows, inc, from, to, people, nameOf, soundtrack }: {
+  items: Memory[]; trips: Memory[]; summaryRows: MonthSummary[]; inc: Include; from: string; to: string; soundtrack: SoundtrackItem[];
   people: { id: string; display_name: string; current_city: string | null; current_country: string | null; home_country: string | null }[];
   nameOf: (id: string | null | undefined) => string;
 }): Promise<Blob> {
@@ -282,6 +294,10 @@ async function buildDocx({ items, trips, summaryRows, inc, from, to, people, nam
         }
       }
     }
+  }
+  if (soundtrack.length) {
+    children.push(new Paragraph({ text: "Our Soundtrack", heading: HeadingLevel.HEADING_1 }));
+    children.push(table(["Date", "Song", "Artist", "Shared by"], soundtrack.map((x) => [fmtDate(x.on), x.title, x.artist || "—", nameOf(x.by)])));
   }
   const doc = new Document({ creator: "Our Little Ritual", title: "Our relationship record", sections: [{ children }] });
   return Packer.toBlob(doc);

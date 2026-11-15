@@ -1,3 +1,4 @@
+import { OurSoundtrack } from "../components/Soundtrack";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarHeart, Heart, MapPin, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { useSpace } from "../hooks/useSpace";
@@ -51,6 +52,8 @@ export function OurStory() {
         <SharedSection onError={setError} />
         <MilestonesSection onError={setError} />
       </section>
+
+      <OurSoundtrack />
     </div>
   );
 }

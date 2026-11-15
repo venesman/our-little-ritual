@@ -19,6 +19,7 @@ export interface Letter {
   id: string; relationship_id: string; sender_id: string; recipient_id: string; kind: LetterKind; title: string; body: string;
   image_path: string | null; voice_path: string | null; voice_seconds: number | null;
   status: "draft" | "sent"; reveal_at: string | null; sent_at: string | null; opened_at: string | null; loved: boolean;
+  song_url?: string | null; song_title?: string | null; song_artist?: string | null; song_album?: string | null; song_cover_path?: string | null; song_note?: string | null;
   created_at: string; updated_at: string;
 }
 export interface SealedLetter { id: string; kind: LetterKind; reveal_at: string; sent_at: string }
@@ -28,14 +29,21 @@ function check<T>(res: { data: T; error: unknown }): T {
   if (res.error) throw res.error;
   return res.data;
 }
-const COLS = "id, relationship_id, sender_id, recipient_id, kind, title, body, image_path, voice_path, voice_seconds, status, reveal_at, sent_at, opened_at, loved, created_at, updated_at";
+const BASE_COLS = "id, relationship_id, sender_id, recipient_id, kind, title, body, image_path, voice_path, voice_seconds, status, reveal_at, sent_at, opened_at, loved, created_at, updated_at";
+// The song columns arrive with migration 0025; until it's run, letters still load without them.
+let COLS = `${BASE_COLS}, song_url, song_title, song_artist, song_album, song_cover_path, song_note`;
+async function selectLetters<T>(run: (cols: string) => PromiseLike<{ data: T; error: unknown }>): Promise<T> {
+  const res = await run(COLS);
+  if (res.error && /song_/.test(String((res.error as { message?: string }).message ?? ""))) { COLS = BASE_COLS; return check(await run(COLS)); }
+  return check(res);
+}
 
 /** Everything the database lets you see: your own letters (drafts and sent) and letters that have arrived for you. */
 export async function listLetters(): Promise<Letter[]> {
-  return check(await supabase.from("letters").select(COLS).order("created_at", { ascending: false }).limit(500)) as Letter[];
+  return (await selectLetters((c) => supabase.from("letters").select(c).order("created_at", { ascending: false }).limit(500))) as unknown as Letter[];
 }
 export async function getLetter(id: string): Promise<Letter | null> {
-  return check(await supabase.from("letters").select(COLS).eq("id", id).maybeSingle()) as Letter | null;
+  return (await selectLetters((c) => supabase.from("letters").select(c).eq("id", id).maybeSingle())) as unknown as Letter | null;
 }
 export async function listSealed(): Promise<SealedLetter[]> {
   return check(await supabase.rpc("my_sealed_letters")) as SealedLetter[];
