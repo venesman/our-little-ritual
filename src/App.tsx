@@ -1,3 +1,4 @@
+import { Language } from "./screens/Language";
 import { Keepsake } from "./screens/Keepsake";
 import { CreationScreen } from "./screens/Creative";
 import { ShareTarget } from "./screens/ShareTarget";
@@ -57,6 +58,7 @@ export default function App() {
             <Route path="us/moment/:id" element={<MomentEditor />} />
             <Route path="us/export" element={<ExportStory />} />
             <Route path="us/keepsake" element={<Keepsake />} />
+            <Route path="play/language" element={<Language />} />
             <Route path="us/keepsake/:year" element={<Keepsake />} />
             <Route path="story" element={<Navigate to="/us?tab=story" replace />} />
             <Route path="checkin" element={<CheckIn />} />

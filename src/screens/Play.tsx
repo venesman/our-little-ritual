@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { BookOpenCheck, Bookmark, BookmarkCheck, CalendarClock, Sparkles, Phone, Hourglass, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, Trophy, Palette, X } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { BookOpenCheck, Bookmark, BookmarkCheck, CalendarClock, Sparkles, Phone, Hourglass, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, Trophy, Palette, Languages, X } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { usePlaySession } from "../hooks/usePlaySession";
 import { usePeople } from "../hooks/usePeople";
 import { personalise } from "../lib/tokens";
@@ -53,6 +53,9 @@ export function Play() {
           </button>
         ))}
       </div>
+      <Link to="/play/language" className="flex w-full items-center gap-3 rounded-2xl border-2 border-leaf/15 bg-paper px-4 py-2.5 text-sm font-semibold text-leaf">
+        <Languages size={16} aria-hidden="true" /> Language corner <span className="font-normal text-muted">· Swedish · Spanish · Iban</span> <span className="ml-auto">→</span>
+      </Link>
       {mode === "create" ? <CreativeTab /> : mode === "quiz" ? <QuizTab /> : mode === "apart" ? <ApartTab /> : <>
       <button type="button" onClick={() => setMode("quiz")} className="flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-mustard bg-mustard-soft/60 px-4 py-2.5 text-left text-sm font-semibold text-leaf">
         <Trophy size={16} aria-hidden="true" /> Fancy a quiz? Play a live Quiz Duel on this call →

@@ -105,3 +105,18 @@ describe("keepsake tiles", () => {
       .toEqual([{ n: 1, label: "weekly ritual" }, { n: 12, label: "letters" }, { n: 3, label: "songs shared" }]);
   });
 });
+
+import { quizQuestion, starterCards } from "../language";
+describe("language corner", () => {
+  it("has Swedish, Spanish and Iban starters", () => {
+    const langs = new Set(starterCards().map((c) => c.lang));
+    expect([...langs].sort()).toEqual(["es", "iban", "sv"]);
+  });
+  it("quiz questions have four different options with one right answer", () => {
+    const pool = starterCards();
+    const q = quizQuestion(pool.find((c) => c.lang === "sv")!, pool);
+    expect(q.options).toHaveLength(4);
+    expect(new Set(q.options).size).toBe(4);
+    expect(q.options[q.answer]).toBe(q.card.meaning);
+  });
+});
