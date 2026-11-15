@@ -14,6 +14,8 @@ export interface Submission {
   link_url: string | null;
   answers: Answer[];
   image_path: string | null;
+  voice_path?: string | null;
+  voice_seconds?: number | null;
   updated_at: string;
   submitted_at: string | null;
 }
@@ -34,7 +36,7 @@ function check<T>(res: { data: T; error: unknown }): T {
   return res.data;
 }
 
-const SUB_COLS = "id, weekly_activity_id, relationship_id, user_id, status, body, link_url, answers, image_path, updated_at, submitted_at";
+const SUB_COLS = "id, weekly_activity_id, relationship_id, user_id, status, body, link_url, answers, image_path, voice_path, voice_seconds, updated_at, submitted_at";
 
 /**
  * Every submission for the week that the database lets this user see:
@@ -85,4 +87,9 @@ export async function signedImageUrl(path: string): Promise<string | null> {
   const { data, error } = await supabase.storage.from(MEDIA_BUCKET).createSignedUrl(path, 60 * 60);
   if (error) return null;
   return data.signedUrl;
+}
+
+/** Attach (or clear, with null) a voice note on your draft — only for rituals that allow voice. */
+export async function setRitualVoice(weeklyId: string, path: string | null, seconds: number | null) {
+  check(await supabase.rpc("set_ritual_voice", { p_weekly: weeklyId, p_voice_path: path, p_voice_seconds: seconds }));
 }

@@ -1,5 +1,5 @@
-import { NavLink, Outlet } from "react-router-dom";
-import { BookHeart, Dices, Home, Settings, Stamp } from "lucide-react";
+import { Link, NavLink, Outlet } from "react-router-dom";
+import { BookHeart, Dices, Home, Mail, Settings, Stamp } from "lucide-react";
 import { Logo } from "./ui";
 
 /**
@@ -11,8 +11,10 @@ const NAV = [
   { to: "/rituals", label: "Rituals", icon: Stamp, end: false },
   { to: "/play", label: "Play", icon: Dices, end: false },
   { to: "/story", label: "Our Story", icon: BookHeart, end: false },
-  { to: "/settings", label: "Settings", icon: Settings, end: false },
+  { to: "/mailbox", label: "Mailbox", icon: Mail, end: false },
 ] as const;
+// The desktop sidebar has room for Settings too; on phones it's the gear at the top.
+const DESKTOP_NAV = [...NAV, { to: "/settings", label: "Settings", icon: Settings, end: false }] as const;
 
 export function AppShell() {
   return (
@@ -22,7 +24,7 @@ export function AppShell() {
         <div className="space-y-10">
           <Logo tone="cream" />
           <nav className="flex flex-col gap-1.5" aria-label="Main">
-            {NAV.map(({ to, label, icon: Icon, end }) => (
+            {DESKTOP_NAV.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to} to={to} end={end}
                 className={({ isActive }) =>
@@ -37,7 +39,10 @@ export function AppShell() {
       </aside>
 
       <main className="mx-auto w-full max-w-2xl px-5 pb-28 pt-6 md:pb-12 md:pt-10">
-        <div className="mb-6 md:hidden"><Logo /></div>
+        <div className="mb-6 flex items-center justify-between md:hidden">
+          <Logo />
+          <Link to="/settings" aria-label="Settings" className="grid h-11 w-11 place-items-center rounded-full text-leaf hover:bg-leaf-soft"><Settings size={21} aria-hidden="true" /></Link>
+        </div>
         <Outlet />
       </main>
 

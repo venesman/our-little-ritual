@@ -26,6 +26,7 @@ export interface PlayActivity {
   needs?: string[];
   fallback_instructions?: string | null;
   share_as?: string | null;
+  allow_voice?: boolean;
 }
 
 export interface PlayFilters { minutes?: number; moods?: Mood[]; energy?: Energy; type?: PlayType; mode?: "apart"; just_us?: boolean }
@@ -130,7 +131,7 @@ export async function togglePlayFavourite(activityId: string, scope: "mine" | "o
 }
 
 export const ACTIVITY_COLUMNS =
-  "id, code, title, category, description, instructions, prompts, minutes, energy, activity_type, moods, materials, mode, style, just_us, needs, fallback_instructions, share_as";
+  "id, code, title, category, description, instructions, prompts, minutes, energy, activity_type, moods, materials, mode, style, just_us, needs, fallback_instructions, share_as, allow_voice";
 
 export interface Favourite { id: string; scope: "mine" | "ours"; user_id: string; activity: PlayActivity }
 export async function listFavourites(): Promise<Favourite[]> {

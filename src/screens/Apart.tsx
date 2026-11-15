@@ -5,13 +5,14 @@ import { supabase } from "../lib/supabase";
 import { useSpace } from "../hooks/useSpace";
 import { usePeople } from "../hooks/usePeople";
 import {
-  addEntry, closeMission, getMission, listMissions, signedApartUrl, startMission, uploadApartImage,
+  addEntry, APART_BUCKET, closeMission, getMission, listMissions, signedApartUrl, startMission, uploadApartImage,
   type ApartEntry, type MissionSummary,
 } from "../lib/apart";
 import { ACTIVITY_COLUMNS, APART_TYPES, STYLE_LABEL, type PlayActivity, type PlayFilters } from "../lib/play";
 import { friendlyError } from "../lib/errors";
 import { Button, Card, ErrorNote, Field, Spinner, Ticket, inputCls } from "../components/ui";
 import { DrawingPad, type DrawingPadHandle } from "../components/DrawingPad";
+import { uploadVoice, VoicePlayer, VoiceRecorder, type RecordedVoice } from "../components/Voice";
 import { ActivityCard, JustUsChip } from "./Play";
 
 const STYLE_ICON = { solo: Lock, relay: Repeat, same: Hourglass } as const;
@@ -225,12 +226,14 @@ export function ApartMission() {
       {canAdd && space && myId && (
         <EntryComposer
           drawing={a.activity_type === "drawing"}
+          voice={!!a.allow_voice}
           busy={busy === "add"}
-          onSubmit={async (body, link, file) => {
+          onSubmit={async (body, link, file, voice) => {
             setBusy("add"); setError(null);
             try {
               const path = file ? await uploadApartImage(space.relationship.id, missionId, myId, file) : null;
-              await addEntry(missionId, body, link, path);
+              const vpath = voice ? await uploadVoice(APART_BUCKET, `${space.relationship.id}/${missionId}/${myId}`, voice) : null;
+              await addEntry(missionId, body, link, path, vpath, voice?.seconds ?? null);
               await load();
               return true;
             } catch (e) { setError(friendlyError(e)); return false; }
@@ -277,6 +280,7 @@ function EntryCard({ entry, who, mine }: { entry: ApartEntry; who: string; mine:
       {entry.image_path && (img
         ? <img src={img} alt={`Shared by ${who}`} className="mt-3 max-h-96 w-full rounded-xl object-contain bg-cream" />
         : <div className="mt-3 h-40 animate-pulse rounded-xl bg-leaf-soft" />)}
+      {entry.voice_path && <VoicePlayer bucket={APART_BUCKET} path={entry.voice_path} seconds={entry.voice_seconds} label={`${who === "You" ? "Your" : `${who}'s`} voice note`} />}
       {entry.link_url && (
         <a href={entry.link_url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex max-w-full items-center gap-1.5 truncate text-sm font-semibold text-leaf underline underline-offset-4">
           <Link2 size={14} aria-hidden="true" />{entry.link_url.replace(/^https:\/\//, "")}
@@ -286,10 +290,11 @@ function EntryCard({ entry, who, mine }: { entry: ApartEntry; who: string; mine:
   );
 }
 
-function EntryComposer({ drawing, busy, onSubmit, prompt }: {
-  drawing: boolean; busy: boolean; prompt: string;
-  onSubmit: (body: string, link: string | null, file: File | null) => Promise<boolean>;
+function EntryComposer({ drawing, voice: allowVoice, busy, onSubmit, prompt }: {
+  drawing: boolean; voice: boolean; busy: boolean; prompt: string;
+  onSubmit: (body: string, link: string | null, file: File | null, voice: RecordedVoice | null) => Promise<boolean>;
 }) {
+  const [voice, setVoice] = useState<RecordedVoice | null>(null);
   const [body, setBody] = useState("");
   const [link, setLink] = useState("");
   const [showLink, setShowLink] = useState(false);
@@ -311,8 +316,8 @@ function EntryComposer({ drawing, busy, onSubmit, prompt }: {
       const blob = await pad.current.toBlob();
       if (blob) f = new File([blob], "drawing.png", { type: "image/png" });
     }
-    const ok = await onSubmit(body.trim(), showLink && link.trim() ? link.trim() : null, f);
-    if (ok) { setBody(""); setLink(""); setFile(null); setDraw(false); setShowLink(false); }
+    const ok = await onSubmit(body.trim(), showLink && link.trim() ? link.trim() : null, f, voice);
+    if (ok) { setBody(""); setLink(""); setFile(null); setDraw(false); setShowLink(false); setVoice(null); }
   };
 
   return (
@@ -333,6 +338,7 @@ function EntryComposer({ drawing, busy, onSubmit, prompt }: {
         </div>
       )}
       {draw && <DrawingPad ref={pad} />}
+      {allowVoice && <VoiceRecorder value={voice} onChange={setVoice} disabled={busy} />}
       <input ref={input} type="file" accept="image/jpeg,image/png,image/webp" capture="environment" className="sr-only"
         onChange={(e) => { setFile(e.target.files?.[0] ?? null); setDraw(false); e.target.value = ""; }} />
       <div className="flex flex-wrap gap-2">

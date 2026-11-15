@@ -21,6 +21,7 @@ export interface Activity {
   response_type: ResponseType;
   just_us?: boolean;
   fallback_instructions?: string | null;
+  allow_voice?: boolean;
 }
 
 export interface WeeklyRitual {
@@ -86,14 +87,14 @@ export async function getCurrentRitual(): Promise<WeeklyRitual> {
 }
 
 /** Personalisation fields aren't in ensure_current_ritual's result, so read them alongside. */
-async function activityExtras(id: string): Promise<Pick<Activity, "just_us" | "fallback_instructions">> {
-  const { data } = await supabase.from("activities").select("just_us, fallback_instructions").eq("id", id).maybeSingle();
-  return { just_us: !!data?.just_us, fallback_instructions: (data?.fallback_instructions as string | null) ?? null };
+async function activityExtras(id: string): Promise<Pick<Activity, "just_us" | "fallback_instructions" | "allow_voice">> {
+  const { data } = await supabase.from("activities").select("just_us, fallback_instructions, allow_voice").eq("id", id).maybeSingle();
+  return { just_us: !!data?.just_us, fallback_instructions: (data?.fallback_instructions as string | null) ?? null, allow_voice: !!data?.allow_voice };
 }
 
 const HISTORY_SELECT =
   "id, week_number, week_start, cycle:activity_cycles(cycle_number), " +
-  "activity:activities(id, code, title, category, description, instructions, guiding_questions, duration_label, response_type, just_us, fallback_instructions)";
+  "activity:activities(id, code, title, category, description, instructions, guiding_questions, duration_label, response_type, just_us, fallback_instructions, allow_voice)";
 
 type HistoryRow = {
   id: string; week_number: number; week_start: string;

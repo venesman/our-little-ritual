@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ImagePlus, Loader2, Lock, PenLine, Pencil, Plus, X } from "lucide-react";
 import type { WeeklyRitual } from "../lib/rituals";
-import { removeRitualImage, saveDraft, signedImageUrl, submitRitual, uploadRitualImage, type Answer, type Submission } from "../lib/submissions";
+import { MEDIA_BUCKET, removeRitualImage, saveDraft, setRitualVoice, signedImageUrl, submitRitual, uploadRitualImage, type Answer, type Submission } from "../lib/submissions";
+import { uploadVoice, VoicePlayer, VoiceRecorder, type RecordedVoice } from "./Voice";
 import { shapeFor, starterPrompts } from "../lib/answerShape";
 import { compressImage } from "../lib/image";
 import { friendlyError } from "../lib/errors";
@@ -26,6 +27,9 @@ export function AnswerForm({ ritual, relationshipId, userId, myName, partnerName
     draft?.answers?.length ? draft.answers : shape.prompts ? starterPrompts(ritual.activity.guiding_questions) : [],
   );
   const [imagePath, setImagePath] = useState<string | null>(draft?.image_path ?? null);
+  const [voicePath, setVoicePath] = useState<string | null>(draft?.voice_path ?? null);
+  const [voiceSecs, setVoiceSecs] = useState<number | null>(draft?.voice_seconds ?? null);
+  const [voiceBusy, setVoiceBusy] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [mode, setMode] = useState<"write" | "draw">(shape.drawing === "required" ? "draw" : "write");
   const [drawingDirty, setDrawingDirty] = useState(false);
@@ -213,6 +217,34 @@ export function AnswerForm({ ritual, relationshipId, userId, myName, partnerName
           <input id="answer-link" type="url" inputMode="url" className={inputCls} value={link} maxLength={500}
             onChange={(e) => setLink(e.target.value)} placeholder="https://" />
         </Field>
+      )}
+
+      {ritual.activity.allow_voice && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-leaf">Voice note <span className="font-normal normal-case tracking-normal text-muted">(optional)</span></p>
+          {voicePath ? (
+            <div>
+              <VoicePlayer bucket={MEDIA_BUCKET} path={voicePath} seconds={voiceSecs} label="Your voice note" />
+              <button type="button" disabled={voiceBusy || busy !== null} className="mt-1 text-sm font-semibold text-tomato-deep" onClick={async () => {
+                const old = voicePath; setVoiceBusy(true);
+                try { await setRitualVoice(ritual.weeklyId, null, null); setVoicePath(null); setVoiceSecs(null); if (old) void removeRitualImage(old); }
+                catch (e) { setError(friendlyError(e)); } finally { setVoiceBusy(false); }
+              }}>Remove voice note</button>
+            </div>
+          ) : (
+            <VoiceRecorder value={null} disabled={voiceBusy} onChange={async (v: RecordedVoice | null) => {
+              if (!v) return;
+              setVoiceBusy(true); setError(null);
+              try {
+                const path = await uploadVoice(MEDIA_BUCKET, `${relationshipId}/${ritual.weeklyId}/${userId}`, v);
+                await setRitualVoice(ritual.weeklyId, path, v.seconds);
+                setVoicePath(path); setVoiceSecs(v.seconds); setSave("saved");
+              } catch (e) { setError(friendlyError(e, "That voice note couldn't be saved. Please try again.")); }
+              finally { setVoiceBusy(false); }
+            }} />
+          )}
+          {voiceBusy && <p className="text-xs text-muted">Saving your voice note…</p>}
+        </div>
       )}
 
       <ErrorNote>{error}</ErrorNote>

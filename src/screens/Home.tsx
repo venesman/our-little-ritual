@@ -1,3 +1,4 @@
+import { MailboxCard } from "../components/MailboxCard";
 import { CheckinCard } from "../components/CheckinCard";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -137,6 +138,8 @@ export function Home() {
           </RitualPostcard>
         )}
       </section>
+
+      <MailboxCard timeZone={myTz} />
 
       <CheckinCard partnerName={partnerName} />
 

@@ -16,6 +16,7 @@ export interface MissionSummary {
 }
 export interface ApartEntry {
   id: string; user_id: string; body: string; link_url: string | null; image_path: string | null; created_at: string;
+  voice_path: string | null; voice_seconds: number | null;
 }
 
 export async function listMissions(includeClosed = false): Promise<MissionSummary[]> {
@@ -35,7 +36,7 @@ export async function getMission(id: string): Promise<{ summary: MissionSummary 
     summary.activity = (check(await supabase.from("play_activities").select(ACTIVITY_COLUMNS).eq("id", summary.activity_id).single()) as unknown) as PlayActivity;
   }
   // RLS only returns your own entries plus your partner's once the mission is visible.
-  const entries = check(await supabase.from("apart_entries").select("id, user_id, body, link_url, image_path, created_at")
+  const entries = check(await supabase.from("apart_entries").select("id, user_id, body, link_url, image_path, voice_path, voice_seconds, created_at")
     .eq("mission_id", id).order("created_at")) as ApartEntry[];
   return { summary, entries };
 }
@@ -54,8 +55,11 @@ export async function uploadApartImage(relationshipId: string, missionId: string
   return path;
 }
 
-export async function addEntry(missionId: string, body: string, link?: string | null, imagePath?: string | null) {
-  check(await supabase.rpc("add_apart_entry", { p_mission: missionId, p_body: body, p_link_url: link || null, p_image_path: imagePath || null }));
+export async function addEntry(missionId: string, body: string, link?: string | null, imagePath?: string | null, voicePath?: string | null, voiceSeconds?: number | null) {
+  check(await supabase.rpc("add_apart_entry", {
+    p_mission: missionId, p_body: body, p_link_url: link || null, p_image_path: imagePath || null,
+    p_voice_path: voicePath || null, p_voice_seconds: voicePath ? voiceSeconds ?? null : null,
+  }));
 }
 
 export async function signedApartUrl(path: string): Promise<string | null> {

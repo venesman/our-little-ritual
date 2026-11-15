@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
 import type { Submission } from "../lib/submissions";
-import { signedImageUrl } from "../lib/submissions";
+import { MEDIA_BUCKET, signedImageUrl } from "../lib/submissions";
+import { VoicePlayer } from "./Voice";
 import { hostOf } from "../lib/answerShape";
 import { Ticket } from "./ui";
 
@@ -35,6 +36,7 @@ export function AnswerCard({ submission, name, tone, mode, delay = 0 }: {
         </dl>
       )}
       {submission.body && <p className="mt-4 whitespace-pre-wrap leading-relaxed">{submission.body}</p>}
+      {submission.voice_path && <VoicePlayer bucket={MEDIA_BUCKET} path={submission.voice_path} seconds={submission.voice_seconds} label={`${name}'s voice note`} />}
       {submission.link_url && (
         <a href={submission.link_url} target="_blank" rel="noopener noreferrer nofollow ugc"
            className="mt-4 inline-flex items-center gap-1.5 rounded-full border-2 border-leaf/20 px-4 py-2 text-sm font-semibold text-leaf hover:border-leaf/50">

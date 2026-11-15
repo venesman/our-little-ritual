@@ -66,6 +66,10 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **Phase 8 — `0012_weekly_checkin.sql`**: the weekly check-in (questions, mood words, bonus prompts, private-until-both-share).
   Nothing to change in Vercel.
 
+- **Phase 9 — `0013_mailbox_and_voice.sql`**: Our Mailbox (letters, scheduled reveals, photos, voice notes) and voice notes
+  for Sound of My Day and two Apart missions. Adds a private storage bucket **letters** and lets `ritual-media` / `apart-media`
+  accept audio. Afterwards, **Storage** should list `letters` marked *Private*. Nothing to change in Vercel.
+
 ## 2. Deploy on Vercel
 
 1. [vercel.com](https://vercel.com) → **Add New → Project** → import `venesman/our-little-ritual`.
@@ -135,7 +139,7 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 423 checks plus 7 concurrency scripts. Phase 5: 90 activities (15 per
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 478 checks plus 7 concurrency scripts. Phase 5: 90 activities (15 per
 category, every mood/energy/type covered), one shared session for both partners, every filter respected, no repeats then a
 reshuffle, "nothing matches" message, timer start/pause/reset maths, playing a chosen favourite, private vs shared favourites,
 outsiders blocked, and both phones opening Play / tapping "another one" at the same instant. Phase 6: every plan length
@@ -153,7 +157,12 @@ pause/skip/lengths; shared discoveries (remove only your own) and favourites; un
 other couples see nothing; and both phones opening it / tapping "start researching" at the same instant. Check-in: only
 real past/current weeks since your space began; drafts private; shared check-ins locked; partner answers hidden (even by
 direct query) until both share; mood words from the list, max 3; can't share an empty check-in; same bonus prompt for both;
-call reminder shows once shared and clears for both; late check-ins sealed the same way; no score columns. Phase 4: visits shared between the
+call reminder shows once shared and clears for both; late check-ins sealed the same way; no score columns. Mailbox: only
+couples can write; drafts and their files invisible to the partner; files only in your own draft's folder; empty letters,
+future letters without a date, past or >5-year dates refused; sent letters can't be edited or deleted (nor their files);
+scheduled letters show only as sealed envelopes (kind + date) and can't be read or opened early; open, love, take back
+(only until opened); a scheduled letter opens on its date; other couples see nothing. Voice: only Sound of My Day and two
+Apart missions accept voice; voice-only answers can be shared; partner hears it only after the reveal / once both shared. Phase 4: visits shared between the
 two of you and invisible to others, date validation, nudge rate limits (per minute and per day), no nudges before your
 partner joins, free hours editable only by their owner. Unit tests cover the call-overlap maths for Kuching ↔ Santiago in
 both Chile summer and winter time, windows past midnight, and "happening now". Earlier phases: Phase 3: a partner can't see a
@@ -200,6 +209,8 @@ redeeming the same link at the same instant → exactly one gets in**.
 | `curious_favourites` | your shared favourite topics |
 | `checkin_prompts` | the 12 rotating bonus prompts |
 | `checkins` | each person's weekly check-in: three answers, bonus, up to 3 mood words, call reminder; draft or shared |
+| `letters` | letters: kind, title, body, photo, voice note, draft/sent, reveal date, opened, loved |
+| storage `letters` | private letter photos and voice notes at `<space>/<letter>/<sender>/<file>` |
 | storage `apart-media` | private Apart photos and drawings at `<space>/<mission>/<person>/<file>` |
 
 ## How Play With Me stays in sync
@@ -250,6 +261,13 @@ redeeming the same link at the same instant → exactly one gets in**.
 - Drafts are private; sharing locks it; your partner's answers open only once both have shared (enforced by the database).
 - "Let's talk about this on a call" shows a reminder on both Home screens until either of you taps "We talked about it".
 
+## Our Mailbox
+
+- Six kinds of letter, each with its own stamp and optional starter lines. Drafts are private; sent letters can't be edited.
+- Send now or on a date — until then your partner sees only a sealed envelope with the date (enforced by the database).
+- One photo and one voice note (up to 2 minutes, recorded in the browser) per letter. Take a letter back until it's opened.
+- "Letters we love" is shared. On phones, Mailbox is in the bottom bar and Settings is the gear at the top.
+
 ## How the sealed reveal works
 
 - **Drafts** save to the server as you type and are visible only to you — never to your partner, even after the reveal.
@@ -283,4 +301,5 @@ Migrations live in `supabase/migrations/` and are applied in order. History is n
 6b. ✅ Personalisation — Our Story, Just us activities and Monday rituals, Apart, anytime missions
 7. ✅ The Curious Club — 109 topics, six formats, live research → present → discuss, discoveries, favourites, history
 8. ✅ Weekly check-in — three gentle questions, mood words, bonus prompt, sealed until both share
-9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline
+9. ✅ Mailbox + voice notes — letters, scheduled reveals, photos, voice notes (also in Sound of My Day and two Apart missions)
+10. Scrapbook · 11. Creative Corner · 12. Timeline

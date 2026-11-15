@@ -18,6 +18,7 @@ import { Play } from "./screens/Play";
 import { ApartMission } from "./screens/Apart";
 import { OurStory } from "./screens/OurStory";
 import { CheckIn } from "./screens/CheckIn";
+import { LetterComposer, LetterView, Mailbox } from "./screens/Mailbox";
 
 export default function App() {
   if (!supabaseConfigured) return <SetupNotice />;
@@ -39,6 +40,10 @@ export default function App() {
             <Route path="play/apart/:missionId" element={<ApartMission />} />
             <Route path="story" element={<OurStory />} />
             <Route path="checkin" element={<CheckIn />} />
+            <Route path="mailbox" element={<Mailbox />} />
+            <Route path="mailbox/new" element={<LetterComposer />} />
+            <Route path="mailbox/:id/edit" element={<LetterComposer />} />
+            <Route path="mailbox/:id" element={<LetterView />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
