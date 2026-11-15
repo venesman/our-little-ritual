@@ -1,4 +1,4 @@
-import { OnThisDay, OurPhoto } from "../components/HomeMemories";
+import { OnThisDay, OurPhoto, useCoverPhoto } from "../components/HomeMemories";
 import { ForYouLine, WelcomeBack } from "../components/ForYouLine";
 import { RecentMemories } from "../components/ScrapbookBits";
 import { MailboxCard } from "../components/MailboxCard";
@@ -9,7 +9,7 @@ import { ArrowRight, Plane, Send } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useSpace } from "../hooks/useSpace";
 import { clockInZone, formatInZone, gmtLabel, longDateInZone, nextRelease, placeFromZone, relativeFromNow } from "../lib/time";
-import { Card, ErrorNote, Stamp, Ticket } from "../components/ui";
+import { ErrorNote, Postmark, Stamp, Ticket } from "../components/ui";
 import { RitualPostcard } from "../components/RitualPostcard";
 import { CallWindowCard, NudgeCard, VisitCard } from "../components/HomeCards";
 import { useCurrentRitual } from "../hooks/useCurrentRitual";
@@ -28,6 +28,7 @@ export function Home() {
   const { session } = useAuth();
   const { space, profile } = useSpace();
   const now = useNow();
+  const photo = useCoverPhoto();
   const { ritual, loading: ritualLoading, error: ritualError } = useCurrentRitual(space?.relationship.status === "active");
   const [weekStatus, setWeekStatus] = useState<WeekListStatus | null>(null);
   useEffect(() => {
@@ -47,14 +48,24 @@ export function Home() {
   const myName = me?.profile?.display_name || "you";
   const partnerName = partner?.profile?.display_name || "your partner";
 
-  const header = (title: string, sub?: string) => (
-    <header className="space-y-2">
-      <p className="font-hand text-2xl text-raspberry-deep">{longDateInZone(now, myTz)}</p>
-      <Ticket>{space.relationship.name}</Ticket>
-      <h1 className="pt-1 text-[2.5rem] leading-[1.05]">{title}</h1>
-      {sub && <p className="text-muted">{sub}</p>}
-    </header>
-  );
+  const dayParts = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: myTz }).formatToParts(now);
+  const part = (t: string) => dayParts.find((x) => x.type === t)?.value ?? "";
+  const header = (title: string, sub?: string) => {
+    const cut = title.indexOf(", ");
+    return (
+      <header className="space-y-2">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="font-hand text-2xl font-bold lowercase leading-none text-raspberry-deep">{longDateInZone(now, myTz)}</p>
+            <h1 className="mt-2 text-[2.9rem] leading-[0.98]">{cut < 0 ? title : <>{title.slice(0, cut + 1)}<br /><em>{title.slice(cut + 2)}</em></>}</h1>
+          </div>
+          <Postmark className="h-[104px] w-[104px]" place={me?.profile?.current_city?.trim() || placeFromZone(myTz)} day={`${part("day")} ${part("month")}`} year={part("year")} />
+        </div>
+        <Ticket>{space.relationship.name}</Ticket>
+        {sub && <p className="text-muted">{sub}</p>}
+      </header>
+    );
+  };
 
   /* ---------------------------------------------- waiting for partner */
   if (space.relationship.status === "pending" || !partner) {
@@ -95,10 +106,32 @@ export function Home() {
     <div className="fade-up space-y-6">
       {header("Hello, you two.")}
 
-      <OurPhoto />
-
-      {/* two people · two places */}
-      <section aria-label="Where you both are" className="relative mt-8 grid grid-cols-2 gap-3">
+      {/* our photo + two people · two places */}
+      {photo.cover && (
+        <section aria-label="Where you both are" className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] items-center gap-4 pt-2">
+          <OurPhoto {...photo} />
+          <div className="flex flex-col gap-1.5">
+            {places.map((p, i) => (
+              <div key={p.name + i} className="contents">
+                {i === 1 && (
+                  <svg aria-hidden="true" viewBox="0 0 176 22" className="h-[22px] w-full">
+                    <path d="M 20 2 C 20 22, 156 0, 156 20" fill="none" stroke="#0C1020" strokeWidth="1.4" strokeDasharray="4 5" />
+                    <path d="M 82 6 l 12 5 l -12 5 l 3 -5 z" fill="#EA572C" />
+                  </svg>
+                )}
+                <div className={`px-3 py-2.5 text-leaf ${i === 0 ? "bg-gold" : "bg-lilac"}`}>
+                  <p className="truncate text-[10px] font-bold uppercase tracking-[0.12em]">{p.city?.trim() || placeFromZone(p.tz)} · {gmtLabel(p.tz, now)}</p>
+                  <div className="mt-1 flex items-baseline justify-between gap-2">
+                    <span className="truncate text-xs">{p.name}</span>
+                    <span className="shrink-0 font-display text-[1.6rem] leading-none">{clockInZone(now, p.tz)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      <section aria-label="Where you both are" className={`relative mt-8 grid grid-cols-2 gap-3 ${photo.cover ? "hidden" : ""}`}>
         {places.map((p, i) => (
           <div key={p.name + i} className={`p-4 text-leaf ${i === 0 ? "-rotate-1 bg-gold" : "rotate-1 bg-lilac"}`}>
             <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{p.you ? "You" : "Them"} · {p.city?.trim() || placeFromZone(p.tz)} · {gmtLabel(p.tz, now)}</p>
@@ -122,7 +155,6 @@ export function Home() {
 
       {/* this week's ritual — postcard */}
       <section aria-label="This week's ritual" className="space-y-2">
-        <p className="font-hand text-xl text-raspberry-deep">this week, let's…</p>
         <ErrorNote>{ritualError}</ErrorNote>
         {ritualLoading && !ritual && <div className="postcard h-48 animate-pulse" aria-label="Loading this week's ritual" />}
         {ritual && (
@@ -133,7 +165,7 @@ export function Home() {
               </div>
             )}
             <div className="mt-4 flex items-center justify-between gap-3">
-              <p className="font-hand text-lg text-muted">{weekStatus?.revealed ? "you've both shared ✦" : "no rush — any time this week"}</p>
+              <p className="font-hand text-xl leading-tight text-leaf">{weekStatus?.revealed ? "you've both shared ✦" : "no rush, any time this week"}</p>
               <Link
                 to={`/rituals/${ritual.weeklyId}`}
                 className="inline-flex min-h-[44px] items-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-5 text-sm font-semibold text-leaf shadow-print transition hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry"
@@ -166,7 +198,8 @@ export function Home() {
       <VisitCard timeZone={myTz} />
 
       {/* next release */}
-      <Card>
+      <div className="rotate-[0.6deg] border-[1.5px] border-dashed border-leaf bg-paper p-5">
+        <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em]">Next postcard</p>
         <div className="flex items-center gap-5">
           <Stamp top="every monday" main="11:00" bottom="utc" />
           <div className="min-w-0 text-sm">
@@ -177,7 +210,7 @@ export function Home() {
             </dl>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

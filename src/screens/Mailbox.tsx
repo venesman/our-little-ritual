@@ -12,23 +12,17 @@ import {
 } from "../lib/mailbox";
 import { formatInZone } from "../lib/time";
 import { friendlyError } from "../lib/errors";
-import { Button, Card, ErrorNote, Field, Spinner, Ticket, inputCls } from "../components/ui";
+import { Button, Card, ErrorNote, Field, PageTitle, PostageStamp, Spinner, Ticket, inputCls } from "../components/ui";
 import { VoicePlayer, VoiceRecorder, type RecordedVoice } from "../components/Voice";
 
 type Tab = "inbox" | "sent" | "drafts" | "loved";
-const STAMP_TONE = {
-  raspberry: "border-raspberry bg-raspberry-soft text-raspberry-deep",
-  mustard: "border-mustard bg-mustard-soft text-mustard-deep",
-  leaf: "border-leaf/70 bg-leaf-soft text-leaf",
-  tomato: "border-tomato bg-tomato-soft text-tomato-deep",
-};
 
 function Stamp({ kind, size = "md" }: { kind: LetterKind; size?: "sm" | "md" }) {
   const k = KIND[kind];
   return (
-    <span aria-hidden="true" className={`grid shrink-0 rotate-3 place-items-center rounded-sm border-2 border-dashed font-display ${STAMP_TONE[k.tone]} ${size === "sm" ? "h-11 w-10 text-lg" : "h-16 w-14 text-2xl"}`}>
-      {k.stamp}
-    </span>
+    <PostageStamp colour={({ raspberry: "lilac", mustard: "gold", leaf: "cornflower", tomato: "tangerine" } as const)[k.tone as "raspberry"] ?? "cornflower"} size={size === "sm" ? "sm" : "md"} tilt={5}>
+      <span className={`font-display leading-none ${size === "sm" ? "text-lg" : "text-2xl"}`}>{k.stamp}</span>
+    </PostageStamp>
   );
 }
 
@@ -80,11 +74,12 @@ export function Mailbox() {
     <div className="fade-up space-y-5">
       <header className="flex items-end justify-between gap-3">
         <div>
-          <p className="font-hand text-2xl text-raspberry-deep">letters across the miles</p>
-          <h1 className="text-4xl">Our Mailbox</h1>
+          <p className="font-hand text-2xl font-bold leading-none text-raspberry-deep">slow post, just for us</p>
+          <PageTitle className="mt-1">Our Mailbox</PageTitle>
+          <span className="mt-2 inline-block rotate-[3deg] border-[1.5px] border-cornflower-deep px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-cornflower-deep" aria-hidden="true">Par avion</span>
         </div>
         {section === "letters" && (
-          <Link to="/mailbox/new" className="inline-flex min-h-[44px] items-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
+          <Link to="/mailbox/new" className="inline-flex min-h-[48px] items-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-tangerine px-4 text-sm font-bold text-leaf shadow-print">
             <PenLine size={16} aria-hidden="true" /> Write
           </Link>
         )}
@@ -108,18 +103,22 @@ export function Mailbox() {
       </div>
 
       {tab === "inbox" && sealed.length > 0 && (
-        <ul className="space-y-2" aria-label="Letters on their way">
-          {sealed.map((s) => (
-            <li key={s.id} className="envelope relative overflow-hidden rounded-card bg-paper px-4 pb-3 pt-[4.5rem] shadow-card">
+        <ul className="space-y-4" aria-label="Letters on their way">
+          {sealed.map((s, i) => (
+            <li key={s.id} className={`envelope relative h-[236px] bg-lilac shadow-card ${i % 2 ? "rotate-[1.2deg]" : "-rotate-[1.5deg]"}`}>
               {/* envelope flap + wax seal */}
-              <span aria-hidden="true" className="envelope-flap absolute inset-x-0 top-0 h-12" />
-              <span aria-hidden="true" className="absolute left-1/2 top-7 grid h-10 w-10 -translate-x-1/2 place-items-center rounded-full bg-tomato font-display text-lg text-cream shadow-[0_2px_0_0_#B23A14]">
+              <svg aria-hidden="true" viewBox="0 0 350 236" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
+                <path d="M 0 0 L 175 124 L 350 0" fill="#d4b2cd" stroke="#0C1020" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
+              </svg>
+              <span aria-hidden="true" className="absolute left-1/2 top-[103px] grid h-[42px] w-[42px] -translate-x-1/2 place-items-center rounded-full border-[1.5px] border-leaf bg-tangerine font-display text-xl italic text-leaf">
                 {KIND[s.kind].stamp}
               </span>
-              <div className="text-center">
-                <p className="font-display text-base">A sealed {KIND[s.kind].label.toLowerCase()} from {pName}</p>
-                <p className="text-xs text-muted">Opens {formatInZone(new Date(s.reveal_at), tz)}</p>
+              <div className="absolute bottom-3.5 left-4 right-24">
+                <p className="text-[11px] font-bold uppercase tracking-[0.12em]">Sealed · from {pName}</p>
+                <p className="mt-1 font-display text-2xl leading-[1.05]">{KIND[s.kind].label}</p>
+                <p className="mt-0.5 text-xs">Opens {formatInZone(new Date(s.reveal_at), tz)}</p>
               </div>
+              <span aria-hidden="true" className="absolute bottom-3.5 right-3.5 border-[1.5px] border-leaf bg-paper px-2 py-1 text-[11px] font-bold uppercase tracking-[0.1em]">Sealed</span>
               <span className="sr-only">Sealed until then.</span>
             </li>
           ))}
@@ -129,8 +128,8 @@ export function Mailbox() {
       {letters === null ? <Spinner label="Checking the post" /> : lists[tab].length === 0 ? (
         <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">{empty[tab]}</p>
       ) : (
-        <ul className="space-y-2">
-          {lists[tab].map((l) => {
+        <ul className="space-y-3">
+          {lists[tab].map((l, i) => {
             const mine = l.sender_id === myId;
             const waiting = l.status === "sent" && l.reveal_at && new Date(l.reveal_at) > new Date();
             const status = l.status === "draft" ? `Draft · edited ${shortDate(l.updated_at, tz)}`
@@ -139,13 +138,15 @@ export function Mailbox() {
             return (
               <li key={l.id}>
                 <Link to={l.status === "draft" ? `/mailbox/${l.id}/edit` : `/mailbox/${l.id}`}
-                  className={`postcard flex items-center gap-3 !p-4 transition hover:-translate-y-px ${!mine && !l.opened_at ? "ring-2 ring-raspberry" : ""}`}>
-                  <Stamp kind={l.kind} size="sm" />
+                  className={`flex items-center gap-3 p-4 shadow-card transition hover:rotate-0 hover:-translate-y-px ${i % 2 ? "-rotate-[0.6deg]" : "rotate-[0.6deg]"} ${waiting ? "bg-gold" : !mine && !l.opened_at ? "bg-paper ring-2 ring-tangerine" : "bg-paper"}`}>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-display text-lg">{l.title || KIND[l.kind].label}</p>
-                    <p className="truncate text-xs text-muted">{status}{l.voice_path ? " · 🎙" : ""}{l.image_path ? " · 📷" : ""}{l.song_url ? " · 🎵" : ""}</p>
+                    <p className="truncate text-[11px] font-bold uppercase tracking-[0.1em]">{status}</p>
+                    <p className="mt-1 truncate font-display text-[1.35rem] leading-tight">{l.title || KIND[l.kind].label}</p>
+                    <p className="mt-0.5 truncate font-hand text-lg leading-tight text-muted">{[l.voice_path && "with a voice note", l.image_path && "with a photo", l.song_url && "with a song ♪"].filter(Boolean).join(" · ") || KIND[l.kind].label.toLowerCase()}</p>
                   </div>
-                  {!mine && !l.opened_at && <span className="rounded-full bg-raspberry px-2 py-0.5 text-[11px] font-bold text-leaf">New</span>}
+                  {waiting && <span className="border-[1.5px] border-leaf px-2 py-1 text-[11px] font-bold uppercase tracking-[0.1em]">Sealed</span>}
+                  {!mine && !l.opened_at && <span className="border-[1.5px] border-leaf bg-mustard px-2 py-1 text-[11px] font-bold uppercase tracking-[0.1em] text-leaf">New</span>}
+                  <Stamp kind={l.kind} size="sm" />
                   {l.loved && <Heart size={16} className="fill-raspberry text-raspberry" aria-label="In Letters we love" />}
                 </Link>
               </li>

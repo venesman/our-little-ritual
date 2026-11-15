@@ -23,8 +23,6 @@
   /* Postcard: cream paper with a thin inset double rule, like a printed card. */
   .postcard {
     @apply relative rounded-card bg-paper p-6 shadow-card;
-    outline: 1px solid rgba(12, 16, 32, 0.14);
-    outline-offset: -7px;
   }
   /* A postcard with an airmail edge along the top. */
   .postcard-air { @apply overflow-hidden; padding-top: calc(1.5rem + 9px); }
@@ -33,9 +31,11 @@
     background: repeating-linear-gradient(135deg, #EA572C 0 12px, #FFFAF3 12px 20px, #4F7FC1 20px 32px, #FFFAF3 32px 40px);
   }
   /* Polaroid-style photo: white border, deeper bottom, a gentle tilt. */
-  .polaroid { @apply bg-white p-2 pb-7 shadow-photo; }
+  .polaroid { @apply relative bg-white p-2 shadow-photo; }
   /* Washi tape strip for pinning photos. */
-  .tape { background: rgba(219, 222, 73, 0.85); }
+  .tape { @apply pointer-events-none absolute left-1/2 z-10 h-[18px] w-14; top: -8px; margin-left: -28px; background: rgba(219, 222, 73, 0.85); transform: rotate(-7deg); }
+  .tape-tangerine { background: rgba(234, 87, 44, 0.8); transform: rotate(6deg); }
+  .tape-blue { background: rgba(79, 127, 193, 0.75); transform: rotate(-4deg); }
   /* Perforated stamp edge. */
   .perforated { background: radial-gradient(circle at 4px 4px, #FFFAF3 3px, transparent 3.5px) -4px -4px / 8px 8px; padding: 6px; }
   /* Airmail edge for letter-like cards (invitations). */

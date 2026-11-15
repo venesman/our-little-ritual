@@ -34,7 +34,7 @@ export default {
         hand: ['"Caveat"', "cursive"],
       },
       borderRadius: {
-        card: "6px",
+        card: "2px",
       },
       boxShadow: {
         // printed, offset shadows for things you press; soft lift for paper

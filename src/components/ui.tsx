@@ -1,4 +1,5 @@
 import type React from "react";
+import { useId } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
 
 /* ------------------------------------------------------------------ Button
@@ -127,6 +128,44 @@ export function Stamp({ top, main, bottom, className = "" }: { top: string; main
       </div>
     </div>
   );
+}
+
+/** A round postmark: place around the top, date in the middle, wavy cancellation lines. */
+export function Postmark({ place, day, year, className = "" }: { place: string; day: string; year: string; className?: string }) {
+  const id = useId();
+  return (
+    <svg role="img" aria-label={`Postmark: ${place}, ${day} ${year}`} viewBox="0 0 110 110" className={`shrink-0 -rotate-[10deg] ${className}`}>
+      <circle cx="55" cy="55" r="50" fill="none" stroke="#2F5A9A" strokeWidth="2.5" />
+      <circle cx="55" cy="55" r="34" fill="none" stroke="#2F5A9A" strokeWidth="1.5" />
+      <path id={id} d="M 13 55 A 42 42 0 0 1 97 55" fill="none" />
+      <text fontFamily="DM Sans Variable, sans-serif" fontSize="10" fontWeight="700" fill="#2F5A9A" letterSpacing="2.5">
+        <textPath href={`#${id}`} startOffset="50%" textAnchor="middle">{place.toUpperCase().slice(0, 20)}</textPath>
+      </text>
+      <text x="55" y="52" textAnchor="middle" fontFamily="DM Serif Display, serif" fontSize="17" fill="#2F5A9A">{day.toUpperCase()}</text>
+      <text x="55" y="68" textAnchor="middle" fontFamily="DM Sans Variable, sans-serif" fontSize="10" fontWeight="700" fill="#2F5A9A" letterSpacing="2">{year}</text>
+      <path d="M 20 84 q 6 -5 12 0 t 12 0 t 12 0 t 12 0 t 12 0 t 12 0" fill="none" stroke="#2F5A9A" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
+const STAMP_BG = { tangerine: "#EA572C", cornflower: "#4F7FC1", lime: "#DBDE49", gold: "#C3B20D", lilac: "#E1C3DB" } as const;
+export type StampColour = keyof typeof STAMP_BG;
+/** A perforated postage stamp with something small inside (a number, a letter, an icon). */
+export function PostageStamp({ colour = "tangerine", size = "md", tilt = 4, children }: { colour?: StampColour; size?: "sm" | "md" | "lg"; tilt?: number; children: React.ReactNode }) {
+  const dims = size === "sm" ? "h-[52px] w-[44px]" : size === "lg" ? "h-[80px] w-[66px]" : "h-[64px] w-[54px]";
+  const bg = STAMP_BG[colour];
+  return (
+    <span aria-hidden="true" className={`block shrink-0 ${dims}`}
+      style={{ transform: `rotate(${tilt}deg)`, padding: 6, background: `radial-gradient(circle at 4px 4px, #FFFAF3 3px, transparent 3.5px) -4px -4px / 8px 8px, ${bg}` }}>
+      <span className="flex h-full flex-col items-center justify-center gap-0.5 border-[1.5px] border-leaf text-leaf" style={{ background: bg }}>{children}</span>
+    </span>
+  );
+}
+
+/** Page title in the Par Avion style: "Our" upright, the last word in italics. */
+export function PageTitle({ children, className = "" }: { children: string; className?: string }) {
+  const i = children.lastIndexOf(" ");
+  return <h1 className={`text-[2.75rem] leading-none ${className}`}>{i < 0 ? <em>{children}</em> : <>{children.slice(0, i)} <em>{children.slice(i + 1)}</em></>}</h1>;
 }
 
 export function Logo({ className = "", tone = "leaf" }: { className?: string; tone?: "leaf" | "cream" }) {

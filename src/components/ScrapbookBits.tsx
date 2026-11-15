@@ -53,7 +53,7 @@ export function RecentMemories() {
         <Link to="/us" className="text-sm font-semibold text-leaf">Scrapbook →</Link>
       </div>
       <ul className="grid grid-cols-3 gap-2">
-        {items.map((m, i) => <li key={m.kind + m.ref_id}><MiniPolaroid m={m} tilt={[-2, 1.5, -1][i]} /></li>)}
+        {items.map((m, i) => <li key={m.kind + m.ref_id}><MiniPolaroid m={m} tilt={[-4, 3, -2][i]} /></li>)}
       </ul>
     </section>
   );
@@ -65,12 +65,12 @@ function MiniPolaroid({ m, tilt }: { m: Memory; tilt: number }) {
   useEffect(() => { if (first) void signedUrl(first.bucket, first.path).then(setUrl); }, [first?.bucket, first?.path]); // eslint-disable-line react-hooks/exhaustive-deps
   const words = m.parts?.find((p) => p.body?.trim())?.body ?? m.caption;
   return (
-    <Link to="/us" style={{ transform: `rotate(${tilt}deg)` }} className="block rounded-sm bg-paper p-1.5 pb-2 shadow-card">
-      <div className="aspect-square overflow-hidden rounded-sm bg-cream">
+    <Link to="/us" style={{ transform: `rotate(${tilt}deg)` }} className="polaroid block !p-1.5">
+      <div className={`aspect-square overflow-hidden ${first ? "bg-cream" : "bg-lilac-soft"}`}>
         {first ? (url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <div className="h-full w-full animate-pulse bg-leaf-soft" />)
           : <p className="line-clamp-5 p-2 font-hand text-sm leading-tight text-leaf">{words || m.title}</p>}
       </div>
-      <p className="mt-1 truncate text-[11px] font-semibold">{m.title}</p>
+      <p className="mt-1 truncate text-center font-hand text-base font-bold leading-tight">{m.title}</p>
     </Link>
   );
 }

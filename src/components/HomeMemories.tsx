@@ -6,7 +6,7 @@ import { getFeed, imagesOf, signedUrl, type Memory } from "../lib/scrapbook";
 interface Cover { id: string; path: string; taken_at: string | null; moment_title: string; place: string }
 
 /** Home: "Our photo" — a polaroid of a trip photo you picked in the Scrapbook. Hidden until one is chosen. */
-export function OurPhoto() {
+export function useCoverPhoto(): { cover: Cover | null; url: string | null } {
   const [cover, setCover] = useState<Cover | null>(null);
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
@@ -16,13 +16,18 @@ export function OurPhoto() {
       void signedUrl("moments", c.path).then(setUrl);
     });
   }, []);
+  return { cover, url };
+}
+
+export function OurPhoto({ cover, url }: { cover: Cover | null; url: string | null }) {
   if (!cover) return null;
   return (
-    <Link to="/us" aria-label={`Our photo: ${cover.moment_title}`} className="mx-auto block w-56 -rotate-2 rounded-sm bg-paper p-2 pb-3 shadow-card transition hover:rotate-0">
-      <div className="aspect-[4/3] overflow-hidden rounded-sm bg-cream">
+    <Link to="/us" aria-label={`Our photo: ${cover.moment_title}`} className="polaroid block w-full -rotate-[4deg] transition hover:rotate-0">
+      <span className="tape" aria-hidden="true" />
+      <div className="aspect-[5/4] overflow-hidden bg-cream">
         {url ? <img src={url} alt="" className="h-full w-full object-cover" /> : <div className="h-full w-full animate-pulse bg-leaf-soft" />}
       </div>
-      <p className="mt-1.5 truncate text-center font-hand text-lg leading-tight text-leaf">{cover.moment_title}{cover.place ? ` · ${cover.place.split("·")[0].trim()}` : ""}</p>
+      <p className="mt-1 truncate text-center font-hand text-lg font-bold leading-tight text-leaf">{cover.moment_title}{cover.place ? `, ${cover.place.split("·")[0].trim()}` : ""}</p>
     </Link>
   );
 }

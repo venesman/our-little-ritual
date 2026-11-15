@@ -14,7 +14,8 @@ import { CATEGORY, type Category } from "../lib/rituals";
 import { KIND as LETTER_KIND, type LetterKind } from "../lib/mailbox";
 import { friendlyError } from "../lib/errors";
 import { photoSources, setPhotoDate, type PhotoSource } from "../lib/record";
-import { Button, Card, ErrorNote, Field, Spinner, Ticket, inputCls } from "../components/ui";
+import { Button, Card, ErrorNote, Field, PageTitle, Spinner, Ticket, inputCls } from "../components/ui";
+import { listMilestones } from "../lib/story";
 import { VoicePlayer } from "../components/Voice";
 
 const fmtDay = (iso: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: iso.length === 10 ? "UTC" : undefined }).format(new Date(iso.length === 10 ? `${iso}T00:00:00Z` : iso));
@@ -78,9 +79,10 @@ export function Scrapbook() {
     <div className="space-y-5">
       <header className="flex items-end justify-between gap-3">
         <div>
-          <p className="font-hand text-2xl text-raspberry-deep">the little things we keep</p>
-          <h1 className="text-4xl">Our Scrapbook</h1>
+          <p className="font-hand text-2xl font-bold leading-none text-raspberry-deep">everything we've kept</p>
+          <PageTitle className="mt-1">Our Scrapbook</PageTitle>
         </div>
+        <SinceStamp />
       </header>
       <div className="grid grid-cols-2 gap-2">
         <Link to="/us/moment/new" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
@@ -129,8 +131,8 @@ export function Scrapbook() {
         Object.entries(groups).sort(([a], [b]) => b.localeCompare(a)).map(([k, items]) => (
           <section key={k} className="space-y-3">
             <h2 className="font-hand text-2xl text-raspberry-deep">{fmtMonth(k)}</h2>
-            <ul className="grid grid-cols-2 gap-3">
-              {items.map((m, i) => <li key={m.kind + m.ref_id}><Polaroid m={m} tilt={i % 2 ? 1.5 : -1.5} onOpen={() => setOpen(m)} /></li>)}
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-6 px-1 pt-2">
+              {items.map((m, i) => <li key={m.kind + m.ref_id} className={i % 2 ? "mt-5" : ""}><Polaroid m={m} tilt={[-4, 4, 3, -3][i % 4]} tape={["tape", "", "tape tape-tangerine", "tape tape-blue"][i % 4]} onOpen={() => setOpen(m)} /></li>)}
             </ul>
           </section>
         ))
@@ -146,7 +148,26 @@ export function Scrapbook() {
   );
 }
 
-function Polaroid({ m, tilt, onOpen }: { m: Memory; tilt: number; onOpen: () => void }) {
+/** "Together since" — a dashed tangerine stamp, shown once you've added when your relationship began. */
+function SinceStamp() {
+  const [on, setOn] = useState<string | null>(null);
+  useEffect(() => { listMilestones().then((ms) => setOn(ms.find((m) => m.tag === "relationship_start" && m.happened_on)?.happened_on ?? null)).catch(() => {}); }, []);
+  if (!on) return null;
+  const d = new Date(`${on}T00:00:00Z`);
+  const month = new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" }).format(d).toUpperCase();
+  return (
+    <svg role="img" aria-label={`Stamp: together since ${month} ${d.getUTCFullYear()}`} viewBox="0 0 110 110" className="h-[92px] w-[92px] shrink-0 rotate-12">
+      <circle cx="55" cy="55" r="50" fill="none" stroke="#B23A14" strokeWidth="2.5" strokeDasharray="5 4" />
+      <circle cx="55" cy="55" r="38" fill="none" stroke="#B23A14" strokeWidth="1.2" />
+      <text x="55" y="42" textAnchor="middle" fontFamily="DM Sans Variable, sans-serif" fontSize="9" fontWeight="700" fill="#B23A14" letterSpacing="2">TOGETHER SINCE</text>
+      <text x="55" y="64" textAnchor="middle" fontFamily="DM Serif Display, serif" fontSize="22" fill="#B23A14">{month}</text>
+      <text x="55" y="80" textAnchor="middle" fontFamily="DM Sans Variable, sans-serif" fontSize="11" fontWeight="700" fill="#B23A14" letterSpacing="2">{d.getUTCFullYear()}</text>
+    </svg>
+  );
+}
+
+const NOTE_BG = ["bg-lilac", "bg-gold", "bg-lime", "bg-cornflower-soft"];
+function Polaroid({ m, tilt, tape, onOpen }: { m: Memory; tilt: number; tape: string; onOpen: () => void }) {
   const first = imagesOf(m)[0];
   const url = useSigned(first?.bucket, first?.path);
   const author = useAuthorLabel();
@@ -156,16 +177,17 @@ function Polaroid({ m, tilt, onOpen }: { m: Memory; tilt: number; onOpen: () => 
     : m.parts?.find((p) => p.body?.trim())?.body ?? m.caption;
   return (
     <button type="button" onClick={onOpen} style={{ transform: `rotate(${tilt}deg)` }}
-      className="block w-full rounded-sm bg-paper p-2 pb-3 text-left shadow-card transition hover:rotate-0 hover:-translate-y-0.5">
-      <div className="relative aspect-square overflow-hidden rounded-sm bg-cream">
+      className="polaroid block w-full text-left transition hover:rotate-0 hover:-translate-y-0.5">
+      {tape && <span className={tape} aria-hidden="true" />}
+      <div className={`relative aspect-square overflow-hidden ${first ? "bg-cream" : NOTE_BG[(m.ref_id.charCodeAt(0) + m.ref_id.charCodeAt(1)) % NOTE_BG.length]}`}>
         {first ? (url ? <img src={url} alt="" className="h-full w-full object-cover" loading="lazy" /> : <div className="h-full w-full animate-pulse bg-leaf-soft" />)
           : <p className="line-clamp-6 p-3 font-hand text-lg leading-snug text-leaf">{words || m.title}</p>}
         {hasVoice(m) && <span className="absolute right-1.5 top-1.5 grid h-7 w-7 place-items-center rounded-full bg-paper/90 text-raspberry-deep"><Mic size={13} aria-label="Has a voice note" /></span>}
         {imagesOf(m).length > 1 && <span className="absolute bottom-1.5 right-1.5 rounded-full bg-paper/90 px-2 text-[11px] font-bold text-leaf">+{imagesOf(m).length - 1}</span>}
         {m.kind === "moment" && <TripStamp place={m.place} date={m.starts_on} />}
       </div>
-      <p className="mt-2 truncate font-display text-sm">{m.kind === "personality" ? quizByCode(m.quiz_code ?? "")?.title ?? m.title : m.title || KIND_LABEL[m.kind]}</p>
-      <p className="truncate text-[11px] text-muted">{memoryDate(m)} · {author(m.authors)}</p>
+      <p className="mt-1.5 truncate text-center font-hand text-xl font-bold leading-tight">{m.kind === "personality" ? quizByCode(m.quiz_code ?? "")?.title ?? m.title : m.title || KIND_LABEL[m.kind]}</p>
+      <p className="truncate text-center text-[10px] font-bold uppercase tracking-[0.08em] text-muted">{memoryDate(m)} · {author(m.authors)}</p>
     </button>
   );
 }
@@ -448,7 +470,7 @@ function TripStamp({ place, date }: { place?: string; date?: string }) {
   const when = date ? new Intl.DateTimeFormat("en-GB", { month: "short", year: "2-digit", timeZone: "UTC" }).format(new Date(`${date}T00:00:00Z`)).toUpperCase() : "";
   if (!where && !when) return null;
   return (
-    <span aria-hidden="true" className="absolute left-1.5 top-1.5 grid h-14 w-14 -rotate-12 place-items-center rounded-full border-2 border-dashed border-cream/90 bg-leaf/45 text-center leading-none text-cream backdrop-blur-[1px]">
+    <span aria-hidden="true" className="absolute left-1.5 top-1.5 grid h-14 w-14 -rotate-12 place-items-center rounded-full border-2 border-cream bg-cornflower-deep/80 text-center leading-none text-cream outline outline-1 -outline-offset-4 outline-cream/70">
       <span>
         <span className="block px-1 text-[8px] font-bold tracking-[0.08em]">{where}</span>
         <span className="block font-display text-[10px]">{when}</span>

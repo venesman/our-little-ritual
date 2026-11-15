@@ -1,46 +1,39 @@
-import { Clock, PenLine } from "lucide-react";
+import { PenLine } from "lucide-react";
 import { CATEGORY, RESPONSE_LABEL, type WeeklyRitual } from "../lib/rituals";
-import { Ticket } from "./ui";
+import { PostageStamp, Ticket, type StampColour } from "./ui";
 
-const STAMP_TONE = {
-  raspberry: "border-raspberry bg-raspberry-soft text-raspberry-deep",
-  mustard: "border-mustard bg-mustard-soft text-mustard-deep",
-  leaf: "border-leaf/70 bg-leaf-soft text-leaf",
-  tomato: "border-tomato bg-tomato-soft text-tomato-deep",
-};
+const STAMP_COLOUR: Record<string, StampColour> = { raspberry: "lilac", mustard: "gold", leaf: "cornflower", tomato: "tangerine" };
 
-/** The weekly ritual drawn as a vintage postcard: message on the left, stamp on the right. */
+/** The weekly ritual drawn as a postcard: airmail edge, message on the left, stamp and details on the right. */
 export function RitualPostcard({ ritual, size = "full", children }: { ritual: WeeklyRitual; size?: "full" | "compact"; children?: React.ReactNode }) {
   const cat = CATEGORY[ritual.activity.category];
-  const Icon = cat.icon;
   const compact = size === "compact";
 
   return (
-    <article className={`postcard ${compact ? "p-5" : ""}`}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <div className="flex flex-wrap gap-1.5">
-            <Ticket tone={cat.tone}>{cat.label}</Ticket>
-            {ritual.activity.just_us && <Ticket tone="tomato">Just us</Ticket>}
+    <article className="overflow-hidden bg-paper shadow-card">
+      <div className="airmail h-[9px]" aria-hidden="true" />
+      <div className={compact ? "p-4" : "p-4 sm:p-5"}>
+        <div className={`grid gap-3.5 ${compact ? "grid-cols-[1fr_64px]" : "grid-cols-[1fr_84px]"}`}>
+          <div className="min-w-0">
+            {!compact && <p className="font-hand text-xl font-bold leading-none text-raspberry-deep">this week, let's…</p>}
+            <h2 className={`leading-[1.02] ${compact ? "text-xl" : "mt-1.5 text-[1.9rem]"}`}>{ritual.activity.title}</h2>
+            <p className={`mt-2 leading-snug ${compact ? "text-sm text-muted" : "text-sm"}`}>{ritual.activity.description}</p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <Ticket tone={cat.tone}>{cat.label}</Ticket>
+              {ritual.activity.just_us && <Ticket tone="tomato">Just us</Ticket>}
+            </div>
           </div>
-          <h2 className={`mt-3 leading-tight ${compact ? "text-xl" : "text-[1.75rem]"}`}>{ritual.activity.title}</h2>
-          <p className={`mt-2 text-muted ${compact ? "text-sm" : ""}`}>{ritual.activity.description}</p>
-        </div>
-        <div
-          className={`grid shrink-0 rotate-3 place-items-center rounded-sm border-2 border-dashed text-center ${STAMP_TONE[cat.tone]} ${compact ? "h-16 w-14" : "h-24 w-20"}`}
-          aria-hidden="true"
-        >
-          <div>
-            <Icon size={compact ? 18 : 24} className="mx-auto" />
-            <div className="mt-1 text-[9px] font-bold uppercase tracking-[0.14em]">Week {ritual.weekNumber}</div>
+          <div className="flex flex-col items-center gap-2 border-l-[1.5px] border-leaf/35 pl-3.5">
+            <PostageStamp colour={STAMP_COLOUR[cat.tone] ?? "tangerine"} size={compact ? "sm" : "lg"}>
+              <span className={`font-display leading-none ${compact ? "text-lg" : "text-[1.6rem]"}`}>{String(ritual.weekNumber).padStart(2, "0")}</span>
+              <span className={`font-bold uppercase tracking-[0.1em] ${compact ? "text-[8px]" : "text-[10px]"}`}>Week</span>
+            </PostageStamp>
+            <span className="text-center text-[10px] font-bold uppercase leading-tight tracking-[0.1em]">{ritual.activity.duration_label}</span>
+            {!compact && <span className="inline-flex items-center gap-1 text-center text-[10px] font-bold uppercase leading-tight tracking-[0.08em] text-muted"><PenLine size={11} aria-hidden="true" />{RESPONSE_LABEL[ritual.activity.response_type]}</span>}
           </div>
         </div>
+        {children}
       </div>
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-dashed border-leaf/25 pt-3 text-xs font-semibold uppercase tracking-[0.1em] text-muted">
-        <span className="inline-flex items-center gap-1.5"><Clock size={13} aria-hidden="true" />{ritual.activity.duration_label}</span>
-        <span className="inline-flex items-center gap-1.5"><PenLine size={13} aria-hidden="true" />{RESPONSE_LABEL[ritual.activity.response_type]}</span>
-      </div>
-      {children}
     </article>
   );
 }
