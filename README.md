@@ -5,7 +5,7 @@
 A private, invite-only app for two people in a long-distance relationship.
 React + TypeScript + Tailwind, Supabase (Auth, Postgres, Storage), deployed on Vercel.
 
-**Status: Phase 4 — quick wins** (installable app, visit countdown, "thinking of you", best time to call) on top of
+**Status: Phase 5 — Play With Me** (live activities for video calls) on top of **Phase 4 — quick wins** (installable app, visit countdown, "thinking of you", best time to call) on top of
 **the first complete version (Phase 3).** Accounts and pairing (1), one shared ritual every Monday at 12:00 UTC (2),
 and answering it with words, photos, drawings or quick picks, sealed until you've both shared, then revealed together (3).
 
@@ -44,6 +44,10 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **Phase 4 — `0004_quick_wins.sql`**: adds `visits`, `nudges` and your usual free hours on `profiles`. Nothing to change
   in Vercel. To install the app: iPhone → open in Safari → Share → *Add to Home Screen*; Android → browser menu → *Install app*
   (Settings in the app shows the right steps for your phone).
+
+- **Phase 5 — `0005_play_with_me.sql` then `0006_play_with_me_activities.sql`** (run both, in that order): the Play With Me
+  tables, rules and the 90 activities. The first file also turns on Supabase **Realtime** for `play_sessions`, so a tap on one
+  phone shows on the other within a second. If Realtime is off for your project the app still syncs every 3 seconds.
 
 ## 2. Deploy on Vercel
 
@@ -114,7 +118,10 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 156 checks. Phase 4: visits shared between the
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 206 checks. Phase 5: 90 activities (15 per
+category, every mood/energy/type covered), one shared session for both partners, every filter respected, no repeats then a
+reshuffle, "nothing matches" message, timer start/pause/reset maths, playing a chosen favourite, private vs shared favourites,
+outsiders blocked, and both phones opening Play / tapping "another one" at the same instant. Earlier phases: 156 checks. Phase 4: visits shared between the
 two of you and invisible to others, date validation, nudge rate limits (per minute and per day), no nudges before your
 partner joins, free hours editable only by their owner. Unit tests cover the call-overlap maths for Kuching ↔ Santiago in
 both Chile summer and winter time, windows past midnight, and "happening now". Earlier phases: Phase 3: a partner can't see a
@@ -145,6 +152,19 @@ redeeming the same link at the same instant → exactly one gets in**.
 | `visits` | planned visits for the countdown (either of you can add, edit, remove) |
 | `nudges` | "thinking of you" taps (max one a minute, 30 a day) |
 | `profiles.free_from / free_to` | when each of you is usually free, in your own local time |
+| `play_activities` | the 90 Play With Me activities (read-only library) |
+| `play_sessions` | one live session per call: filters, current activity, shared timer, round |
+| `play_session_items` | every activity drawn in a session (done / skipped), for no-repeats and history |
+| `play_favourites` | "Saved for me" (private) and "Our Favourite Things to Do" (shared) |
+
+## How Play With Me stays in sync
+
+- One open session per couple; whoever opens Play first starts it and the other phone joins it.
+- The database draws the activity (matching your filters, no repeats within a round, reshuffle when you've played them all),
+  so both phones always show the same one.
+- The timer is stored as server timestamps; each phone corrects for its own clock, so both count down together. Either of
+  you can start, pause, reset or pick 1/2/5/10 minutes.
+- Updates arrive by Supabase Realtime, with a 3-second check as a fallback.
 
 ## How the sealed reveal works
 
@@ -174,4 +194,5 @@ Migrations live in `supabase/migrations/` and are applied in order. History is n
 2. ✅ Weekly ritual — 42 activities, Monday 12:00 UTC generator, no repeats per cycle
 3. ✅ Submission & reveal — drafts, private-until-both-submit, enforced by RLS and storage policies
 4. ✅ Quick wins — installable app, visit countdown, "thinking of you", best time to call
-5. Play With Me · 6. Call Session Mode · 7. The Curious Club · 8. Weekly check-in · 9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline
+5. ✅ Play With Me — 90 call activities, filters + Surprise us, live shared screen and timer, favourites, history
+6. Call Session Mode · 7. The Curious Club · 8. Weekly check-in · 9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline

@@ -14,6 +14,7 @@ import { Settings } from "./screens/Settings";
 import { Rituals } from "./screens/Rituals";
 import { RitualDetail } from "./screens/RitualDetail";
 import { Visits } from "./screens/Visits";
+import { Play } from "./screens/Play";
 
 export default function App() {
   if (!supabaseConfigured) return <SetupNotice />;
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="rituals" element={<Rituals />} />
             <Route path="rituals/:weeklyId" element={<RitualDetail />} />
             <Route path="visits" element={<Visits />} />
+            <Route path="play" element={<Play />} />
             <Route path="settings" element={<Settings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
