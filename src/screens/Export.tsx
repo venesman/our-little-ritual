@@ -8,10 +8,12 @@ import { KIND as LETTER_KIND, type LetterKind } from "../lib/mailbox";
 import { friendlyError } from "../lib/errors";
 import { Button, Card, ErrorNote, Field, Spinner, inputCls } from "../components/ui";
 import { memoryDate } from "./Scrapbook";
+import { listVisits, type Visit } from "../lib/visits";
 import { soundtrackFeed, type SoundtrackItem } from "../lib/music";
 
-type Include = { moments: boolean; milestones: boolean; rituals: boolean; missions: boolean; discoveries: boolean; letters: boolean; soundtrack: boolean; summary: boolean; photos: boolean };
+type Include = { moments: boolean; visits: boolean; games: boolean; milestones: boolean; rituals: boolean; missions: boolean; discoveries: boolean; letters: boolean; soundtrack: boolean; summary: boolean; photos: boolean };
 const INCLUDE_LABEL: Record<keyof Include, string> = {
+  visits: "Visits (from the Visits page) in 'Time together'", games: "Saved quizzes, games and creations",
   moments: "Trips & moments", milestones: "Milestones", rituals: "Weekly rituals (both answers)", missions: "Apart missions",
   discoveries: "Curious Club discoveries", letters: "Letters (private — off by default)", soundtrack: "Our Soundtrack (song, artist, date, who shared it)", summary: "Month-by-month summary of shared activities", photos: "Include photos",
 };
@@ -33,8 +35,10 @@ export function ExportStory() {
   const [error, setError] = useState<string | null>(null);
   const [from, setFrom] = useState("");
   const [to, setTo] = useState(new Date().toISOString().slice(0, 10));
-  const [inc, setInc] = useState<Include>({ moments: true, milestones: true, rituals: true, missions: false, discoveries: false, letters: false, soundtrack: false, summary: true, photos: true });
+  const [inc, setInc] = useState<Include>({ visits: true, games: false, moments: true, milestones: true, rituals: true, missions: false, discoveries: false, letters: false, soundtrack: false, summary: true, photos: true });
   const [songs, setSongs] = useState<SoundtrackItem[]>([]);
+  const [visits, setVisits] = useState<Visit[]>([]);
+  useEffect(() => { listVisits().then(setVisits).catch(() => {}); }, []);
   useEffect(() => { if (inc.soundtrack && !songs.length) soundtrackFeed().then(setSongs).catch(() => {}); }, [inc.soundtrack, songs.length]);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -54,17 +58,26 @@ export function ExportStory() {
   const items = useMemo(() => (feed ?? []).filter((m) => {
     const d = dayOf(m); if ((from && d < from) || (to && d > to)) return false;
     return (m.kind === "moment" && inc.moments) || (m.kind === "milestone" && inc.milestones) || (m.kind === "ritual" && inc.rituals)
-      || (m.kind === "mission" && inc.missions) || (m.kind === "discovery" && inc.discoveries) || (m.kind === "letter" && inc.letters);
+      || (m.kind === "mission" && inc.missions) || (m.kind === "discovery" && inc.discoveries) || (m.kind === "letter" && inc.letters)
+      || (["quiz", "personality", "knowme", "creation", "whim"].includes(m.kind) && inc.games);
   }).sort((a, b) => dayOf(a).localeCompare(dayOf(b))), [feed, from, to, inc]);
   const trips = items.filter((m) => m.kind === "moment");
+  const today = new Date().toISOString().slice(0, 10);
+  const pastVisits = inc.visits ? visits.filter((v) => v.starts_on <= today && (!from || (v.ends_on ?? v.starts_on) >= from) && (!to || v.starts_on <= to)) : [];
+  const together = [
+    ...trips.map((t) => ({ kind: "Trip or moment", title: t.title, from: t.starts_on!, until: t.ends_on ?? null, place: t.place || "—" })),
+    ...pastVisits.map((v) => ({ kind: "Visit", title: `Together in ${v.place}`, from: v.starts_on, until: v.ends_on, place: v.place })),
+  ].sort((a, b) => a.from.localeCompare(b.from));
   const soundtrack = inc.soundtrack ? songs.filter((x) => (!from || x.on >= from) && (!to || x.on <= to)).sort((a, b) => a.on.localeCompare(b.on)) : [];
   const people = [me, partner].filter(Boolean);
-  const summaryRows = inc.summary ? summary.filter((r) => r.rituals_both + r.checkins_both + r.letters + r.play_sessions + r.curious_sessions + r.apart_missions > 0) : [];
+  const summaryRows = inc.summary ? summary.filter((r) => r.rituals_both + r.checkins_both + r.letters + r.play_sessions + r.curious_sessions + r.apart_missions
+    + (r.games ?? 0) + (r.creations ?? 0) + (r.songs ?? 0) > 0) : [];
+  const hasNew = summaryRows.some((r) => r.games != null);
 
   const download = async () => {
     setBusy("docx"); setError(null);
     try {
-      const blob = await buildDocx({ items, trips, summaryRows, inc, from, to, people: people.map((p) => p!), nameOf, soundtrack });
+      const blob = await buildDocx({ items, together, summaryRows, hasNew, inc, from, to, people: people.map((p) => p!), nameOf, soundtrack });
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
       a.download = `Our-story-${from}-to-${to}.docx`;
@@ -102,7 +115,7 @@ export function ExportStory() {
               </label>
             ))}
           </fieldset>
-          <p className="text-xs text-muted">{items.length} {items.length === 1 ? "memory" : "memories"} · {trips.length} {trips.length === 1 ? "trip or moment" : "trips or moments"} · {items.reduce((n, m) => n + (inc.photos ? imagesOf(m).length : 0), 0)} photos</p>
+          <p className="text-xs text-muted">{items.length} {items.length === 1 ? "memory" : "memories"} · {together.length} {together.length === 1 ? "time together" : "times together"} · {items.reduce((n, m) => n + (inc.photos ? imagesOf(m).length : 0), 0)} photos</p>
           <div className="flex flex-wrap gap-2">
             <Button busy={busy === "docx"} onClick={() => void download()}><FileDown size={16} aria-hidden="true" /> Download Word document</Button>
             <Button variant="outline" onClick={() => window.print()}><Printer size={16} aria-hidden="true" /> Print / Save as PDF</Button>
@@ -134,17 +147,20 @@ export function ExportStory() {
           <p className="text-xs text-black/60">Dates are as recorded in the app. Photo dates come from the photo files where the phone saved them.</p>
         </header>
 
-        {trips.length > 0 && (
+        {together.length > 0 && (
           <section>
             <h2 className="font-display text-xl">Time together</h2>
-            <table className="mt-2 w-full border-collapse text-sm">
-              <thead><tr className="border-b border-black/30 text-left"><th className="py-1 pr-2">Trip or moment</th><th className="py-1 pr-2">Dates</th><th className="py-1 pr-2">Place</th><th className="py-1">Days</th></tr></thead>
-              <tbody>{trips.map((t) => (
-                <tr key={t.ref_id} className="border-b border-black/10 align-top">
-                  <td className="py-1 pr-2">{t.title}</td><td className="py-1 pr-2">{memoryDate(t)}</td><td className="py-1 pr-2">{t.place || "—"}</td><td className="py-1">{daysBetween(t.starts_on!, t.ends_on)}</td>
+            <div className="-mx-2 overflow-x-auto px-2">
+            <table className="mt-2 w-full min-w-[460px] border-collapse text-sm">
+              <thead><tr className="border-b border-black/30 text-left"><th className="py-1 pr-2">What</th><th className="py-1 pr-2">Dates</th><th className="py-1 pr-2">Place</th><th className="py-1">Days</th></tr></thead>
+              <tbody>{together.map((t, i) => (
+                <tr key={i} className="border-b border-black/10 align-top">
+                  <td className="py-1 pr-2">{t.title}<span className="block text-xs text-black/60">{t.kind}</span></td><td className="py-1 pr-2">{dateRange(t.from, t.until)}</td><td className="py-1 pr-2">{t.place}</td><td className="py-1">{daysBetween(t.from, t.until)}</td>
                 </tr>
               ))}</tbody>
             </table>
+            </div>
+            <p className="mt-1 text-xs text-black/60">Total: {together.reduce((n, t) => n + daysBetween(t.from, t.until), 0)} days (trips and visits may overlap).</p>
           </section>
         )}
 
@@ -154,11 +170,11 @@ export function ExportStory() {
             <div className="-mx-2 overflow-x-auto px-2">
             <table className="mt-2 w-full min-w-[520px] border-collapse text-sm">
               <thead><tr className="border-b border-black/30 text-left">
-                <th className="py-1 pr-2">Month</th><th className="py-1 pr-2">Rituals</th><th className="py-1 pr-2">Check-ins</th><th className="py-1 pr-2">Letters</th><th className="py-1 pr-2">Call activities</th><th className="py-1 pr-2">Research dates</th><th className="py-1">Missions</th>
+                <th className="py-1 pr-2">Month</th><th className="py-1 pr-2">Rituals</th><th className="py-1 pr-2">Check-ins</th><th className="py-1 pr-2">Letters</th><th className="py-1 pr-2">Call activities</th><th className="py-1 pr-2">Research dates</th><th className="py-1 pr-2">Missions</th>{hasNew && <><th className="py-1 pr-2">Quizzes & games</th><th className="py-1 pr-2">Made together</th><th className="py-1">Songs shared</th></>}
               </tr></thead>
               <tbody>{summaryRows.map((r) => (
                 <tr key={r.month} className="border-b border-black/10">
-                  <td className="py-1 pr-2">{fmtMonth(r.month)}</td><td className="py-1 pr-2">{r.rituals_both}</td><td className="py-1 pr-2">{r.checkins_both}</td><td className="py-1 pr-2">{r.letters}</td><td className="py-1 pr-2">{r.play_sessions}</td><td className="py-1 pr-2">{r.curious_sessions}</td><td className="py-1">{r.apart_missions}</td>
+                  <td className="py-1 pr-2">{fmtMonth(r.month)}</td><td className="py-1 pr-2">{r.rituals_both}</td><td className="py-1 pr-2">{r.checkins_both}</td><td className="py-1 pr-2">{r.letters}</td><td className="py-1 pr-2">{r.play_sessions}</td><td className="py-1 pr-2">{r.curious_sessions}</td><td className="py-1 pr-2">{r.apart_missions}</td>{hasNew && <><td className="py-1 pr-2">{r.games ?? 0}</td><td className="py-1 pr-2">{r.creations ?? 0}</td><td className="py-1">{r.songs ?? 0}</td></>}
                 </tr>
               ))}</tbody>
             </table>
@@ -181,7 +197,7 @@ export function ExportStory() {
             </ul>
           </section>
         )}
-        {items.length === 0 && trips.length === 0 && summaryRows.length === 0 && soundtrack.length === 0 && <p>Nothing in this date range yet.</p>}
+        {items.length === 0 && together.length === 0 && summaryRows.length === 0 && soundtrack.length === 0 && <p>Nothing in this date range yet.</p>}
       </article>
     </div>
   );
@@ -240,8 +256,8 @@ async function imageForDocx(bucket: string, path: string): Promise<{ data: Array
   return { data: await blob.arrayBuffer(), type: path.endsWith(".png") ? "png" : "jpg", width: Math.round(bmp.width * scale), height: Math.round(bmp.height * scale) };
 }
 
-async function buildDocx({ items, trips, summaryRows, inc, from, to, people, nameOf, soundtrack }: {
-  items: Memory[]; trips: Memory[]; summaryRows: MonthSummary[]; inc: Include; from: string; to: string; soundtrack: SoundtrackItem[];
+async function buildDocx({ items, together, summaryRows, hasNew, inc, from, to, people, nameOf, soundtrack }: {
+  items: Memory[]; together: { kind: string; title: string; from: string; until: string | null; place: string }[]; summaryRows: MonthSummary[]; hasNew: boolean; inc: Include; from: string; to: string; soundtrack: SoundtrackItem[];
   people: { id: string; display_name: string; current_city: string | null; current_country: string | null; home_country: string | null }[];
   nameOf: (id: string | null | undefined) => string;
 }): Promise<Blob> {
@@ -263,14 +279,16 @@ async function buildDocx({ items, trips, summaryRows, inc, from, to, people, nam
     P("Dates are as recorded in the app. Photo dates come from the photo files where the phone saved them.", { italics: true, size: 18, color: "555555" }),
   ];
 
-  if (trips.length) {
+  if (together.length) {
     children.push(new Paragraph({ text: "Time together", heading: HeadingLevel.HEADING_1 }));
-    children.push(table(["Trip or moment", "Dates", "Place", "Days"], trips.map((t) => [t.title, memoryDate(t), t.place || "—", String(daysBetween(t.starts_on!, t.ends_on))])));
+    children.push(table(["What", "Dates", "Place", "Days"], together.map((t) => [`${t.title} (${t.kind})`, dateRange(t.from, t.until), t.place, String(daysBetween(t.from, t.until))])));
+    children.push(P(`Total: ${together.reduce((n, t) => n + daysBetween(t.from, t.until), 0)} days (trips and visits may overlap).`, { italics: true, size: 18, color: "555555" }));
   }
   if (summaryRows.length) {
     children.push(new Paragraph({ text: "Staying in touch, month by month", heading: HeadingLevel.HEADING_1 }));
-    children.push(table(["Month", "Rituals", "Check-ins", "Letters", "Call activities", "Research dates", "Missions"],
-      summaryRows.map((r) => [fmtMonth(r.month), r.rituals_both, r.checkins_both, r.letters, r.play_sessions, r.curious_sessions, r.apart_missions].map(String))));
+    children.push(table(["Month", "Rituals", "Check-ins", "Letters", "Call activities", "Research dates", "Missions", ...(hasNew ? ["Quizzes & games", "Made together", "Songs shared"] : [])],
+      summaryRows.map((r) => [fmtMonth(r.month), r.rituals_both, r.checkins_both, r.letters, r.play_sessions, r.curious_sessions, r.apart_missions,
+        ...(hasNew ? [r.games ?? 0, r.creations ?? 0, r.songs ?? 0] : [])].map(String))));
     children.push(P("Counts only. Rituals and check-ins are counted when both of you took part.", { italics: true, size: 18, color: "555555" }));
   }
   if (items.length) {
@@ -301,4 +319,8 @@ async function buildDocx({ items, trips, summaryRows, inc, from, to, people, nam
   }
   const doc = new Document({ creator: "Our Little Ritual", title: "Our relationship record", sections: [{ children }] });
   return Packer.toBlob(doc);
+}
+
+function dateRange(from: string, until: string | null | undefined) {
+  return until && until !== from ? `${fmtDate(from)} – ${fmtDate(until)}` : fmtDate(from);
 }

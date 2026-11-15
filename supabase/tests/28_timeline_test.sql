@@ -20,3 +20,9 @@ reset role;
 set role anon;
 select tests.expect_error('select public.timeline_feed()', 'permission denied');
 reset role;
+
+-- export counts include the newer activities
+select set_config('request.jwt.claim.sub', :'A', false);
+set role authenticated;
+select tests.expect((select sum(games) >= 1 and sum(creations) >= 1 and sum(songs) >= 1 from public.export_activity_summary_v2(date '2025-01-01', current_date)), 'export counts games, creations and songs');
+reset role;

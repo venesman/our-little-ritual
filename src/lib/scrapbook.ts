@@ -122,7 +122,13 @@ export async function signedUrl(bucket: string, path: string): Promise<string | 
   return data?.signedUrl ?? null;
 }
 
-export interface MonthSummary { month: string; rituals_both: number; checkins_both: number; letters: number; play_sessions: number; curious_sessions: number; apart_missions: number }
+export interface MonthSummary {
+  month: string; rituals_both: number; checkins_both: number; letters: number; play_sessions: number; curious_sessions: number; apart_missions: number;
+  games?: number; creations?: number; songs?: number;
+}
+/** Month-by-month counts (the newer version also counts games, creations and songs; falls back if not set up yet). */
 export async function activitySummary(from: string, to: string): Promise<MonthSummary[]> {
+  const v2 = await supabase.rpc("export_activity_summary_v2", { p_from: from, p_to: to });
+  if (!v2.error) return (v2.data ?? []) as MonthSummary[];
   return check(await supabase.rpc("export_activity_summary", { p_from: from, p_to: to })) as MonthSummary[];
 }
