@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarHeart, Heart, Phone, Plane } from "lucide-react";
-import { dayLabel, formatRange, nextSharedWindow, nextWindowFor, prettyTime } from "../lib/callWindow";
+import { CalendarHeart, CalendarPlus, ChevronDown, Heart, Phone, Plane } from "lucide-react";
+import { downloadIcs, googleCalendarUrl } from "../lib/calendar";
+import { dayLabel, formatRange, nextSharedWindow, nextWindowFor, prettyTime, sharedWindowsAhead, type Interval } from "../lib/callWindow";
 import { placeFromZone } from "../lib/time";
 import { ago, recentNudges, sendNudge, summarise, type Nudge } from "../lib/nudges";
 import { formatDay, listVisits, visitState, type Visit } from "../lib/visits";
@@ -16,6 +17,7 @@ export function CallWindowCard({ now, me, partner, partnerName }: {
   partnerName: string;
 }) {
   const w = nextSharedWindow(now, me, partner);
+  const [planning, setPlanning] = useState(false);
   const icon = <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-leaf-soft text-leaf"><Phone size={17} aria-hidden="true" /></span>;
 
   let body: React.ReactNode;
@@ -45,10 +47,67 @@ export function CallWindowCard({ now, me, partner, partnerName }: {
           <dt>You</dt><dd className="font-medium text-leaf">{formatRange(w, me.timeZone)}</dd>
           <dt>{partnerName}</dt><dd className="font-medium text-leaf">{formatRange(w, partner.timeZone)} <span className="text-muted">({dayLabel(w.start, now, partner.timeZone)})</span></dd>
         </dl>
+        <button
+          type="button" onClick={() => setPlanning((p) => !p)} aria-expanded={planning}
+          className="mt-3 inline-flex min-h-[40px] items-center gap-1.5 rounded-full border-2 border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print-sm transition active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+        >
+          <CalendarPlus size={15} aria-hidden="true" /> Plan a call date
+          <ChevronDown size={15} className={`transition ${planning ? "rotate-180" : ""}`} aria-hidden="true" />
+        </button>
       </>
     );
   }
-  return <Card className="flex items-start gap-3">{icon}<div className="min-w-0">{body}</div></Card>;
+  return (
+    <Card>
+      <div className="flex items-start gap-3">{icon}<div className="min-w-0">{body}</div></div>
+      {planning && w && <CallDatePlanner now={now} me={me} partner={partner} partnerName={partnerName} />}
+    </Card>
+  );
+}
+
+/** The next 7 days of shared free time, each with "add to calendar". */
+function CallDatePlanner({ now, me, partner, partnerName }: {
+  now: Date; partnerName: string;
+  me: { timeZone: string; from: string | null; to: string | null };
+  partner: { timeZone: string; from: string | null; to: string | null };
+}) {
+  const windows = sharedWindowsAhead(now, me, partner, 7);
+  const day = (ms: number, tz: string) =>
+    new Intl.DateTimeFormat("en-GB", { timeZone: tz, weekday: "short", day: "numeric", month: "short" }).format(new Date(ms));
+  const event = (win: Interval) => ({
+    title: `Call date with ${partnerName} ♥`,
+    start: win.start,
+    end: win.end,
+    description:
+      `Your shared free time, from Our Little Ritual.\n` +
+      `You: ${day(win.start, me.timeZone)}, ${formatRange(win, me.timeZone)} (${placeFromZone(me.timeZone)})\n` +
+      `${partnerName}: ${day(win.start, partner.timeZone)}, ${formatRange(win, partner.timeZone)} (${placeFromZone(partner.timeZone)})\n` +
+      `Shorten it in your calendar if you only need part of it.`,
+  });
+  return (
+    <div className="mt-4 border-t border-dashed border-leaf/25 pt-3">
+      <p className="mb-2 font-hand text-lg text-raspberry-deep">pick a day — you both add it to your own calendar</p>
+      <ul className="space-y-2">
+        {windows.map((win) => (
+          <li key={win.start} className="rounded-xl bg-cream/70 px-3 py-2.5">
+            <p className="text-sm font-semibold text-leaf">{day(win.start, me.timeZone)} · {formatRange(win, me.timeZone)}</p>
+            <p className="text-xs text-muted">{partnerName}: {day(win.start, partner.timeZone)}, {formatRange(win, partner.timeZone)}</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <button type="button" onClick={() => downloadIcs(event(win))}
+                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border-2 border-leaf/30 px-3 text-xs font-semibold text-leaf hover:border-leaf">
+                <CalendarPlus size={13} aria-hidden="true" /> Apple / Outlook
+              </button>
+              <a href={googleCalendarUrl(event(win))} target="_blank" rel="noopener noreferrer"
+                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border-2 border-leaf/30 px-3 text-xs font-semibold text-leaf hover:border-leaf">
+                <CalendarPlus size={13} aria-hidden="true" /> Google Calendar
+              </a>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-xs text-muted">Each of you taps on your own phone, so it lands in your own calendar at the right local time.</p>
+    </div>
+  );
 }
 
 /* ---------------------------------------------------------- thinking of you */

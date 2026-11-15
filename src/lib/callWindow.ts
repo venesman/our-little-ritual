@@ -37,12 +37,12 @@ export function localDate(now: Date, timeZone: string): { y: number; m: number; 
 const hm = (t: string) => { const [h, m] = t.split(":").map(Number); return { h, m }; };
 
 /** The person's free window on the local days around `now` (yesterday → day after tomorrow). */
-export function windowsAround(now: Date, timeZone: string, from: string, to: string): Interval[] {
+export function windowsAround(now: Date, timeZone: string, from: string, to: string, daysAhead = 2): Interval[] {
   const today = localDate(now, timeZone);
   const f = hm(from), t = hm(to);
   const crosses = t.h * 60 + t.m <= f.h * 60 + f.m;
   const out: Interval[] = [];
-  for (let k = -1; k <= 2; k++) {
+  for (let k = -1; k <= daysAhead; k++) {
     const base = new Date(Date.UTC(today.y, today.m - 1, today.d + k));
     const y = base.getUTCFullYear(), m = base.getUTCMonth() + 1, d = base.getUTCDate();
     const start = zonedToUtc(y, m, d, f.h, f.m, timeZone);
@@ -63,6 +63,16 @@ export function intersect(a: Interval[], b: Interval[]): Interval[] {
 }
 
 export interface Person { timeZone: string; from: string | null; to: string | null }
+
+/** Every shared free window that hasn't ended yet, over the next `days` days. */
+export function sharedWindowsAhead(now: Date, me: Person, partner: Person, days = 7): Interval[] {
+  if (!me.from || !me.to || !partner.from || !partner.to) return [];
+  const t = now.getTime();
+  const limit = t + days * 86400000;
+  const mine = windowsAround(now, me.timeZone, me.from, me.to, days + 1);
+  const theirs = windowsAround(now, partner.timeZone, partner.from, partner.to, days + 1);
+  return intersect(mine, theirs).filter((w) => w.end > t && w.start < limit);
+}
 
 /** The current or next shared free window, or null if your windows never overlap. */
 export function nextSharedWindow(now: Date, me: Person, partner: Person): (Interval & { isNow: boolean }) | null {
