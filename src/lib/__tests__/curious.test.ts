@@ -11,7 +11,7 @@ describe("talkSegments", () => {
     expect(talkSegments(60).map((s) => [s.from, s.to])).toEqual([[0, 15], [15, 40], [40, 55], [55, 60]]);
   });
   it("scales to 30 s and 2 min", () => {
-    expect(talkSegments(30).at(-1)!.to).toBe(30);
+    expect(talkSegments(30)[3].to).toBe(30);
     expect(talkSegments(120)[1]).toMatchObject({ from: 30, to: 80 });
   });
 });
