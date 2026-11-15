@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { scoreLine } from "../lib/quiz";
+import { quizByCode } from "../lib/personality";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Camera, FileDown, ImagePlus, MapPin, Mic, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
@@ -147,6 +148,7 @@ function Polaroid({ m, tilt, onOpen }: { m: Memory; tilt: number; onOpen: () => 
   const author = useAuthorLabel();
   const { myId, me, partner } = usePeople();
   const words = m.kind === "quiz" ? scoreLine(m.scores, myId, me?.display_name || "You", partner?.display_name || "Partner")
+    : m.kind === "personality" ? personalityLine(m, myId, me?.display_name || "You", partner?.display_name || "Partner")
     : m.parts?.find((p) => p.body?.trim())?.body ?? m.caption;
   return (
     <button type="button" onClick={onOpen} style={{ transform: `rotate(${tilt}deg)` }}
@@ -158,7 +160,7 @@ function Polaroid({ m, tilt, onOpen }: { m: Memory; tilt: number; onOpen: () => 
         {imagesOf(m).length > 1 && <span className="absolute bottom-1.5 right-1.5 rounded-full bg-paper/90 px-2 text-[11px] font-bold text-leaf">+{imagesOf(m).length - 1}</span>}
         {m.kind === "moment" && <TripStamp place={m.place} date={m.starts_on} />}
       </div>
-      <p className="mt-2 truncate font-display text-sm font-semibold">{m.title || KIND_LABEL[m.kind]}</p>
+      <p className="mt-2 truncate font-display text-sm font-semibold">{m.kind === "personality" ? quizByCode(m.quiz_code ?? "")?.title ?? m.title : m.title || KIND_LABEL[m.kind]}</p>
       <p className="truncate text-[11px] text-muted">{memoryDate(m)} · {author(m.authors)}</p>
     </button>
   );
@@ -193,6 +195,12 @@ function MemorySheet({ m, onClose, onChanged }: { m: Memory; onClose: () => void
 
         <div className="mt-4 space-y-3">
           {m.kind === "moment" && m.caption && <p className="whitespace-pre-wrap">{m.caption}</p>}
+          {m.kind === "personality" && (
+            <div className="rounded-2xl bg-paper p-4 text-center shadow-card">
+              <p className="font-display text-lg font-semibold">{quizByCode(m.quiz_code ?? "")?.title}</p>
+              <p className="mt-1 whitespace-pre-line text-sm">{personalityLine(m, myId, me?.display_name || "You", partner?.display_name || "Partner")}</p>
+            </div>
+          )}
           {m.kind === "quiz" && (
             <div className="rounded-2xl bg-paper p-4 text-center shadow-card">
               <p className="font-display text-2xl font-semibold">{scoreLine(m.scores, myId, me?.display_name || "You", partner?.display_name || "Partner")}</p>
@@ -420,4 +428,11 @@ function TripStamp({ place, date }: { place?: string; date?: string }) {
       </span>
     </span>
   );
+}
+
+function personalityLine(m: Memory, myId: string | null | undefined, myName: string, partnerName: string) {
+  const quiz = quizByCode(m.quiz_code ?? "");
+  if (!quiz || !m.results) return "";
+  return Object.entries(m.results).sort(([a]) => (a === myId ? -1 : 1))
+    .map(([u, r]) => `${u === myId ? myName : partnerName}: ${quiz.results[r]?.name ?? ""}`).join("\n");
 }

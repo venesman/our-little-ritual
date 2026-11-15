@@ -6,8 +6,8 @@
 \set D '00000000-0000-0000-0000-00000000000d'
 select relationship_id as rel from public.relationship_members where user_id = :'A' and status = 'active' \gset
 
-select tests.expect((select count(*) from public.quiz_questions where source = 'starter') = 300, 'starter bank loaded (300)');
-select tests.expect((select count(distinct category) from public.quiz_questions where source = 'starter') = 15, 'in 15 categories');
+select tests.expect((select count(*) from public.quiz_questions where source = 'starter') >= 300, 'starter bank loaded');
+select tests.expect((select count(distinct category) from public.quiz_questions where source = 'starter') >= 15, 'in 15+ categories');
 
 -- helper (admin): where is the right answer for question i of a round?
 create or replace function tests.quiz_right(p_round uuid, p_idx int) returns int language sql as $$

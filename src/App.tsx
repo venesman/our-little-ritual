@@ -1,3 +1,4 @@
+import { PersonalityQuiz } from "./screens/Personality";
 import { QuizMatchScreen, QuizQuestions } from "./screens/Quiz";
 import { WhimEditor } from "./screens/Whims";
 import { Navigate, Route, Routes } from "react-router-dom";
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="play/apart/:missionId" element={<ApartMission />} />
             <Route path="play/quiz/questions" element={<QuizQuestions />} />
             <Route path="play/quiz/:id" element={<QuizMatchScreen />} />
+            <Route path="play/personality/:code" element={<PersonalityQuiz />} />
             <Route path="us" element={<Us />} />
             <Route path="us/moment/new" element={<MomentEditor />} />
             <Route path="us/moment/:id" element={<MomentEditor />} />

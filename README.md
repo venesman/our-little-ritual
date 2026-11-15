@@ -85,6 +85,7 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **`0020_quiz_duel.sql`**: Quiz Time → Quiz Duel (Play → Quiz Time): matches of 6 rounds × 3 questions, server-timed answers, hidden answers until you've played, reports, your own questions, the 300-question starter bank (`supabase/quiz/starter_questions.tsv`), and the optional Open Trivia DB importer. Then, optionally, run **`supabase/quiz_import_schedule.sql`** once to import Open Trivia DB questions (CC BY-SA 4.0; runs ~30 minutes in the background and switches itself off).
 - **`0021_quiz_more_categories.sql`**: adds Anime & manga, Video games, Board games, Mythology and Celebrities & musicals; the Open Trivia DB import skips clearly US-only questions. Run it **before** `quiz_import_schedule.sql`.
 - **`0022_quiz_live.sql`**: Quiz Duel live on a call — one opens a live match, the other joins, both see each question at the same moment (3-2-1), race the shared clock and see the answers together. Adds Realtime on `quiz_matches` (no answers in that row).
+- **`0023_personality_quizzes.sql`**: 12 personality quizzes (words in `src/lib/personality.ts`; partner's card hidden until you've taken it, optional guess, scrapbook) and 150 more starter questions (`supabase/quiz/more_questions.tsv`).
 
 ## 2. Deploy on Vercel
 
