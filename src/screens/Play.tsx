@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bookmark, BookmarkCheck, CircleCheck, Dices, Heart, Pause, Play as PlayIcon, Radio, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, X } from "lucide-react";
+import { Bookmark, BookmarkCheck, CalendarClock, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, X } from "lucide-react";
 import { usePlaySession } from "../hooks/usePlaySession";
 import { useSpace } from "../hooks/useSpace";
 import { useAuth } from "../hooks/useAuth";
 import {
-  cap, drawPlayActivity, endPlaySession, ENERGIES, formatClock, listFavourites, listPastSessions, MINUTES, MOODS,
-  PLAY_CATEGORY, playTimer, secondsLeft, setPlayItemStatus, startPlaySession, togglePlayFavourite, typeLabel, TYPES,
-  type Favourite, type PastSession, type PlayActivity, type PlayFilters, type PlayState,
+  advanceCallPlan, cap, drawPlayActivity, endPlaySession, ENERGIES, formatClock, generateCallPlan, listFavourites, listPastSessions, MINUTES, MOODS,
+  PLAN_LENGTHS, PLAY_CATEGORY, playTimer, replaceCallPlanItem, secondsLeft, setPlayItemStatus, SLOT_LABEL, startPlaySession, togglePlayFavourite, typeLabel, TYPES,
+  type Favourite, type PastSession, type PlanStep, type PlayActivity, type PlayFilters, type PlayState,
 } from "../lib/play";
 import { friendlyError } from "../lib/errors";
 import { Button, Card, ErrorNote, LoopField, Spinner, Ticket } from "../components/ui";
@@ -82,6 +82,31 @@ function PlayTab() {
   if (loading) return <Spinner label="Shuffling the deck" />;
 
   const current = state?.current;
+  const endSection = state && (
+    <div className="border-t border-dashed border-leaf/25 pt-4">
+      <Button variant="ghost" onClick={() => run("end", async () => { await endPlaySession(state.session_id); apply(null); })} busy={busy === "end"}>
+        <X size={15} aria-hidden="true" /> {state.mode === "planned" ? "Save to history & end" : "End this session"}
+      </Button>
+      <p className="mt-1 text-xs text-muted">Saved to History. Either of you can end it — the other phone will follow.</p>
+    </div>
+  );
+
+  if (state?.mode === "planned") {
+    return (
+      <div className="space-y-5">
+        <ErrorNote>{error}</ErrorNote>
+        <PlanView
+          state={state} skewMs={skewMs} busy={busy} favs={favs}
+          onAdvance={(r) => run(r, () => advanceCallPlan(state.session_id, r))}
+          onReplace={(id) => run("replace-" + id, () => replaceCallPlanItem(id))}
+          onTimer={(a, d) => run("timer", () => playTimer(state.session_id, a, d))}
+          onNewPlan={(m) => run("plan", () => generateCallPlan(m))}
+          onLeave={() => draw(filters)}
+        />
+        {endSection}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -141,15 +166,116 @@ function PlayTab() {
         )}
       </section>
 
-      {state && (
-        <div className="border-t border-dashed border-leaf/25 pt-4">
-          <Button variant="ghost" onClick={() => run("end", async () => { await endPlaySession(state.session_id); apply(null); })} busy={busy === "end"}>
-            <X size={15} aria-hidden="true" /> End this session
-          </Button>
-          <p className="mt-1 text-xs text-muted">Saved to History. Either of you can end it — the other phone will follow.</p>
+      <PlanCard busy={busy === "plan"} onMake={(m) => run("plan", () => generateCallPlan(m))} />
+
+      {endSection}
+    </div>
+  );
+}
+
+/* ======================================================= call session mode */
+
+function PlanCard({ busy, onMake }: { busy: boolean; onMake: (minutes: number) => void }) {
+  const [minutes, setMinutes] = useState<number>(45);
+  return (
+    <Card className="space-y-3">
+      <div className="flex items-center gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-raspberry-soft text-raspberry-deep"><CalendarClock size={18} aria-hidden="true" /></span>
+        <div>
+          <h2 className="text-xl">Plan our call</h2>
+          <p className="text-sm text-muted">A little sequence for the time you have — warm-up to sweet goodbye.</p>
         </div>
+      </div>
+      <div className="flex flex-wrap gap-2" role="group" aria-label="How long is your call?">
+        {PLAN_LENGTHS.map((m) => (
+          <button key={m} type="button" onClick={() => setMinutes(m)} aria-pressed={minutes === m}
+            className={`rounded-full border-2 px-3 py-1.5 text-sm font-semibold ${minutes === m ? "border-leaf bg-mustard text-leaf" : "border-leaf/15 text-muted hover:border-leaf/40"}`}>
+            {m} min
+          </button>
+        ))}
+      </div>
+      <Button onClick={() => onMake(minutes)} busy={busy}><CalendarClock size={16} aria-hidden="true" /> Make our {minutes}-min plan</Button>
+    </Card>
+  );
+}
+
+function PlanView({ state, skewMs, busy, favs, onAdvance, onReplace, onTimer, onNewPlan, onLeave }: {
+  state: PlayState; skewMs: number; busy: string | null; favs: ReturnType<typeof useFavourites>;
+  onAdvance: (r: "done" | "skipped") => void; onReplace: (itemId: string) => void;
+  onTimer: (a: "start" | "pause" | "reset", d?: number) => void; onNewPlan: (m: number) => void; onLeave: () => void;
+}) {
+  const plan = state.plan ?? [];
+  const current = state.current;
+  const stepNo = plan.findIndex((s) => s.is_current) + 1;
+  const left = plan.filter((s) => s.status === "planned" || s.status === "shown").reduce((n, s) => n + s.planned_minutes, 0);
+  const done = plan.filter((s) => s.status === "done").length;
+  const skipped = plan.filter((s) => s.status === "skipped").length;
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+        <span className="inline-flex items-center gap-1.5 text-tomato-deep"><Radio size={14} className="animate-pulse" aria-hidden="true" />Live call plan</span>
+        <span>{state.planned_minutes}-min plan · {left} min left</span>
+      </div>
+
+      <PlanTimeline plan={plan} busy={busy} onReplace={onReplace} />
+
+      {current ? (
+        <>
+          <p className="font-hand text-xl text-raspberry-deep">step {stepNo} of {plan.length} · {current.slot ? SLOT_LABEL[current.slot].toLowerCase() : ""}</p>
+          <ActivityCard activity={current.activity} />
+          <SharedTimer state={state} skewMs={skewMs} busy={busy} onAction={(a, d) => onTimer(a, d ?? (current.planned_minutes ? current.planned_minutes * 60 : undefined))} />
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={() => onAdvance("done")} busy={busy === "done"}><CircleCheck size={16} aria-hidden="true" /> Done · next</Button>
+            <Button variant="outline" onClick={() => onAdvance("skipped")} busy={busy === "skipped"}><SkipForward size={16} aria-hidden="true" /> Skip</Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="ghost" onClick={() => onReplace(current.item_id)} busy={busy === "replace-" + current.item_id}><RefreshCw size={15} aria-hidden="true" /> Replace this one</Button>
+            <FavButton label="Save for me" active={favs.mine.has(current.activity.id)} icon="heart" onClick={() => favs.toggle(current.activity.id, "mine")} />
+            <FavButton label="Our Favourite Things" active={favs.ours.has(current.activity.id)} icon="bookmark" onClick={() => favs.toggle(current.activity.id, "ours")} />
+          </div>
+          <button type="button" onClick={onLeave} className="text-sm font-semibold text-muted underline-offset-4 hover:text-leaf hover:underline">
+            Leave the plan and play freely
+          </button>
+        </>
+      ) : (
+        <Card className="space-y-3 text-center">
+          <p className="font-hand text-2xl text-raspberry-deep">that's a wrap ✦</p>
+          <h2 className="text-2xl">You finished your call plan</h2>
+          <p className="text-sm text-muted">{done} done{skipped ? ` · ${skipped} skipped` : ""}. Save it to your history, or keep the fun going.</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <Button onClick={() => onNewPlan(state.planned_minutes ?? 45)} busy={busy === "plan"}><CalendarClock size={16} aria-hidden="true" /> Another plan</Button>
+            <Button variant="outline" onClick={onLeave} busy={busy === "draw"}><Dices size={16} aria-hidden="true" /> Keep playing</Button>
+          </div>
+        </Card>
       )}
     </div>
+  );
+}
+
+function PlanTimeline({ plan, busy, onReplace }: { plan: PlanStep[]; busy: string | null; onReplace: (itemId: string) => void }) {
+  return (
+    <ol className="rounded-[20px] bg-paper p-2 shadow-card" aria-label="Your call plan">
+      {plan.map((s, i) => {
+        const Icon = s.status === "done" ? CircleCheck : s.status === "skipped" ? Redo2 : s.is_current ? CircleDot : Circle;
+        return (
+          <li key={s.item_id} className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 ${s.is_current ? "bg-mustard-soft" : ""}`}>
+            <Icon size={18} className={s.status === "done" ? "text-leaf" : s.status === "skipped" ? "text-faint" : s.is_current ? "text-mustard-deep" : "text-faint"} aria-hidden="true" />
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{i + 1}. {SLOT_LABEL[s.slot]} · {s.planned_minutes} min</p>
+              <p className={`truncate font-display text-base font-semibold ${s.status === "skipped" ? "text-faint line-through" : ""}`}>{s.activity.title}</p>
+            </div>
+            <span className="sr-only">{s.status === "shown" ? "now" : s.status}</span>
+            {s.status === "planned" && (
+              <button type="button" onClick={() => onReplace(s.item_id)} disabled={busy === "replace-" + s.item_id}
+                aria-label={`Replace ${s.activity.title}`} className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-muted hover:bg-leaf-soft">
+                <RefreshCw size={15} className={busy === "replace-" + s.item_id ? "animate-spin" : ""} />
+              </button>
+            )}
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 
@@ -372,10 +498,11 @@ function HistoryTab() {
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-tomato-deep">
               {new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" }).format(new Date(s.started_at))}
             </p>
-            <p className="mt-1 text-sm text-muted">{done.length} done · {items.filter((i) => i.status === "skipped").length} skipped · {items.length} drawn</p>
+            {s.mode === "planned" && s.planned_minutes && <Ticket tone="mustard" className="mt-2">{s.planned_minutes}-min call plan</Ticket>}
+            <p className="mt-1 text-sm text-muted">{done.length} done · {items.filter((i) => i.status === "skipped").length} skipped · {items.filter((i) => i.status !== "planned").length} played</p>
             {done.length > 0 && (
               <ul className="mt-2 flex flex-wrap gap-1.5">
-                {done.map((i, k) => i.activity && <li key={k} className="rounded-full bg-leaf-soft px-3 py-1 text-xs font-semibold text-leaf">{i.activity.title}</li>)}
+                {done.map((i, k) => i.activity && <li key={k} className="rounded-full bg-leaf-soft px-3 py-1 text-xs font-semibold text-leaf">{i.slot ? `${SLOT_LABEL[i.slot]}: ` : ""}{i.activity.title}</li>)}
               </ul>
             )}
           </li>

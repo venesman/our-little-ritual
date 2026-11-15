@@ -68,6 +68,7 @@ select set_config('request.jwt.claim.sub', :'A', false);
 set role authenticated;
 select public.end_play_session(:'sid');
 select public.start_play_session() as sid2 \gset
+reset role;   -- the drain loop uses an internal helper; auth.uid() still comes from the claim
 do $$
 declare s uuid := (select id from public.play_sessions where ended_at is null limit 1);
         n int := (select count(*) from public.play_activities a where public.play_matches(a, '{"minutes":5,"energy":"high","type":"talking"}'));
@@ -81,6 +82,7 @@ begin
   if not (r ->> 'reshuffled')::boolean then raise exception 'FAIL: expected a reshuffle after % draws', n; end if;
   if (r ->> 'round')::int <> 2 then raise exception 'FAIL: expected round 2'; end if;
 end $$;
+set role authenticated;
 select tests.expect((select count(distinct activity_id) = count(*) from public.play_session_items where session_id = :'sid2' and round = 1),
                     'no repeats within a round');
 select tests.expect((select count(*) from public.play_session_items where session_id = :'sid2' and round = 1) = :pool, 'round 1 played the whole matching pool');

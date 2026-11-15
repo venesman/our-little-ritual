@@ -5,7 +5,7 @@
 A private, invite-only app for two people in a long-distance relationship.
 React + TypeScript + Tailwind, Supabase (Auth, Postgres, Storage), deployed on Vercel.
 
-**Status: Phase 5 — Play With Me** (live activities for video calls) on top of **Phase 4 — quick wins** (installable app, visit countdown, "thinking of you", best time to call) on top of
+**Status: Phase 6 — Call Session Mode** (planned call sequences) and **Phase 5 — Play With Me** (live activities for video calls) on top of **Phase 4 — quick wins** (installable app, visit countdown, "thinking of you", best time to call) on top of
 **the first complete version (Phase 3).** Accounts and pairing (1), one shared ritual every Monday at 12:00 UTC (2),
 and answering it with words, photos, drawings or quick picks, sealed until you've both shared, then revealed together (3).
 
@@ -48,6 +48,9 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **Phase 5 — `0005_play_with_me.sql` then `0006_play_with_me_activities.sql`** (run both, in that order): the Play With Me
   tables, rules and the 90 activities. The first file also turns on Supabase **Realtime** for `play_sessions`, so a tap on one
   phone shows on the other within a second. If Realtime is off for your project the app still syncs every 3 seconds.
+
+- **Phase 6 — `0007_call_session_mode.sql`**: Call Session Mode (planned sequences). Also tightens access so the app can only
+  call the documented functions, not internal helpers. Nothing to change in Vercel.
 
 ## 2. Deploy on Vercel
 
@@ -118,10 +121,12 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 206 checks. Phase 5: 90 activities (15 per
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 246 checks. Phase 5: 90 activities (15 per
 category, every mood/energy/type covered), one shared session for both partners, every filter respected, no repeats then a
 reshuffle, "nothing matches" message, timer start/pause/reset maths, playing a chosen favourite, private vs shared favourites,
-outsiders blocked, and both phones opening Play / tapping "another one" at the same instant. Earlier phases: 156 checks. Phase 4: visits shared between the
+outsiders blocked, and both phones opening Play / tapping "another one" at the same instant. Phase 6: every plan length
+adds up, every step fits its theme and minutes, no duplicates, partner sees and drives the same plan, done/skip/replace,
+finishing, re-planning, leaving the plan, outsiders blocked, internal helpers not callable from the app. 246 checks in total. Phase 4: visits shared between the
 two of you and invisible to others, date validation, nudge rate limits (per minute and per day), no nudges before your
 partner joins, free hours editable only by their owner. Unit tests cover the call-overlap maths for Kuching ↔ Santiago in
 both Chile summer and winter time, windows past midnight, and "happening now". Earlier phases: Phase 3: a partner can't see a
@@ -166,6 +171,14 @@ redeeming the same link at the same instant → exactly one gets in**.
   you can start, pause, reset or pick 1/2/5/10 minutes.
 - Updates arrive by Supabase Realtime, with a 3-second check as a fallback.
 
+## Call Session Mode
+
+- **Plan our call** → pick 15 / 30 / 45 / 60 / 90 minutes. Example, 45 min: warm-up 5 · guessing game 10 · get creative 15 ·
+  heart to heart 10 · sweet closing 5. (60 adds a 15-min date; 90 adds a 30-min date and 15 min dreaming ahead.)
+- Each step gets an activity that suits its theme and fits its length, with no duplicates in the plan.
+- **Done · next** / **Skip** move both phones to the next step and set the shared timer to it; **Replace** swaps any upcoming or
+  current step. "Leave the plan" or "Surprise us" switches back to free play. Ending the session saves it to History.
+
 ## How the sealed reveal works
 
 - **Drafts** save to the server as you type and are visible only to you — never to your partner, even after the reveal.
@@ -195,4 +208,4 @@ Migrations live in `supabase/migrations/` and are applied in order. History is n
 3. ✅ Submission & reveal — drafts, private-until-both-submit, enforced by RLS and storage policies
 4. ✅ Quick wins — installable app, visit countdown, "thinking of you", best time to call
 5. ✅ Play With Me — 90 call activities, filters + Surprise us, live shared screen and timer, favourites, history
-6. Call Session Mode · 7. The Curious Club · 8. Weekly check-in · 9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline
+6. ✅ Call Session Mode — planned sequences for 15–90 minute calls, done / skip / replace, saved to history · 7. The Curious Club · 8. Weekly check-in · 9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline

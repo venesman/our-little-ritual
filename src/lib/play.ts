@@ -23,14 +23,28 @@ export interface PlayActivity {
 
 export interface PlayFilters { minutes?: number; moods?: Mood[]; energy?: Energy; type?: PlayType }
 
+export type PlanSlot = "warm_up" | "guessing" | "creative" | "date" | "heart" | "future" | "closing";
+export const PLAN_LENGTHS = [15, 30, 45, 60, 90] as const;
+export const SLOT_LABEL: Record<PlanSlot, string> = {
+  warm_up: "Warm-up", guessing: "Guessing game", creative: "Get creative", date: "Date time",
+  heart: "Heart to heart", future: "Dream ahead", closing: "Sweet closing",
+};
+export interface PlanStep {
+  item_id: string; slot: PlanSlot; planned_minutes: number; status: "planned" | "shown" | "done" | "skipped"; is_current: boolean;
+  activity: { id: string; title: string; category: PlayCategory; minutes: number };
+}
+
 export interface PlayState {
   session_id: string;
+  mode: "single" | "planned";
+  planned_minutes: number | null;
+  plan: PlanStep[] | null;
   started_by: string | null;
   started_at: string;
   ended_at: string | null;
   round: number;
   filters: PlayFilters;
-  current: null | { item_id: string; status: "shown" | "done" | "skipped"; position: number; round: number; activity: PlayActivity };
+  current: null | { item_id: string; status: "shown" | "done" | "skipped" | "planned"; position: number; round: number; slot?: PlanSlot | null; planned_minutes?: number | null; activity: PlayActivity };
   played_count: number;
   timer: { duration_s: number | null; ends_at: string | null; remaining_s: number | null };
   server_now: string;
@@ -80,6 +94,15 @@ export async function setPlayItemStatus(itemId: string, status: "done" | "skippe
 export async function playTimer(sessionId: string, action: "start" | "pause" | "reset", durationS?: number): Promise<PlayState> {
   return check(await supabase.rpc("play_timer", { p_session: sessionId, p_action: action, p_duration_s: durationS ?? null })) as PlayState;
 }
+export async function generateCallPlan(minutes: number): Promise<PlayState> {
+  return check(await supabase.rpc("generate_call_plan", { p_total: minutes })) as PlayState;
+}
+export async function advanceCallPlan(sessionId: string, result: "done" | "skipped"): Promise<PlayState> {
+  return check(await supabase.rpc("advance_call_plan", { p_session: sessionId, p_result: result })) as PlayState;
+}
+export async function replaceCallPlanItem(itemId: string): Promise<PlayState> {
+  return check(await supabase.rpc("replace_call_plan_item", { p_item: itemId })) as PlayState;
+}
 export async function endPlaySession(sessionId: string): Promise<void> {
   check(await supabase.rpc("end_play_session", { p_session: sessionId }));
 }
@@ -95,12 +118,12 @@ export async function listFavourites(): Promise<Favourite[]> {
 }
 
 export interface PastSession {
-  id: string; started_at: string; ended_at: string | null;
-  items: { status: "shown" | "done" | "skipped"; position: number; activity: { title: string; category: PlayCategory } | null }[];
+  id: string; started_at: string; ended_at: string | null; mode: "single" | "planned"; planned_minutes: number | null;
+  items: { status: "planned" | "shown" | "done" | "skipped"; position: number; slot: PlanSlot | null; activity: { title: string; category: PlayCategory } | null }[];
 }
 export async function listPastSessions(): Promise<PastSession[]> {
   return check(await supabase.from("play_sessions")
-    .select("id, started_at, ended_at, items:play_session_items(status, position, activity:play_activities(title, category))")
+    .select("id, started_at, ended_at, mode, planned_minutes, items:play_session_items(status, position, slot, activity:play_activities(title, category))")
     .not("ended_at", "is", null)
     .order("started_at", { ascending: false })
     .limit(30)) as unknown as PastSession[];
