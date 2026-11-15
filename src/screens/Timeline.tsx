@@ -4,11 +4,16 @@ import { CalendarHeart, Flag, Heart, MapPin, Plane, Sparkles, Star } from "lucid
 import { supabase } from "../lib/supabase";
 import { activitySummary, signedUrl, type MonthSummary } from "../lib/scrapbook";
 import { Spinner } from "../components/ui";
+import { TAG_LABEL, type DatePrecision, type MilestoneTag } from "../lib/story";
+import { STAY_LABEL, type StayType } from "../lib/visits";
+import { fmtPrecise, listDocuments, togetherDays } from "../lib/record";
 
 interface TimelineEvent {
   kind: "began" | "milestone" | "important_date" | "memory" | "moment" | "visit" | "first";
   on: string; until?: string | null; title: string; subtitle?: string | null; ref_id?: string; photo?: string | null; upcoming?: boolean;
+  tag?: MilestoneTag | null; precision?: DatePrecision; stay_type?: StayType; with_family?: boolean;
 }
+const SUGGEST: MilestoneTag[] = ["first_met", "relationship_start", "first_visit", "met_family", "anniversary", "engagement", "marriage", "moving"];
 type Filter = "all" | "milestones" | "together" | "firsts";
 const FILTERS: [Filter, string][] = [["all", "All"], ["milestones", "Milestones"], ["together", "Trips & visits"], ["firsts", "Firsts"]];
 const matches = (e: TimelineEvent, f: Filter) =>
@@ -26,8 +31,8 @@ const STYLE: Record<TimelineEvent["kind"], { icon: typeof Star; dot: string; lab
 };
 
 const fmt = (d: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${d}T00:00:00Z`));
-const range = (e: TimelineEvent) => (e.until && e.until !== e.on ? `${fmt(e.on)} – ${fmt(e.until)}` : fmt(e.on));
-const daysBetween = (a: string, b: string) => Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86400000);
+const range = (e: TimelineEvent) => (e.until && e.until !== e.on ? `${fmt(e.on)} – ${fmt(e.until)}` : e.precision && e.precision !== "day" ? fmtPrecise(e.on, e.precision) : fmt(e.on));
+const labelOf = (e: TimelineEvent) => (e.tag ? TAG_LABEL[e.tag] : e.kind === "visit" && e.stay_type ? STAY_LABEL[e.stay_type] + (e.with_family ? " · with family" : "") : STYLE[e.kind].label);
 
 function Thumb({ path }: { path: string }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -64,7 +69,11 @@ export function Timeline() {
   const began = (events ?? []).find((e) => e.kind === "began");
   const earliest = (events ?? []).filter((e) => e.kind !== "first").map((e) => e.on).sort()[0];
   const trips = (events ?? []).filter((e) => e.kind === "moment" || (e.kind === "visit" && !e.upcoming));
-  const daysTogether = trips.reduce((n, e) => n + (e.until ? daysBetween(e.on, e.until) + 1 : 1), 0);
+  const daysTogether = togetherDays(trips.map((e) => ({ from: e.on, until: e.until }))).size;
+  const [canTag, setCanTag] = useState(false);
+  useEffect(() => { void listDocuments().then((d) => setCanTag(d !== null)); }, []);
+  const haveTags = new Set((events ?? []).map((e) => e.tag).filter(Boolean));
+  const suggestions = canTag ? SUGGEST.filter((t) => !haveTags.has(t)).slice(0, 4) : [];
 
   if (events === null) return <Spinner label="Unrolling the timeline" />;
 
@@ -118,6 +127,18 @@ export function Timeline() {
           {began && filter === "all" && <p className="-ml-8 text-center font-hand text-lg text-muted">— the very beginning —</p>}
         </div>
       )}
+      {suggestions.length > 0 && (
+        <div className="rounded-[20px] bg-paper p-4 shadow-card">
+          <p className="font-hand text-xl text-raspberry-deep">add to your story</p>
+          <p className="mb-2 text-xs text-muted">Things that happened before you used the app count too. If you only know the month or year, that's fine.</p>
+          <div className="flex flex-wrap gap-1.5">
+            {suggestions.map((t) => (
+              <Link key={t} to={`/us?tab=story&add=${t}`} className="rounded-full border-2 border-leaf/20 px-3 py-1 text-xs font-semibold text-leaf hover:border-leaf">+ {TAG_LABEL[t]}</Link>
+            ))}
+            <Link to="/visits" className="rounded-full border-2 border-leaf/20 px-3 py-1 text-xs font-semibold text-leaf hover:border-leaf">+ A past visit</Link>
+          </div>
+        </div>
+      )}
       <p className="text-xs text-muted">Built from what's already in your app. Add or edit milestones in <Link to="/us?tab=story" className="underline">Our Story</Link>, trips in the <Link to="/us" className="underline">Scrapbook</Link>, visits on <Link to="/visits" className="underline">Visits</Link>.</p>
     </div>
   );
@@ -130,7 +151,7 @@ function Item({ e }: { e: TimelineEvent }) {
   const body = (
     <div className={`flex items-center gap-3 rounded-2xl bg-paper p-3 shadow-card ${e.upcoming ? "border-2 border-dashed border-leaf/30" : ""}`}>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold text-muted">{range(e)} · {st.label}</p>
+        <p className="text-[11px] font-semibold text-muted">{range(e)} · {labelOf(e)}{e.upcoming && e.kind !== "visit" ? " · planned" : ""}</p>
         <p className="font-display text-lg font-semibold leading-tight">{e.title}</p>
         {e.subtitle && <p className="line-clamp-2 text-sm text-muted">{e.subtitle}</p>}
       </div>

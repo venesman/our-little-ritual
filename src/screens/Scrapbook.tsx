@@ -13,6 +13,7 @@ import {
 import { CATEGORY, type Category } from "../lib/rituals";
 import { KIND as LETTER_KIND, type LetterKind } from "../lib/mailbox";
 import { friendlyError } from "../lib/errors";
+import { photoSources, setPhotoDate, type PhotoSource } from "../lib/record";
 import { Button, Card, ErrorNote, Field, Spinner, Ticket, inputCls } from "../components/ui";
 import { VoicePlayer } from "../components/Voice";
 
@@ -306,6 +307,8 @@ export function MomentEditor() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(!!id);
   const input = useRef<HTMLInputElement>(null);
+  const [sources, setSources] = useState<Record<string, PhotoSource> | null>(null);
+  useEffect(() => { if (id) void photoSources().then(setSources); }, [id]);
 
   const loadMoment = useCallback(async () => {
     if (!id) return;
@@ -358,10 +361,18 @@ export function MomentEditor() {
 
       <Card className="space-y-3">
         <h2 className="text-xl">Photos <span className="text-sm font-normal text-muted">({photos.length + pending.length}/12)</span></h2>
-        <p className="text-xs text-muted">The date each photo was taken is kept when your phone saved it in the file.</p>
+        <p className="text-xs text-muted">The date each photo was taken is read from the camera's own data in the photo (not the file's date). Tap a date to correct it.</p>
         {photos.length > 0 && (
           <ul className="grid grid-cols-3 gap-2">
-            {photos.map((p) => <li key={p.id}><StoredThumb p={p} busy={busy === p.id} onRemove={async () => {
+            {photos.map((p) => <li key={p.id}><StoredThumb p={p} source={sources?.[p.id]} canFix={sources !== null}
+              onDate={async (on) => {
+                try {
+                  await setPhotoDate(p.id, on);
+                  setPhotos(photos.map((x) => (x.id === p.id ? { ...x, taken_at: on ? `${on}T12:00:00Z` : null } : x)));
+                  setSources({ ...(sources ?? {}), [p.id]: "manual" });
+                } catch (e) { setError(friendlyError(e)); }
+              }}
+              busy={busy === p.id} onRemove={async () => {
               setBusy(p.id); try { await removeMomentPhoto(p.id); setPhotos(photos.filter((x) => x.id !== p.id)); } catch (e) { setError(friendlyError(e)); } finally { setBusy(null); }
             }} /></li>)}
           </ul>
@@ -393,13 +404,26 @@ export function MomentEditor() {
   );
 }
 
-function StoredThumb({ p, busy, onRemove }: { p: { path: string; taken_at: string | null }; busy: boolean; onRemove: () => void }) {
+function StoredThumb({ p, busy, onRemove, source, canFix, onDate }: {
+  p: { path: string; taken_at: string | null }; busy: boolean; onRemove: () => void;
+  source?: PhotoSource; canFix?: boolean; onDate?: (on: string | null) => void;
+}) {
   const url = useSigned(BUCKET.moment, p.path);
+  const [editing, setEditing] = useState(false);
   return (
     <div className="relative">
       {url ? <img src={url} alt="" className="aspect-square w-full rounded-lg object-cover" /> : <div className="aspect-square animate-pulse rounded-lg bg-leaf-soft" />}
       <button type="button" aria-label="Remove photo" disabled={busy} onClick={onRemove} className="absolute right-1 top-1 grid h-7 w-7 place-items-center rounded-full bg-paper shadow-card"><X size={13} /></button>
-      {p.taken_at && <p className="mt-0.5 truncate text-[10px] text-muted">{fmtDay(p.taken_at)}</p>}
+      {editing ? (
+        <input type="date" autoFocus aria-label="Date this photo was taken" max={new Date().toISOString().slice(0, 10)} defaultValue={p.taken_at?.slice(0, 10) ?? ""}
+          className="mt-0.5 w-full rounded border border-leaf/30 px-1 text-[11px]"
+          onBlur={() => setEditing(false)}
+          onChange={(e) => { if (e.target.value) { onDate?.(e.target.value); setEditing(false); } }} />
+      ) : canFix ? (
+        <button type="button" onClick={() => setEditing(true)} className="mt-0.5 block w-full truncate text-left text-[10px] text-muted underline decoration-dotted underline-offset-2">
+          {p.taken_at ? fmtDay(p.taken_at) : "Add date"}{p.taken_at && source ? (source === "manual" ? " · set by hand" : " · from photo") : ""}
+        </button>
+      ) : p.taken_at && <p className="mt-0.5 truncate text-[10px] text-muted">{fmtDay(p.taken_at)}</p>}
     </div>
   );
 }

@@ -1,11 +1,14 @@
 import { OurSoundtrack } from "../components/Soundtrack";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarHeart, Heart, MapPin, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { CalendarHeart, Heart, MapPin, Paperclip, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Documents } from "../components/Documents";
+import { fmtPrecise, listDocuments, removeDocumentsOf, type SupportingDoc } from "../lib/record";
 import { useSpace } from "../hooks/useSpace";
 import { usePeople } from "../hooks/usePeople";
 import { updateMemberProfile, type Profile, type ProfilePatch } from "../lib/api";
 import {
-  addLifeUpdate, deleteLifeUpdate, deleteMilestone, getSharedProfile, listLifeUpdates, listMilestones, MILESTONE_LABEL,
+  addLifeUpdate, deleteLifeUpdate, deleteMilestone, getSharedProfile, listLifeUpdates, listMilestones, MILESTONE_LABEL, TAG_LABEL, PRECISION_LABEL, type MilestoneTag, type DatePrecision,
   saveMilestone, saveSharedProfile, type LifeUpdate, type Milestone, type MilestoneKind, type SharedProfile,
 } from "../lib/story";
 import { detectTimezone, isValidTimezone, listTimezones, suggestZones } from "../lib/time";
@@ -313,9 +316,32 @@ function SharedSection({ onError }: { onError: (e: string | null) => void }) {
   );
 }
 
+type MsForm = { id?: string; kind: MilestoneKind; title: string; happened_on: string; note: string; tag: MilestoneTag | ""; date_precision: DatePrecision };
+const EMPTY_MS: MsForm = { kind: "milestone", title: "", happened_on: "", note: "", tag: "", date_precision: "day" };
+const todayIso = () => new Date().toISOString().slice(0, 10);
+const SUGGESTED_TITLE: Partial<Record<MilestoneTag, string>> = {
+  first_met: "We first met", relationship_start: "Our relationship began", first_visit: "First visit to ", met_family: "Meeting the family",
+  engagement: "We got engaged", marriage: "Our wedding", moving: "Moving to be together",
+};
+
 function MilestonesSection({ onError }: { onError: (e: string | null) => void }) {
   const [items, setItems] = useState<Milestone[] | null>(null);
-  const [form, setForm] = useState<null | { id?: string; kind: MilestoneKind; title: string; happened_on: string; note: string }>(null);
+  const [form, setForm] = useState<null | MsForm>(null);
+  const [docs, setDocs] = useState<SupportingDoc[] | null>(null);
+  const [openDocs, setOpenDocs] = useState<string | null>(null);
+  const loadDocs = useCallback(() => listDocuments().then(setDocs), []);
+  useEffect(() => { void loadDocs(); }, [loadDocs]);
+  const typed = (items ?? []).some((m) => m.date_precision !== undefined) || docs !== null;
+  // Opened from the Timeline's "suggested milestones": /us?tab=story&add=first_met
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    const tag = params.get("add") as MilestoneTag | null;
+    if (tag && TAG_LABEL[tag]) {
+      setForm({ ...EMPTY_MS, tag, title: SUGGESTED_TITLE[tag] ?? "" });
+      setTimeout(() => document.getElementById("ms-form")?.scrollIntoView({ behavior: "smooth", block: "center" }), 150);
+      params.delete("add"); setParams(params, { replace: true });
+    }
+  }, [params, setParams]);
   const [busy, setBusy] = useState(false);
   const load = useCallback(() => listMilestones().then(setItems).catch(() => setItems([])), []);
   useEffect(() => { void load(); }, [load]);
@@ -324,24 +350,41 @@ function MilestonesSection({ onError }: { onError: (e: string | null) => void })
     <Card className="space-y-3">
       <div className="flex items-start justify-between gap-3">
         <h3 className="inline-flex items-center gap-2 text-xl"><CalendarHeart size={18} className="text-tomato" aria-hidden="true" />Milestones & memories</h3>
-        {!form && <Button variant="outline" className="!min-h-[36px] !px-3 text-xs" onClick={() => setForm({ kind: "milestone", title: "", happened_on: "", note: "" })}><Plus size={14} aria-hidden="true" /> Add</Button>}
+        {!form && <Button variant="outline" className="!min-h-[36px] !px-3 text-xs" onClick={() => setForm(EMPTY_MS)}><Plus size={14} aria-hidden="true" /> Add</Button>}
       </div>
 
       {form && (
-        <div className="space-y-3 rounded-2xl bg-cream p-4">
+        <div id="ms-form" className="space-y-3 rounded-2xl bg-cream p-4">
           <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="Kind">
             {(Object.keys(MILESTONE_LABEL) as MilestoneKind[]).map((k) => (
               <button key={k} type="button" role="radio" aria-checked={form.kind === k} onClick={() => setForm({ ...form, kind: k })}
                 className={`rounded-full border-2 px-3 py-1 text-xs font-semibold ${form.kind === k ? "border-leaf bg-mustard text-leaf" : "border-leaf/15 text-muted"}`}>{MILESTONE_LABEL[k]}</button>
             ))}
           </div>
+          {typed && (
+            <Field label="Type (optional)" htmlFor="ms-tag">
+              <select id="ms-tag" className={inputCls} value={form.tag} onChange={(e) => setForm({ ...form, tag: e.target.value as MilestoneTag | "" })}>
+                <option value="">No particular type</option>
+                {(Object.keys(TAG_LABEL) as MilestoneTag[]).map((k) => <option key={k} value={k}>{TAG_LABEL[k]}</option>)}
+              </select>
+            </Field>
+          )}
           <Field label="Title" htmlFor="ms-title"><input id="ms-title" className={inputCls} maxLength={80} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Our first video call" /></Field>
           <Field label="Date (optional)" htmlFor="ms-date"><input id="ms-date" type="date" className={inputCls} value={form.happened_on} onChange={(e) => setForm({ ...form, happened_on: e.target.value })} /></Field>
+          {typed && form.happened_on && (
+            <div className="flex flex-wrap gap-1.5" role="radiogroup" aria-label="How exact is the date">
+              {(Object.keys(PRECISION_LABEL) as DatePrecision[]).map((k) => (
+                <button key={k} type="button" role="radio" aria-checked={form.date_precision === k} onClick={() => setForm({ ...form, date_precision: k })}
+                  className={`rounded-full border-2 px-3 py-1 text-xs font-semibold ${form.date_precision === k ? "border-leaf bg-mustard text-leaf" : "border-leaf/15 text-muted"}`}>{PRECISION_LABEL[k]}</button>
+              ))}
+            </div>
+          )}
+          {typed && form.happened_on > todayIso() && <p className="text-xs text-muted">A future date shows as a plan on your Timeline.</p>}
           <Field label="Note (optional)" htmlFor="ms-note"><textarea id="ms-note" rows={2} maxLength={500} className={inputCls} value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} /></Field>
           <div className="flex gap-2">
             <Button busy={busy} onClick={async () => {
               setBusy(true); onError(null);
-              try { await saveMilestone(form); setForm(null); await load(); } catch (e) { onError(friendlyError(e)); } finally { setBusy(false); }
+              try { await saveMilestone({ ...form, tag: form.tag || null }); setForm(null); await load(); } catch (e) { onError(friendlyError(e)); } finally { setBusy(false); }
             }}>Save</Button>
             <Button variant="ghost" onClick={() => setForm(null)}><X size={14} aria-hidden="true" /> Cancel</Button>
           </div>
@@ -355,14 +398,19 @@ function MilestonesSection({ onError }: { onError: (e: string | null) => void })
               <Sparkles size={16} className="mt-1 shrink-0 text-mustard-deep" aria-hidden="true" />
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">
-                  {MILESTONE_LABEL[m.kind]}{m.happened_on ? ` · ${new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(m.happened_on + "T12:00:00"))}` : ""}
+                  {m.tag ? TAG_LABEL[m.tag] : MILESTONE_LABEL[m.kind]}{m.happened_on ? ` · ${fmtPrecise(m.happened_on, m.date_precision)}` : ""}{m.happened_on && m.happened_on > todayIso() ? " · planned" : ""}
                 </p>
                 <p className="font-display text-lg font-semibold">{m.title}</p>
                 {m.note && <p className="text-sm text-muted">{m.note}</p>}
+                {docs !== null && (() => { const n = docs.filter((d) => d.attached_kind === "milestone" && d.ref_id === m.id).length; return (
+                  <button type="button" onClick={() => setOpenDocs(openDocs === m.id ? null : m.id)} className="mt-1 flex items-center gap-1 text-xs font-semibold text-leaf">
+                    <Paperclip size={12} aria-hidden="true" /> {n ? `Documents (${n})` : "Attach a document"}
+                  </button>); })()}
+                {docs !== null && openDocs === m.id && <Documents kind="milestone" refId={m.id} docs={docs} onChange={() => void loadDocs()} />}
               </div>
-              <button type="button" aria-label={`Edit ${m.title}`} onClick={() => setForm({ id: m.id, kind: m.kind, title: m.title, happened_on: m.happened_on ?? "", note: m.note })}
+              <button type="button" aria-label={`Edit ${m.title}`} onClick={() => setForm({ id: m.id, kind: m.kind, title: m.title, happened_on: m.happened_on ?? "", note: m.note, tag: m.tag ?? "", date_precision: m.date_precision ?? "day" })}
                 className="grid h-8 w-8 place-items-center rounded-full text-muted hover:bg-leaf-soft"><Pencil size={14} /></button>
-              <button type="button" aria-label={`Remove ${m.title}`} onClick={async () => { try { await deleteMilestone(m.id); await load(); } catch (e) { onError(friendlyError(e)); } }}
+              <button type="button" aria-label={`Remove ${m.title}`} onClick={async () => { try { await removeDocumentsOf(docs, "milestone", m.id); await deleteMilestone(m.id); await load(); void loadDocs(); } catch (e) { onError(friendlyError(e)); } }}
                 className="grid h-8 w-8 place-items-center rounded-full text-muted hover:bg-tomato-soft"><Trash2 size={14} /></button>
             </li>
           ))}
