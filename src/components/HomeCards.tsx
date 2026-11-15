@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { CalendarHeart, CalendarPlus, ChevronDown, Heart, Phone, Plane } from "lucide-react";
 import { downloadIcs, googleCalendarUrl } from "../lib/calendar";
 import { dayLabel, formatRange, nextSharedWindow, nextWindowFor, prettyTime, sharedWindowsAhead, type Interval } from "../lib/callWindow";
-import { placeFromZone } from "../lib/time";
+import { zoneLabel } from "../lib/time";
 import { ago, recentNudges, sendNudge, summarise, type Nudge } from "../lib/nudges";
 import { formatDay, listVisits, visitState, type Visit } from "../lib/visits";
 import { friendlyError } from "../lib/errors";
@@ -32,8 +32,8 @@ export function CallWindowCard({ now, me, partner, partnerName }: {
         <h2 className="text-lg">Best time to call</h2>
         <p className="text-sm text-muted">Your usual free hours don't overlap right now.</p>
         <dl className="mt-2 grid grid-cols-[auto,1fr] gap-x-3 gap-y-0.5 text-sm text-muted">
-          <dt>You</dt><dd className="text-leaf">{prettyTime(me.from)} – {prettyTime(me.to!)} <span className="text-muted">({placeFromZone(me.timeZone)})</span></dd>
-          <dt>{partnerName}</dt><dd className="text-leaf">{prettyTime(partner.from)} – {prettyTime(partner.to!)} <span className="text-muted">({placeFromZone(partner.timeZone)})</span></dd>
+          <dt>You</dt><dd className="text-leaf">{prettyTime(me.from)} – {prettyTime(me.to!)} <span className="text-muted">({zoneLabel(me.timeZone, now)})</span></dd>
+          <dt>{partnerName}</dt><dd className="text-leaf">{prettyTime(partner.from)} – {prettyTime(partner.to!)} <span className="text-muted">({zoneLabel(partner.timeZone, now)})</span></dd>
           {theirs && <><dt>In your time</dt><dd className="text-leaf">{formatRange(theirs, me.timeZone)}</dd></>}
         </dl>
         <p className="mt-2 text-xs text-muted">If a place looks wrong, fix the time zone in Settings.</p>
@@ -44,8 +44,10 @@ export function CallWindowCard({ now, me, partner, partnerName }: {
       <>
         <h2 className="text-lg">{w.isNow ? "You're both free now ✦" : `Best time to call ${dayLabel(w.start, now, me.timeZone)}`}</h2>
         <dl className="mt-1 grid grid-cols-[auto,1fr] gap-x-3 gap-y-0.5 text-sm text-muted">
-          <dt>You</dt><dd className="font-medium text-leaf">{formatRange(w, me.timeZone)}</dd>
-          <dt>{partnerName}</dt><dd className="font-medium text-leaf">{formatRange(w, partner.timeZone)} <span className="text-muted">({dayLabel(w.start, now, partner.timeZone)})</span></dd>
+          <dt>You</dt>
+          <dd><span className="font-medium text-leaf">{formatRange(w, me.timeZone)}</span><span className="block text-xs">{zoneLabel(me.timeZone, now)}</span></dd>
+          <dt>{partnerName}</dt>
+          <dd><span className="font-medium text-leaf">{formatRange(w, partner.timeZone)}</span> <span className="text-muted">({dayLabel(w.start, now, partner.timeZone)})</span><span className="block text-xs">{zoneLabel(partner.timeZone, now)}</span></dd>
         </dl>
         <button
           type="button" onClick={() => setPlanning((p) => !p)} aria-expanded={planning}
@@ -80,8 +82,8 @@ function CallDatePlanner({ now, me, partner, partnerName }: {
     end: win.end,
     description:
       `Your shared free time, from Our Little Ritual.\n` +
-      `You: ${day(win.start, me.timeZone)}, ${formatRange(win, me.timeZone)} (${placeFromZone(me.timeZone)})\n` +
-      `${partnerName}: ${day(win.start, partner.timeZone)}, ${formatRange(win, partner.timeZone)} (${placeFromZone(partner.timeZone)})\n` +
+      `You: ${day(win.start, me.timeZone)}, ${formatRange(win, me.timeZone)} (${zoneLabel(me.timeZone, new Date(win.start))})\n` +
+      `${partnerName}: ${day(win.start, partner.timeZone)}, ${formatRange(win, partner.timeZone)} (${zoneLabel(partner.timeZone, new Date(win.start))})\n` +
       `Shorten it in your calendar if you only need part of it.`,
   });
   return (
@@ -90,8 +92,8 @@ function CallDatePlanner({ now, me, partner, partnerName }: {
       <ul className="space-y-2">
         {windows.map((win) => (
           <li key={win.start} className="rounded-xl bg-cream/70 px-3 py-2.5">
-            <p className="text-sm font-semibold text-leaf">{day(win.start, me.timeZone)} · {formatRange(win, me.timeZone)}</p>
-            <p className="text-xs text-muted">{partnerName}: {day(win.start, partner.timeZone)}, {formatRange(win, partner.timeZone)}</p>
+            <p className="text-sm font-semibold text-leaf">{day(win.start, me.timeZone)} · {formatRange(win, me.timeZone)} <span className="font-normal text-muted">({zoneLabel(me.timeZone, new Date(win.start))})</span></p>
+            <p className="text-xs text-muted">{partnerName}: {day(win.start, partner.timeZone)}, {formatRange(win, partner.timeZone)} ({zoneLabel(partner.timeZone, new Date(win.start))})</p>
             <div className="mt-2 flex flex-wrap gap-2">
               <button type="button" onClick={() => downloadIcs(event(win))}
                 className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border-2 border-leaf/30 px-3 text-xs font-semibold text-leaf hover:border-leaf">

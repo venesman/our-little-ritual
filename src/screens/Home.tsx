@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, Send } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useSpace } from "../hooks/useSpace";
-import { clockInZone, formatInZone, longDateInZone, nextRelease, placeFromZone, relativeFromNow } from "../lib/time";
+import { clockInZone, formatInZone, gmtLabel, longDateInZone, nextRelease, placeFromZone, relativeFromNow } from "../lib/time";
 import { Card, ErrorNote, Loops, Stamp, Ticket } from "../components/ui";
 import { RitualPostcard } from "../components/RitualPostcard";
 import { CallWindowCard, NudgeCard, VisitCard } from "../components/HomeCards";
@@ -92,7 +92,7 @@ export function Home() {
       <section aria-label="Where you both are" className="relative mt-8 grid grid-cols-2 gap-3">
         {places.map((p, i) => (
           <div key={p.name + i} className={`rounded-[18px] p-4 ${i === 0 ? "bg-leaf text-cream" : "bg-raspberry text-leaf"}`}>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{p.you ? "You" : "Them"} · {placeFromZone(p.tz)}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{p.you ? "You" : "Them"} · {placeFromZone(p.tz)} · {gmtLabel(p.tz, now)}</p>
             <p className="mt-2 font-display text-[1.65rem] font-semibold leading-none">{clockInZone(now, p.tz)}</p>
             <p className="mt-1 truncate text-sm">{p.name}</p>
           </div>

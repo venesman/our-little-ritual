@@ -29,3 +29,11 @@ describe("placeFromZone", () => {
   it("takes the city part", () => expect(placeFromZone("America/Santiago")).toBe("Santiago"));
   it("handles underscores", () => expect(placeFromZone("Asia/Kuala_Lumpur")).toBe("Kuala Lumpur"));
 });
+
+import { gmtLabel, zoneLabel } from "../time";
+describe("time zone labels", () => {
+  it("Kuching is GMT+8", () => expect(gmtLabel("Asia/Kuching", new Date("2026-11-15T00:00:00Z"))).toBe("GMT+8"));
+  it("Santiago is GMT-3 in November", () => expect(gmtLabel("America/Santiago", new Date("2026-11-15T00:00:00Z"))).toBe("GMT-3"));
+  it("Santiago is GMT-4 in June", () => expect(gmtLabel("America/Santiago", new Date("2026-06-15T00:00:00Z"))).toBe("GMT-4"));
+  it("combines place and offset", () => expect(zoneLabel("America/Santiago", new Date("2026-11-15T00:00:00Z"))).toBe("Santiago · GMT-3"));
+});

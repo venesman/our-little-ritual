@@ -62,6 +62,27 @@ export function longDateInZone(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("en-GB", { timeZone: tz, weekday: "long", day: "numeric", month: "long" }).format(date);
 }
 
+/** "GMT+8", "GMT-3", "GMT+5:30" for a zone at a given moment (follows daylight saving). */
+export function gmtLabel(timeZone: string, at: Date = new Date()): string {
+  const tz = isValidTimezone(timeZone) ? timeZone : "UTC";
+  try {
+    const p = new Intl.DateTimeFormat("en-US", { timeZone: tz, timeZoneName: "shortOffset" }).formatToParts(at);
+    const name = p.find((x) => x.type === "timeZoneName")?.value;
+    if (name) return name === "GMT" ? "GMT+0" : name;
+  } catch { /* older browsers: compute it */ }
+  const local = new Date(at.toLocaleString("en-US", { timeZone: tz }));
+  const utc = new Date(at.toLocaleString("en-US", { timeZone: "UTC" }));
+  const mins = Math.round((local.getTime() - utc.getTime()) / 60000);
+  const sign = mins < 0 ? "-" : "+";
+  const h = Math.floor(Math.abs(mins) / 60), m = Math.abs(mins) % 60;
+  return `GMT${sign}${h}${m ? `:${String(m).padStart(2, "0")}` : ""}`;
+}
+
+/** "Kuching · GMT+8" */
+export function zoneLabel(timeZone: string, at: Date = new Date()): string {
+  return `${placeFromZone(timeZone)} · ${gmtLabel(timeZone, at)}`;
+}
+
 /** "America/Santiago" -> "Santiago" */
 export function placeFromZone(timeZone: string): string {
   const last = timeZone.split("/").pop() ?? timeZone;
