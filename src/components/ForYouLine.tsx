@@ -1,17 +1,21 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Hourglass, Mail, MessageCircleHeart, Stamp as StampIcon, X } from "lucide-react";
+import { ArrowRight, Gift, Hourglass, Mail, MessageCircleHeart, Stamp as StampIcon, X } from "lucide-react";
+import { usePeople } from "../hooks/usePeople";
 import { getSeen, markSeen, useForYou } from "../hooks/useForYou";
 
 /** Home: only what's waiting for you right now. Hidden when there's nothing new. */
 export function ForYouLine({ partnerName, ritualId }: { partnerName: string; ritualId?: string }) {
   const { data } = useForYou();
+  const { myId } = usePeople();
   if (!data) return null;
   const items: { to: string; icon: typeof Mail; text: string }[] = [];
   if (data.ritual_partner_shared && ritualId) items.push({ to: `/rituals/${ritualId}`, icon: StampIcon, text: `${partnerName} shared this week's ritual` });
   if (data.checkin_partner_shared) items.push({ to: "/checkin", icon: MessageCircleHeart, text: `${partnerName} shared their check-in` });
   if ((data.letters_unread ?? 0) > 0) items.push({ to: "/mailbox", icon: Mail, text: data.letters_unread === 1 ? "A letter arrived for you" : `${data.letters_unread} letters arrived for you` });
   if ((data.apart_my_turn ?? 0) > 0) items.push({ to: "/play?mode=apart", icon: Hourglass, text: data.apart_my_turn === 1 ? "Your turn in an Apart mission" : `Your turn in ${data.apart_my_turn} Apart missions` });
+  if (data.whim_from_partner_at && myId && new Date(data.whim_from_partner_at).getTime() > getSeen(myId, "whims"))
+    items.push({ to: "/mailbox?section=whims", icon: Gift, text: `${partnerName} added a little whim` });
   if (!items.length) return null;
   return (
     <section aria-label="For you" className="space-y-1.5">

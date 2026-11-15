@@ -1,3 +1,4 @@
+import { WhimEditor } from "./screens/Whims";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { SpaceProvider } from "./hooks/useSpace";
@@ -48,6 +49,8 @@ export default function App() {
             <Route path="checkin" element={<CheckIn />} />
             <Route path="mailbox" element={<Mailbox />} />
             <Route path="mailbox/new" element={<LetterComposer />} />
+            <Route path="mailbox/whims/new" element={<WhimEditor />} />
+            <Route path="mailbox/whims/:id/edit" element={<WhimEditor />} />
             <Route path="mailbox/:id/edit" element={<LetterComposer />} />
             <Route path="mailbox/:id" element={<LetterView />} />
             <Route path="settings" element={<Settings />} />

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Whims } from "./Whims";
 import { ArrowLeft, Camera, Heart, Lock, MailOpen, PenLine, Send, Trash2, Undo2, X } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
 import { useSpace } from "../hooks/useSpace";
@@ -40,6 +41,8 @@ export function Mailbox() {
   const tz = profile?.timezone ?? "UTC";
   const pName = partner?.display_name || "your partner";
   const [tab, setTab] = useState<Tab>("inbox");
+  const [params, setParams] = useSearchParams();
+  const section = params.get("section") === "whims" ? "whims" : "letters";
   const [letters, setLetters] = useState<Letter[] | null>(null);
   const [sealed, setSealed] = useState<SealedLetter[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -78,10 +81,21 @@ export function Mailbox() {
           <p className="font-hand text-2xl text-raspberry-deep">letters across the miles</p>
           <h1 className="text-4xl">Our Mailbox</h1>
         </div>
-        <Link to="/mailbox/new" className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
-          <PenLine size={16} aria-hidden="true" /> Write
-        </Link>
+        {section === "letters" && (
+          <Link to="/mailbox/new" className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
+            <PenLine size={16} aria-hidden="true" /> Write
+          </Link>
+        )}
       </header>
+
+      <div className="grid grid-cols-2 rounded-full bg-leaf p-1" role="tablist" aria-label="Mailbox">
+        {([["letters", "Letters"], ["whims", "Whims"]] as const).map(([k, label]) => (
+          <button key={k} role="tab" aria-selected={section === k} onClick={() => setParams(k === "whims" ? { section: "whims" } : {}, { replace: true })}
+            className={`min-h-[40px] rounded-full text-sm font-semibold ${section === k ? "bg-mustard text-leaf" : "text-cream"}`}>{label}</button>
+        ))}
+      </div>
+
+      {section === "whims" ? <Whims /> : <>
       <ErrorNote>{error}</ErrorNote>
 
       <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-full border-2 border-leaf/20 p-1" role="tablist" aria-label="Mailbox sections">
@@ -138,6 +152,7 @@ export function Mailbox() {
         </ul>
       )}
       <p className="text-xs text-muted">Only the two of you can see your letters. No read streaks, no reply reminders.</p>
+      </>}
     </div>
   );
 }

@@ -80,6 +80,8 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **`0016_gentle_reminders.sql`**: gentle reminders (web push) — see "Setting up gentle reminders" below.
 
 - **`0017_for_you.sql`**: the "For you" summary behind the Home line, Welcome back card and the quiet dots (counts only).
+- **`0018_our_photo.sql`**: "Our photo" — one shared cover photo on Home, picked from your trip photos.
+- **`0019_little_whim.sql`**: A Little Whim (Mailbox → Whims): Little Wants and Shared Wishes, a private `whims` photo bucket, surprises hidden in the database until revealed, and wishes-come-true in the scrapbook. Also updates `for_you()` and the scrapbook functions.
 
 ## 2. Deploy on Vercel
 
