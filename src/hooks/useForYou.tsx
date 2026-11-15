@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 
 export interface ForYou {
   ritual_partner_shared?: boolean; ritual_open?: boolean; older_rituals_waiting?: number;
-  checkin_partner_shared?: boolean; letters_unread?: number; apart_my_turn?: number; latest_memory_at?: string | null; whim_from_partner_at?: string | null; quiz_your_move?: boolean;
+  checkin_partner_shared?: boolean; letters_unread?: number; apart_my_turn?: number; latest_memory_at?: string | null; whim_from_partner_at?: string | null; quiz_your_move?: boolean; quiz_live_waiting?: string | null;
 }
 
 const Ctx = createContext<{ data: ForYou | null; refresh: () => void }>({ data: null, refresh: () => {} });

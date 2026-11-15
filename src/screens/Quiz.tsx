@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, CircleHelp, Flag, Plus, Sparkles, Trash2, Trophy, X } from "lucide-react";
+import { ArrowLeft, Check, CircleHelp, Flag, Phone, Plus, Sparkles, Trash2, Trophy, X } from "lucide-react";
+import { supabase } from "../lib/supabase";
 import { usePeople } from "../hooks/usePeople";
 import { useForYou } from "../hooks/useForYou";
 import {
-  addQuestion, answerQuestion, catLabel, deleteQuestion, endMatch, listMatches, matchState, myQuestions, openQuestion, pickCategory, QUIZ_CATEGORY,
+  addQuestion, answerQuestion, catLabel, liveJoin, liveStep, deleteQuestion, endMatch, listMatches, matchState, myQuestions, openQuestion, pickCategory, QUIZ_CATEGORY,
   reportQuestion, scoreLine, startMatch, verdict, type AnswerResult, type OpenQuestion, type OwnQuestion, type QuizMatch, type QuizMatchSummary, type QuizRound,
 } from "../lib/quiz";
 import { friendlyError } from "../lib/errors";
@@ -34,7 +35,8 @@ export function QuizTab() {
   const [busy, setBusy] = useState(false);
   useEffect(() => { listMatches().then(setMatches).catch((e) => { setError(friendlyError(e)); setMatches([]); }); }, []);
   if (matches === null) return <Spinner label="Shuffling the questions" />;
-  const active = matches.find((m) => m.status === "active");
+  const active = matches.find((m) => m.status === "active" && m.mode !== "live");
+  const live = matches.find((m) => m.status === "active" && m.mode === "live");
   const past = matches.filter((m) => m.status === "finished");
 
   return (
@@ -56,6 +58,20 @@ export function QuizTab() {
             try { nav(`/play/quiz/${await startMatch()}`); } catch (e) { setError(friendlyError(e)); setBusy(false); }
           }}>Start a match with {pName}</Button>
         )}
+        <div className="rounded-2xl bg-cream p-3">
+          <p className="flex items-center gap-1.5 font-semibold"><Phone size={15} aria-hidden="true" /> On a call right now?</p>
+          <p className="mb-2 text-xs text-muted">Play live: you both see the same question at the same moment and race the clock.</p>
+          {live ? (
+            <Button variant="outline" onClick={() => nav(`/play/quiz/${live.id}`)}>
+              {live.live_phase === "lobby" && live.started_by !== myId ? `Join ${pName}'s live match` : "Back to the live match"}
+            </Button>
+          ) : (
+            <Button variant="outline" busy={busy} onClick={async () => {
+              setBusy(true); setError(null);
+              try { nav(`/play/quiz/${await startMatch("live")}`); } catch (e) { setError(friendlyError(e)); setBusy(false); }
+            }}>Start a live match</Button>
+          )}
+        </div>
         <Link to="/play/quiz/questions" className="inline-flex items-center gap-1.5 text-sm font-semibold text-leaf underline underline-offset-4">
           <Plus size={14} aria-hidden="true" /> Add your own questions
         </Link>
@@ -107,6 +123,7 @@ export function QuizMatchScreen() {
   }, [load, playing]);
 
   if (!m) return error ? <ErrorNote>{error}</ErrorNote> : <Spinner label="Opening the match" />;
+  if (m.mode === "live" && m.status === "active") return <LiveMatch initial={m} onReload={load} />;
   if (playing) return <PlayRound round={playing} partnerName={pName} onDone={async () => { setPlaying(null); await load(); refresh(); }} />;
 
   const current = m.rounds.find((r) => r.round_no === m.next_round);
@@ -387,6 +404,189 @@ export function QuizQuestions() {
           ))}
         </ul>
       )}
+    </div>
+  );
+}
+
+/* ====================================================== live on a call */
+
+/**
+ * Live: both phones follow the same question. The database keeps the clock;
+ * this screen listens for changes (Realtime, plus a quick poll) and nudges the
+ * match along when time is up.
+ */
+function LiveMatch({ initial, onReload }: { initial: QuizMatch; onReload: () => Promise<void> }) {
+  const nav = useNavigate();
+  const { myId, me, partner } = usePeople();
+  const pName = partner?.display_name || "your partner";
+  const myName = me?.display_name || "You";
+  const [m, setM] = useState<QuizMatch>(initial);
+  const [offset, setOffset] = useState(() => new Date(initial.server_now).getTime() - Date.now());
+  const [now, setNow] = useState(Date.now());
+  const [q, setQ] = useState<OpenQuestion | null>(null);
+  const [qKey, setQKey] = useState<string>("");
+  const [mine, setMine] = useState<AnswerResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const stepping = useRef(false);
+
+  const refresh = useCallback(async () => {
+    try {
+      const s = await matchState(m.id);
+      setOffset(new Date(s.server_now).getTime() - Date.now());
+      setM(s);
+      if (s.status !== "active") void onReload();
+    } catch (e) { setError(friendlyError(e)); }
+  }, [m.id, onReload]);
+
+  // hear the other phone: Realtime on the match row, and a gentle poll as a fallback
+  useEffect(() => {
+    const ch = supabase.channel(`quiz-${m.id}`)
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "quiz_matches", filter: `id=eq.${m.id}` }, () => void refresh())
+      .subscribe();
+    const poll = window.setInterval(() => { if (document.visibilityState === "visible") void refresh(); }, 1500);
+    const tick = window.setInterval(() => setNow(Date.now()), 200);
+    return () => { void supabase.removeChannel(ch); clearInterval(poll); clearInterval(tick); };
+  }, [m.id, refresh]);
+
+  const serverNow = now + offset;
+  const startsAt = m.live_started_at ? new Date(m.live_started_at).getTime() : 0;
+  const revealAt = m.live_reveal_at ? new Date(m.live_reveal_at).getTime() : 0;
+  const round = m.rounds.find((r) => r.round_no === m.live_round) ?? null;
+  const key = `${m.live_round}-${m.live_q}`;
+  const countdown = m.live_phase === "question" ? Math.ceil((startsAt - serverNow) / 1000) : 0;
+  const left = m.live_phase === "question" ? Math.max(0, m.seconds - (serverNow - startsAt) / 1000) : 0;
+
+  // move things along when it's time (the database decides; any phone may ask)
+  useEffect(() => {
+    const due = (m.live_phase === "question" && serverNow > startsAt + (m.seconds + 1.2) * 1000)
+      || (m.live_phase === "reveal" && serverNow > revealAt + 5200);
+    if (!due || stepping.current) return;
+    stepping.current = true;
+    liveStep(m.id).then(() => refresh()).catch(() => {}).finally(() => { stepping.current = false; });
+  }, [serverNow, m.live_phase, startsAt, revealAt, m.seconds, m.id, refresh]);
+
+  // open the question on screen once the 3-2-1 is over
+  useEffect(() => {
+    if (m.live_phase !== "question" || !round || countdown > 0 || qKey === key) return;
+    setQKey(key); setMine(null); setQ(null);
+    openQuestion(round.id, m.live_q ?? 0).then(setQ).catch((e) => {
+      const msg = friendlyError(e);
+      if (/already answered/.test(msg)) setMine({ correct: false, timed_out: false, right: -1, choice: -1, partner: null });
+      else if (!/Get ready/.test(msg)) setError(msg);
+      if (/Get ready/.test(msg)) setQKey("");
+    });
+  }, [m.live_phase, round, countdown, qKey, key, m.live_q]);
+
+  const answer = async (choice: number) => {
+    if (!round || mine) return;
+    try { setMine(await answerQuestion(round.id, m.live_q ?? 0, choice)); void refresh(); } catch (e) { setError(friendlyError(e)); }
+  };
+
+  const header = (
+    <header className="postcard !p-4 text-center">
+      <p className="font-hand text-lg text-raspberry-deep">live quiz duel{m.live_round ? ` · round ${m.live_round} of 6` : ""}</p>
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+        <div><p className="truncate text-sm font-semibold text-muted">{myName}</p><p className="font-display text-3xl">{m.my_score}</p></div>
+        <p className="font-display text-xl text-muted">–</p>
+        <div><p className="truncate text-sm font-semibold text-muted">{partner?.display_name || "Partner"}</p><p className="font-display text-3xl">{m.partner_score}</p></div>
+      </div>
+    </header>
+  );
+
+  let body: React.ReactNode = null;
+  if (m.live_phase === "lobby") {
+    body = m.started_by === myId ? (
+      <div className="postcard space-y-2 !p-5 text-center">
+        <p className="font-display text-lg font-semibold">Waiting for {pName} to join…</p>
+        <p className="text-sm text-muted">Ask them to open Play → Quiz Time (it's also in their "For you" on Home).</p>
+        <span className="mx-auto block h-3 w-3 animate-pulse rounded-full bg-raspberry" aria-hidden="true" />
+      </div>
+    ) : (
+      <div className="postcard space-y-3 !p-5 text-center">
+        <p className="font-display text-lg font-semibold">{pName} started a live match</p>
+        <Button busy={busy === "join"} onClick={async () => {
+          setBusy("join"); try { await liveJoin(m.id); await refresh(); } catch (e) { setError(friendlyError(e)); } finally { setBusy(null); }
+        }}>Join</Button>
+      </div>
+    );
+  } else if (m.live_phase === "pick" && round) {
+    body = round.picker_id === myId ? (
+      <section className="postcard space-y-3 !p-5" aria-label="Pick a category">
+        <p className="font-display text-lg font-semibold">Your pick for round {round.round_no}</p>
+        <div className="grid gap-2">
+          {round.offered.map((c) => (
+            <button key={c} type="button" disabled={!!busy} onClick={async () => {
+              setBusy(c); try { await pickCategory(round.id, c); await refresh(); } catch (e) { setError(friendlyError(e)); } finally { setBusy(null); }
+            }} className="min-h-[52px] rounded-2xl border-2 border-leaf bg-paper px-4 text-left font-display text-lg font-semibold text-leaf shadow-print-sm">{catLabel(c)}</button>
+          ))}
+        </div>
+      </section>
+    ) : (
+      <p className="rounded-[20px] border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">{pName} is picking round {round.round_no}'s category…</p>
+    );
+  } else if (m.live_phase === "question") {
+    body = countdown > 0 ? (
+      <div className="postcard !p-8 text-center">
+        <p className="text-sm text-muted">{catLabel(round?.category)} · question {(m.live_q ?? 0) + 1} of 3</p>
+        <p className="font-display text-7xl" aria-live="assertive">{countdown}</p>
+      </div>
+    ) : !q ? (mine ? <p className="postcard !p-5 text-center text-sm text-muted">Locked in — waiting for {pName}…</p> : <Spinner label="Here it comes" />) : (
+      <section className="postcard space-y-4 !p-5" aria-live="polite">
+        <div className="flex items-center justify-between text-sm text-muted"><span>{catLabel(round?.category)}</span><span>{(m.live_q ?? 0) + 1} of 3</span></div>
+        <div className="h-2 overflow-hidden rounded-full bg-leaf-soft" role="progressbar" aria-label="Time left" aria-valuemin={0} aria-valuemax={m.seconds} aria-valuenow={Math.ceil(left)}>
+          <div className={`h-full rounded-full ${left < 6 ? "bg-tomato" : "bg-mustard"}`} style={{ width: `${(left / m.seconds) * 100}%` }} />
+        </div>
+        <p className="font-display text-xl font-semibold leading-snug">{q.question}</p>
+        <div className="grid gap-2">
+          {q.options.map((o, i) => (
+            <button key={i} type="button" disabled={!!mine || left <= 0} onClick={() => void answer(i)}
+              className={`min-h-[52px] rounded-2xl border-2 px-4 py-2 text-left font-semibold ${mine && mine.choice === i ? "border-leaf bg-leaf-soft text-leaf" : "border-leaf/30 bg-paper text-leaf"}`}>{o}</button>
+          ))}
+        </div>
+        <p className="text-sm text-muted">{mine ? `Locked in — waiting for ${pName}…` : left <= 0 ? "Time's up!" : "Tap your answer"}</p>
+      </section>
+    );
+  } else if (m.live_phase === "reveal" && round) {
+    const qs = round.questions[m.live_q ?? 0];
+    const rv = qs?.review;
+    const t = m.live_times ?? {};
+    const pId = m.partner_id;
+    body = rv ? (
+      <section className="postcard space-y-3 !p-5">
+        <p className="font-display text-lg font-semibold leading-snug">{rv.question}</p>
+        <div className="grid gap-2">
+          {rv.options.map((o, i) => {
+            const me1 = qs.mine && qs.mine.choice === i; const them = qs.partner && qs.partner !== "hidden" && qs.partner.choice === i;
+            return (
+              <div key={i} className={`relative rounded-2xl border-2 px-4 py-2 font-semibold ${i === rv.right ? "border-leaf bg-leaf text-cream" : me1 || them ? "border-tomato bg-tomato-soft text-tomato-deep" : "border-leaf/20 bg-paper text-leaf/70"}`}>
+                {o}
+                <span className="absolute -top-2 right-2 flex gap-1">
+                  {me1 && <span className="rounded-full bg-mustard px-2 py-0.5 text-[10px] font-bold text-leaf">{myName.slice(0, 10)}</span>}
+                  {them && <span className="rounded-full bg-raspberry px-2 py-0.5 text-[10px] font-bold text-leaf">{pName.slice(0, 10)}</span>}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-sm text-muted">
+          {myId && t[myId] != null ? `You: ${t[myId]}s` : "You: time ran out"} · {t[pId] != null ? `${pName}: ${t[pId]}s` : `${pName}: time ran out`}
+        </p>
+        <p className="text-xs text-muted">Next one in a moment…</p>
+      </section>
+    ) : <Spinner label="Revealing" />;
+  }
+
+  return (
+    <div className="fade-up space-y-5">
+      <Link to="/play?mode=quiz" className="inline-flex items-center gap-1.5 text-sm font-semibold text-muted"><ArrowLeft size={16} aria-hidden="true" /> Quiz Time</Link>
+      {header}
+      <ErrorNote>{error}</ErrorNote>
+      {body}
+      <Button variant="ghost" busy={busy === "end"} onClick={async () => {
+        if (!window.confirm("End this live match? It won't count.")) return;
+        setBusy("end"); try { await endMatch(m.id); nav("/play?mode=quiz"); } catch (e) { setError(friendlyError(e)); setBusy(null); }
+      }}><X size={14} aria-hidden="true" /> End match</Button>
     </div>
   );
 }

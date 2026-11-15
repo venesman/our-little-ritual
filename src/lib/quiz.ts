@@ -1,6 +1,6 @@
 import { supabase } from "./supabase";
 
-export type QuizNext = "pick" | "play" | "wait" | "finished" | "ended";
+export type QuizNext = "pick" | "play" | "wait" | "finished" | "ended" | "lobby" | "question" | "reveal";
 export interface QuizAnswerMark { choice: number; correct: boolean }
 export interface QuizReview { question: string; source: string; question_id: string; options: string[]; right: number }
 export interface QuizQuestionState { index: number; mine: QuizAnswerMark | null; partner: QuizAnswerMark | "hidden" | null; review: QuizReview | null }
@@ -11,8 +11,10 @@ export interface QuizRound {
 export interface QuizMatch {
   id: string; status: "active" | "finished" | "ended"; started_by: string; created_at: string; finished_at: string | null;
   partner_id: string; my_score: number; partner_score: number; next: QuizNext; next_round: number | null; rounds: QuizRound[]; seconds: number;
+  mode: "apart" | "live"; live_phase: "lobby" | "pick" | "question" | "reveal" | null; live_round: number | null; live_q: number | null;
+  live_started_at: string | null; live_reveal_at: string | null; joined_at: string | null; server_now: string; live_times: Record<string, number> | null;
 }
-export interface QuizMatchSummary { id: string; status: "active" | "finished"; created_at: string; finished_at: string | null; categories: string[]; scores: Record<string, number> | null }
+export interface QuizMatchSummary { id: string; mode: "apart" | "live"; live_phase: string | null; started_by: string; status: "active" | "finished"; created_at: string; finished_at: string | null; categories: string[]; scores: Record<string, number> | null }
 export interface OpenQuestion { question: string; question_id: string; source: "starter" | "opentdb" | "ours"; difficulty: string; options: string[]; seconds_left: number }
 export interface AnswerResult { correct: boolean; timed_out: boolean; right: number; choice: number; partner: QuizAnswerMark | null }
 export interface OwnQuestion { id: string; category: string; question: string; correct: string; wrong: string[]; created_at: string }
@@ -30,7 +32,9 @@ function check<T>(res: { data: T; error: unknown }): T {
   if (res.error) throw res.error;
   return res.data;
 }
-export const startMatch = async () => check(await supabase.rpc("quiz_start_match")) as string;
+export const startMatch = async (mode: "apart" | "live" = "apart") => check(await supabase.rpc("quiz_start_match", { p_mode: mode })) as string;
+export const liveJoin = async (id: string) => { check(await supabase.rpc("quiz_live_join", { p_match: id })); };
+export const liveStep = async (id: string) => check(await supabase.rpc("quiz_live_step", { p_match: id })) as string;
 export const matchState = async (id: string) => check(await supabase.rpc("quiz_match_state", { p_match: id })) as QuizMatch;
 export const listMatches = async () => (check(await supabase.rpc("quiz_matches_list")) ?? []) as QuizMatchSummary[];
 export const pickCategory = async (round: string, category: string) => { check(await supabase.rpc("quiz_pick_category", { p_round: round, p_category: category })); };

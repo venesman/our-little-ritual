@@ -14,6 +14,7 @@ export function ForYouLine({ partnerName, ritualId }: { partnerName: string; rit
   if (data.checkin_partner_shared) items.push({ to: "/checkin", icon: MessageCircleHeart, text: `${partnerName} shared their check-in` });
   if ((data.letters_unread ?? 0) > 0) items.push({ to: "/mailbox", icon: Mail, text: data.letters_unread === 1 ? "A letter arrived for you" : `${data.letters_unread} letters arrived for you` });
   if ((data.apart_my_turn ?? 0) > 0) items.push({ to: "/play?mode=apart", icon: Hourglass, text: data.apart_my_turn === 1 ? "Your turn in an Apart mission" : `Your turn in ${data.apart_my_turn} Apart missions` });
+  if (data.quiz_live_waiting) items.push({ to: `/play/quiz/${data.quiz_live_waiting}`, icon: Trophy, text: `${partnerName} is waiting for you in a live Quiz Duel` });
   if (data.quiz_your_move) items.push({ to: "/play?mode=quiz", icon: Trophy, text: `Your move in Quiz Duel with ${partnerName}` });
   if (data.whim_from_partner_at && myId && new Date(data.whim_from_partner_at).getTime() > getSeen(myId, "whims"))
     items.push({ to: "/mailbox?section=whims", icon: Gift, text: `${partnerName} added a little whim` });

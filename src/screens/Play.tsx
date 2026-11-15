@@ -52,6 +52,9 @@ export function Play() {
         ))}
       </div>
       {mode === "quiz" ? <QuizTab /> : mode === "apart" ? <ApartTab /> : <>
+      <button type="button" onClick={() => setMode("quiz")} className="flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-mustard bg-mustard-soft/60 px-4 py-2.5 text-left text-sm font-semibold text-leaf">
+        <Trophy size={16} aria-hidden="true" /> Fancy a quiz? Play a live Quiz Duel on this call →
+      </button>
       <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-full border-2 border-leaf/20 p-1" role="tablist" aria-label="Play sections">
         {(["play", "curious", "favourites", "history"] as Tab[]).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
