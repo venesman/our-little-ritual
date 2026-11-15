@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabase";
 import { scoreLine } from "../lib/quiz";
 import { quizByCode } from "../lib/personality";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Camera, FileDown, ImagePlus, MapPin, Mic, Pencil, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import { ArrowLeft, Camera, FileDown, ImagePlus, MapPin, Mic, Pencil, Plus, RotateCcw, Sparkles, Trash2, X } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
 import { useSpace } from "../hooks/useSpace";
 import {
@@ -88,6 +88,9 @@ export function Scrapbook() {
         </Link>
         <Link to="/us/export" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border-2 border-leaf/80 px-4 text-sm font-semibold text-leaf">
           <FileDown size={16} aria-hidden="true" /> Export our story
+        </Link>
+        <Link to="/us/keepsake" className="col-span-2 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-leaf px-4 text-sm font-semibold text-cream">
+          <Sparkles size={16} aria-hidden="true" /> Our year together
         </Link>
       </div>
       <ErrorNote>{error}</ErrorNote>

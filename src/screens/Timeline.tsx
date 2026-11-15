@@ -114,8 +114,9 @@ export function Timeline() {
             const s = perYear(y);
             return (
               <section key={y} className="mb-6 space-y-3" aria-label={y}>
-                <div className="-ml-8 flex items-baseline gap-3">
+                <div className="-ml-8 flex flex-wrap items-baseline gap-x-3">
                   <h2 className="font-display text-3xl">{y}</h2>
+                  {canTag && <Link to={`/us/keepsake/${y}`} className="text-xs font-semibold text-leaf underline-offset-2 hover:underline">Our {y} keepsake →</Link>}
                   {(s.rituals + s.letters + s.calls) > 0 && (
                     <p className="text-xs text-muted">{[s.rituals && `${s.rituals} rituals together`, s.letters && `${s.letters} letters`, s.calls && `${s.calls} call activities`].filter(Boolean).join(" · ")}</p>
                   )}

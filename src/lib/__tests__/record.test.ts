@@ -97,3 +97,11 @@ describe("meetings", () => {
     expect(mergeRanges([{ from: "2025-04-10", until: "2025-04-17" }, { from: "2025-04-10", until: "2025-04-17" }, { from: "2025-12-20", until: "2026-01-03" }])).toHaveLength(2);
   });
 });
+
+import { statTiles } from "../keepsake";
+describe("keepsake tiles", () => {
+  it("shows only what happened, with the right words", () => {
+    expect(statTiles({ rituals: 1, checkins: 0, letters: 12, call_days: 0, games: 0, creations: 0, research: 0, missions: 0, songs: 3 }))
+      .toEqual([{ n: 1, label: "weekly ritual" }, { n: 12, label: "letters" }, { n: 3, label: "songs shared" }]);
+  });
+});
