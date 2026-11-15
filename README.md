@@ -89,6 +89,7 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **`0024_know_me.sql`**: How well do you know me? — 40 questions; a game has a round about each of you (answer privately → partner guesses → you mark the guesses); answers hidden until guessed; scrapbook; For you.
 - **`0025_music.sql`**: a Spotify song on a letter (sealed with it), and Our Soundtrack in Our Story; private `songs` folder for covers. Then deploy the **`song-details`** Edge Function (below).
 - **`0026_creative_corner.sql`**: Creative Corner (Play → Creative Corner) — Doodle Relay, Fold & Reveal (halves sealed until both are in), Story Chain (The End needs you both), Poem Duet (8/10/12 lines or an acrostic), Mixtape Maker (songs in turns, a name and a drawn cover), Mood Boards; private `creations` folder; scrapbook; For you.
+- **`0027_timeline.sql`**: Us → Timeline — dated milestones, trips, visits (incl. coming up), the day your space began and "firsts", newest first, with yearly counts. Read-only.
 
 ### Setting up song details (one time)
 Supabase → **Edge Functions → Deploy a new function** → name it `song-details` → paste `supabase/functions/song-details/index.ts` → Deploy. Leave "Enforce JWT verification" **on** (it only serves signed-in members). No secrets needed. Without it, songs still work — you just type the title and artist yourself and there's no cover.
