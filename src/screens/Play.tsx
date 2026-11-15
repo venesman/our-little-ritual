@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bookmark, BookmarkCheck, CalendarClock, Sparkles, Phone, Hourglass, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, X } from "lucide-react";
+import { BookOpenCheck, Bookmark, BookmarkCheck, CalendarClock, Sparkles, Phone, Hourglass, Circle, CircleCheck, CircleDot, Dices, Heart, Pause, Play as PlayIcon, Radio, Redo2, RefreshCw, RotateCcw, Shuffle, SkipForward, SlidersHorizontal, X } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { usePlaySession } from "../hooks/usePlaySession";
 import { usePeople } from "../hooks/usePeople";
 import { personalise } from "../lib/tokens";
 import { startMission } from "../lib/apart";
 import { ApartTab } from "./Apart";
+import { CuriousTab } from "./Curious";
 import { useSpace } from "../hooks/useSpace";
 import { useAuth } from "../hooks/useAuth";
 import {
@@ -16,7 +17,7 @@ import {
 import { friendlyError } from "../lib/errors";
 import { Button, Card, ErrorNote, LoopField, Spinner, Ticket } from "../components/ui";
 
-type Tab = "play" | "favourites" | "history";
+type Tab = "play" | "curious" | "favourites" | "history";
 
 export function Play() {
   const { space } = useSpace();
@@ -50,15 +51,16 @@ export function Play() {
         ))}
       </div>
       {mode === "apart" ? <ApartTab /> : <>
-      <div className="inline-flex rounded-full border-2 border-leaf/20 p-1" role="tablist" aria-label="Play sections">
-        {(["play", "favourites", "history"] as Tab[]).map((t) => (
+      <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-full border-2 border-leaf/20 p-1" role="tablist" aria-label="Play sections">
+        {(["play", "curious", "favourites", "history"] as Tab[]).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
-            className={`rounded-full px-4 py-1.5 text-sm font-semibold ${tab === t ? "bg-leaf text-cream" : "text-muted"}`}>
-            {t === "play" ? "Play" : t === "favourites" ? "Favourites" : "History"}
+            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${tab === t ? "bg-leaf text-cream" : "text-muted"}`}>
+            {t === "play" ? "Play" : t === "curious" ? "Curious Club" : t === "favourites" ? "Favourites" : "History"}
           </button>
         ))}
       </div>
-      {tab === "play" && <PlayTab />}
+      {tab === "play" && <PlayTab onCurious={() => setTab("curious")} />}
+      {tab === "curious" && <CuriousTab />}
       {tab === "favourites" && <FavouritesTab onPlay={() => setTab("play")} />}
       {tab === "history" && <HistoryTab />}
       </>}
@@ -68,7 +70,7 @@ export function Play() {
 
 /* ============================================================ live play */
 
-function PlayTab() {
+function PlayTab({ onCurious }: { onCurious: () => void }) {
   const { session } = useAuth();
   const { space } = useSpace();
   const { state, loading, error, skewMs, apply, setError } = usePlaySession(true);
@@ -189,6 +191,14 @@ function PlayTab() {
       </section>
 
       <PlanCard busy={busy === "plan"} onMake={(m) => run("plan", () => generateCallPlan(m))} />
+
+      <button type="button" onClick={onCurious} className="postcard notebook flex w-full items-center gap-3 !p-4 text-left transition hover:-translate-y-px">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-mustard-soft text-mustard-deep"><BookOpenCheck size={18} aria-hidden="true" /></span>
+        <span className="min-w-0">
+          <span className="block font-display text-lg font-semibold">The Curious Club</span>
+          <span className="block text-sm text-muted">A mini research date: look something up, present it in a minute, talk it through.</span>
+        </span>
+      </button>
 
       {endSection}
     </div>

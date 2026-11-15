@@ -59,6 +59,10 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
   "destructive operations" — that's the `drop constraint` that is replaced by a wider one straight after; nothing is deleted.
   Afterwards, **Storage** should list `apart-media` marked *Private*. Nothing to change in Vercel.
 
+- **Phase 7 — `0010_curious_club.sql` then `0011_curious_club_topics.sql`** (run both, in that order): The Curious Club —
+  live research sessions, private notes, discoveries, favourites and the 109 approved topics. Turns on Realtime for
+  `curious_sessions` (the app falls back to a 3-second check). Nothing to change in Vercel.
+
 ## 2. Deploy on Vercel
 
 1. [vercel.com](https://vercel.com) → **Add New → Project** → import `venesman/our-little-ritual`.
@@ -128,7 +132,7 @@ npm run test:db # spins up a throwaway PostgreSQL, applies migrations, runs secu
 npm run build   # typecheck + production build
 ```
 
-`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 322 checks. Phase 5: 90 activities (15 per
+`npm run test:db` needs PostgreSQL 15+ binaries installed locally. It covers 388 checks plus 7 concurrency scripts. Phase 5: 90 activities (15 per
 category, every mood/energy/type covered), one shared session for both partners, every filter respected, no repeats then a
 reshuffle, "nothing matches" message, timer start/pause/reset maths, playing a chosen favourite, private vs shared favourites,
 outsiders blocked, and both phones opening Play / tapping "another one" at the same instant. Phase 6: every plan length
@@ -138,7 +142,12 @@ fields are validated and unknown fields ignored; home country is stored apart fr
 only by their author; shared profile and milestones private to the couple; the Monday switch (48 rituals with Just us on, 42
 with it off, all six Just us rituals come up); Just us and Apart filters; call plans never use Apart or Just us activities;
 every Just us activity has a general fallback; Apart solo missions stay sealed until both share while relays are visible as
-you go; Apart photos follow the same rule in storage; closed missions refuse entries; at most six open missions. 322 checks in total. Phase 4: visits shared between the
+you go; Apart photos follow the same rule in storage; closed missions refuse entries; at most six open missions. Curious Club: 100 + 9 topics, 10 per area, approved edits applied; general draws exclude
+place-tagged and Just us topics; place topics appear under Just us only for countries one of you lives in or comes from;
+format/difficulty/area filters; setup validation; notes private during research (even to direct queries) and open once
+presenting starts; https-only sources (max 5) and valid verdicts only; stale or double taps never skip a step; timer
+pause/skip/lengths; shared discoveries (remove only your own) and favourites; unused sessions discarded, finished ones kept;
+other couples see nothing; and both phones opening it / tapping "start researching" at the same instant. Phase 4: visits shared between the
 two of you and invisible to others, date validation, nudge rate limits (per minute and per day), no nudges before your
 partner joins, free hours editable only by their owner. Unit tests cover the call-overlap maths for Kuching ↔ Santiago in
 both Chile summer and winter time, windows past midnight, and "happening now". Earlier phases: Phase 3: a partner can't see a
@@ -178,6 +187,11 @@ redeeming the same link at the same instant → exactly one gets in**.
 | `relationship_profile` | shared interests, things you enjoy together, shared goals |
 | `milestones` | milestones, important dates and memories |
 | `apart_missions` / `apart_entries` | Apart, anytime missions and what each of you shared |
+| `curious_topics` | the 109 Curious Club topics (read-only library; country tags for place topics) |
+| `curious_sessions` | one live research session per couple: topic, format, stage, presenter order, shared timer |
+| `curious_notes` | each person's summary, source links and Fact or Fiction verdicts (private until presenting) |
+| `curious_discoveries` | discoveries you save together (will feed the Scrapbook) |
+| `curious_favourites` | your shared favourite topics |
 | storage `apart-media` | private Apart photos and drawings at `<space>/<mission>/<person>/<file>` |
 
 ## How Play With Me stays in sync
@@ -212,6 +226,15 @@ redeeming the same link at the same instant → exactly one gets in**.
   (enforced by the database and storage, like the weekly reveal). *Relay* missions show each turn as it lands.
 - Up to six missions on the go; "Mark as finished" moves one to Past missions. Everything shared stays saved.
 
+## The Curious Club
+
+- **Play → On a call → Curious Club.** Pick a random topic (filters: area, difficulty, format, Just us) or browse all.
+- Choose a format — Teach Me Something, Two Perspectives, Friendly Debate, Fact or Fiction, Deep Dive, Expert for a Minute —
+  research time (5 / 10 / 15 min), talk length (30 / 60 / 120 s) and who goes first (swappable until the second talk).
+- Research on your own; notes and source links stay private until presentations start. Each talk has a shared timer with the
+  suggested structure (introduce · discovery · why it matters · surprise). Then discuss and save discoveries.
+- The app never answers Fact or Fiction claims or invents sources; topic cards are starting points, not verified facts.
+
 ## How the sealed reveal works
 
 - **Drafts** save to the server as you type and are visible only to you — never to your partner, even after the reveal.
@@ -242,4 +265,5 @@ Migrations live in `supabase/migrations/` and are applied in order. History is n
 4. ✅ Quick wins — installable app, visit countdown, "thinking of you", best time to call
 5. ✅ Play With Me — 90 call activities, filters + Surprise us, live shared screen and timer, favourites, history
 6. ✅ Call Session Mode — planned sequences for 15–90 minute calls, done / skip / replace, saved to history
-6b. ✅ Personalisation — Our Story, Just us activities and Monday rituals, Apart, anytime missions · 7. The Curious Club · 8. Weekly check-in · 9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline
+6b. ✅ Personalisation — Our Story, Just us activities and Monday rituals, Apart, anytime missions
+7. ✅ The Curious Club — 109 topics, six formats, live research → present → discuss, discoveries, favourites, history · 8. Weekly check-in · 9. Mailbox · 10. Scrapbook · 11. Creative Corner · 12. Timeline

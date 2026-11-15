@@ -46,3 +46,8 @@
 @media (prefers-reduced-motion: reduce) { .fade-up, .stamp-in { animation: none; } }
 
 .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+
+/* Curious Club: a faint ruled-notebook page */
+.notebook {
+  background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 27px, rgb(32 73 47 / 0.06) 27px, rgb(32 73 47 / 0.06) 28px);
+}
