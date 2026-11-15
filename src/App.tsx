@@ -1,3 +1,4 @@
+import { KnowMeScreen } from "./screens/KnowMe";
 import { PersonalityQuiz } from "./screens/Personality";
 import { QuizMatchScreen, QuizQuestions } from "./screens/Quiz";
 import { WhimEditor } from "./screens/Whims";
@@ -46,6 +47,7 @@ export default function App() {
             <Route path="play/quiz/questions" element={<QuizQuestions />} />
             <Route path="play/quiz/:id" element={<QuizMatchScreen />} />
             <Route path="play/personality/:code" element={<PersonalityQuiz />} />
+            <Route path="play/knowme" element={<KnowMeScreen />} />
             <Route path="us" element={<Us />} />
             <Route path="us/moment/new" element={<MomentEditor />} />
             <Route path="us/moment/:id" element={<MomentEditor />} />

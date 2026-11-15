@@ -86,6 +86,7 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 - **`0021_quiz_more_categories.sql`**: adds Anime & manga, Video games, Board games, Mythology and Celebrities & musicals; the Open Trivia DB import skips clearly US-only questions. Run it **before** `quiz_import_schedule.sql`.
 - **`0022_quiz_live.sql`**: Quiz Duel live on a call — one opens a live match, the other joins, both see each question at the same moment (3-2-1), race the shared clock and see the answers together. Adds Realtime on `quiz_matches` (no answers in that row).
 - **`0023_personality_quizzes.sql`**: 12 personality quizzes (words in `src/lib/personality.ts`; partner's card hidden until you've taken it, optional guess, scrapbook) and 150 more starter questions (`supabase/quiz/more_questions.tsv`).
+- **`0024_know_me.sql`**: How well do you know me? — 40 questions; a game has a round about each of you (answer privately → partner guesses → you mark the guesses); answers hidden until guessed; scrapbook; For you.
 
 ## 2. Deploy on Vercel
 

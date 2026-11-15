@@ -12,6 +12,7 @@ import { friendlyError } from "../lib/errors";
 import { Button, ErrorNote, Field, Spinner, Ticket, inputCls } from "../components/ui";
 import { SaveToScrapbook } from "../components/ScrapbookBits";
 import { PersonalityList } from "./Personality";
+import { KnowMeCard } from "./KnowMe";
 
 const shortDate = (iso: string) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(new Date(iso));
 
@@ -77,6 +78,8 @@ export function QuizTab() {
           <Plus size={14} aria-hidden="true" /> Add your own questions
         </Link>
       </section>
+
+      <KnowMeCard />
 
       <PersonalityList />
 
