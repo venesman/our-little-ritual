@@ -107,7 +107,7 @@ function PlayTab({ onCurious }: { onCurious: () => void }) {
       <Button variant="ghost" onClick={() => run("end", async () => { await endPlaySession(state.session_id); apply(null); })} busy={busy === "end"}>
         <X size={15} aria-hidden="true" /> {state.mode === "planned" ? "Save to history & end" : "End this session"}
       </Button>
-      <p className="mt-1 text-xs text-muted">Saved to History. Either of you can end it — the other phone will follow.</p>
+      <p className="mt-1 text-xs text-muted">Saved to History. The other phone follows.</p>
     </div>
   );
 

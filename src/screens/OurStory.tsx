@@ -29,7 +29,7 @@ export function OurStory() {
         <p className="font-hand text-2xl text-raspberry-deep">the little details that make it yours</p>
         <h1 className="text-4xl">Our Story</h1>
         <p className="mt-2 text-sm text-muted">
-          Both of you can edit everything here. “Just us” activities use these details — anything left empty just means a general version.
+          Both of you can edit everything. Just us activities use these details.
         </p>
       </header>
       <ErrorNote>{error}</ErrorNote>

@@ -153,7 +153,7 @@ function JustUsMondaysCard({ on, onChange }: { on: boolean; onChange: (v: boolea
       <div>
         <h2 className="text-xl">Just us rituals on Mondays</h2>
         <p className="mt-1 text-sm text-muted">
-          Mixes six personal rituals (made from Our Story) into the Monday rotation. Either of you can switch it; it applies to both. Takes effect from the next new week.
+          Adds six personal rituals to the Monday rotation. Applies to you both, from next week.
         </p>
       </div>
       <button type="button" role="switch" aria-checked={on} aria-label="Include Just us rituals on Mondays" disabled={busy}

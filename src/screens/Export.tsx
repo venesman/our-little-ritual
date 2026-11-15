@@ -80,8 +80,7 @@ export function ExportStory() {
           <p className="font-hand text-2xl text-raspberry-deep">a dated record of us</p>
           <h1 className="text-4xl">Export our story</h1>
           <p className="mt-2 text-sm text-muted">
-            Creates a document with your trips, photos (with their dates), milestones and how you've stayed in touch, month by month.
-            Save it to Google Drive or keep it as a PDF.
+            Your trips, dated photos, milestones and how you've stayed in touch — as a document for Google Drive or a PDF.
           </p>
         </header>
         <ErrorNote>{error}</ErrorNote>

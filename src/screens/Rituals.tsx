@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, ChevronRight, Hourglass } from "lucide-react";
-import { getRitualHistory, type WeeklyRitual } from "../lib/rituals";
+import { BookHeart, ChevronRight, Hourglass } from "lucide-react";
+import { supabase } from "../lib/supabase";
+import { CATEGORY, getRitualHistory, type WeeklyRitual } from "../lib/rituals";
 import { getMyRitualStatuses, type WeekListStatus } from "../lib/submissions";
 import { friendlyError } from "../lib/errors";
 import { useCurrentRitual } from "../hooks/useCurrentRitual";
@@ -18,12 +19,15 @@ export function Rituals() {
   const [history, setHistory] = useState<WeeklyRitual[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [statuses, setStatuses] = useState<Record<string, WeekListStatus>>({});
+  const [kept, setKept] = useState<Set<string>>(new Set());
   const tz = profile?.timezone ?? "UTC";
 
   useEffect(() => {
     if (!active || !current) return; // load history once the current week is guaranteed to exist
     getRitualHistory().then(setHistory).catch((e) => setError(friendlyError(e)));
     getMyRitualStatuses().then((l) => setStatuses(Object.fromEntries(l.map((s) => [s.weekly_id, s])))).catch(() => {});
+    supabase.from("scrapbook_entries").select("ref_id").eq("kind", "ritual").eq("saved", true)
+      .then(({ data }) => setKept(new Set((data ?? []).map((r: { ref_id: string }) => r.ref_id))));
   }, [active, current]);
 
   if (!active) {
@@ -69,7 +73,8 @@ export function Rituals() {
                     <span className="block truncate font-display text-lg font-semibold">{r.activity.title}</span>
                     <span className="block text-xs text-muted">{formatInZone(new Date(r.weekStart), tz).split(",")[0]}</span>
                   </span>
-                  <WeekBadge s={statuses[r.weeklyId]} />
+                  {kept.has(r.weeklyId) && <BookHeart size={15} className="shrink-0 text-raspberry-deep" aria-label="In our scrapbook" />}
+                  {statuses[r.weeklyId]?.revealed ? <PassportStamp ritual={r} tz={tz} /> : <WeekBadge s={statuses[r.weeklyId]} />}
                   <ChevronRight size={18} className="text-faint" aria-hidden="true" />
                 </Link>
               </li>
@@ -90,9 +95,29 @@ function EmptyNote({ text }: { text: string }) {
   );
 }
 
+const STAMP_RING = {
+  raspberry: "border-raspberry text-raspberry-deep", mustard: "border-mustard text-mustard-deep",
+  leaf: "border-leaf/70 text-leaf", tomato: "border-tomato text-tomato-deep",
+};
+
+/** A round passport stamp for a week you've both opened: category colour, postmark code and the date. */
+function PassportStamp({ ritual, tz }: { ritual: WeeklyRitual; tz: string }) {
+  const cat = CATEGORY[ritual.activity.category];
+  const date = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", timeZone: tz }).format(new Date(ritual.weekStart)).toUpperCase();
+  const tilt = ((ritual.weekNumber * 37) % 15) - 7;
+  return (
+    <span role="img" aria-label={`Opened together · ${cat.label} · ${date}`} style={{ transform: `rotate(${tilt}deg)` }}
+      className={`grid h-12 w-12 shrink-0 place-items-center rounded-full border-2 border-dashed bg-paper text-center leading-none ${STAMP_RING[cat.tone]}`}>
+      <span>
+        <span className="block text-[8px] font-bold tracking-[0.12em]">{cat.postmark}</span>
+        <span className="block font-display text-[10px] font-semibold">{date}</span>
+      </span>
+    </span>
+  );
+}
+
 function WeekBadge({ s }: { s?: WeekListStatus }) {
   if (!s) return null;
-  if (s.revealed) return <span className="inline-flex items-center gap-1 rounded-full bg-leaf px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-cream"><Check size={11} />Opened</span>;
   if (s.my_status === "submitted" || s.partner_submitted)
     return <span className="inline-flex items-center gap-1 rounded-full bg-mustard-soft px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-mustard-deep"><Hourglass size={11} />Half sealed</span>;
   return null;

@@ -5,18 +5,35 @@ import { getFeed, imagesOf, isSaved, setEntry, signedUrl, type Memory, type Memo
 import { friendlyError } from "../lib/errors";
 
 /** "Save to scrapbook" for things that are open to both of you (revealed rituals, open Apart missions). */
-export function SaveToScrapbook({ kind, refId }: { kind: MemoryKind; refId: string }) {
+export function SaveToScrapbook({ kind, refId, prompt }: { kind: MemoryKind; refId: string; prompt?: boolean }) {
   const [saved, setSaved] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => { isSaved(kind, refId).then(setSaved).catch(() => setSaved(false)); }, [kind, refId]);
   if (saved === null) return null;
+  const save = async () => {
+    setBusy(true); setError(null);
+    try { await setEntry(kind, refId, !saved); setSaved(!saved); } catch (e) { setError(friendlyError(e)); } finally { setBusy(false); }
+  };
+  // The moment something finishes: a small postcard asking to keep it.
+  if (prompt && !saved) {
+    return (
+      <div className="postcard flex items-center gap-4 !p-4">
+        <span className="grid h-12 w-12 shrink-0 -rotate-6 place-items-center rounded-sm border-2 border-dashed border-raspberry bg-raspberry-soft text-raspberry-deep" aria-hidden="true">
+          <BookHeart size={20} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="font-display text-lg font-semibold leading-tight">Keep this in our scrapbook?</p>
+          {error && <p className="text-xs text-tomato-deep">{error}</p>}
+        </div>
+        <button type="button" disabled={busy} onClick={() => void save()}
+          className="inline-flex min-h-[40px] shrink-0 items-center rounded-full border-2 border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print-sm">Keep it</button>
+      </div>
+    );
+  }
   return (
     <div className="space-y-1">
-      <button type="button" disabled={busy} aria-pressed={saved} onClick={async () => {
-        setBusy(true); setError(null);
-        try { await setEntry(kind, refId, !saved); setSaved(!saved); } catch (e) { setError(friendlyError(e)); } finally { setBusy(false); }
-      }} className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 px-5 text-sm font-semibold transition ${saved ? "border-leaf bg-leaf text-cream" : "border-leaf bg-paper text-leaf hover:bg-leaf-soft"}`}>
+      <button type="button" disabled={busy} aria-pressed={saved} onClick={() => void save()} className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 px-5 text-sm font-semibold transition ${saved ? "border-leaf bg-leaf text-cream" : "border-leaf bg-paper text-leaf hover:bg-leaf-soft"}`}>
         {saved ? <Check size={16} aria-hidden="true" /> : <BookHeart size={16} aria-hidden="true" />}{saved ? "In our scrapbook" : "Save to scrapbook"}
       </button>
       {error && <p className="text-xs text-tomato-deep">{error}</p>}

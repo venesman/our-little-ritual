@@ -124,7 +124,7 @@ export function RitualDetail() {
             <AnswerCard submission={mine} name={myName} tone="mustard" mode={mode} delay={justRevealed ? 150 : 0} />
             <AnswerCard submission={theirs} name={partnerName} tone="raspberry" mode={mode} delay={justRevealed ? 450 : 0} />
           </div>
-          <SaveToScrapbook kind="ritual" refId={ritual.weeklyId} />
+          <SaveToScrapbook kind="ritual" refId={ritual.weeklyId} prompt />
         </section>
       ) : iShared && mine ? (
         <section className="space-y-4">

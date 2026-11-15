@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Check, Lock, MailCheck, MessageCircleHeart, Phone, Send } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
+import { supabase } from "../lib/supabase";
 import { useSpace } from "../hooks/useSpace";
 import {
   CORE_QUESTIONS, getCheckinWeek, listCheckinWeeks, markCheckinTalked, MOOD_WORDS, saveCheckin,
@@ -191,21 +192,38 @@ function AnswersCard({ row, title, bonusText, tone }: { row: CheckinRow; title: 
 
 function History({ current, tz, onPick }: { current: string; tz: string; onPick: (week: string | null) => void }) {
   const [weeks, setWeeks] = useState<CheckinWeekStatus[] | null>(null);
-  useEffect(() => { listCheckinWeeks().then(setWeeks).catch(() => setWeeks([])); }, [current]);
+  const { myId, partner } = usePeople();
+  // Mood words for each week: yours, and your partner's once you've both shared (the database only returns those).
+  const [moods, setMoods] = useState<Record<string, { mine: string[]; theirs: string[] }>>({});
+  useEffect(() => {
+    listCheckinWeeks().then(setWeeks).catch(() => setWeeks([]));
+    supabase.from("checkins").select("week_start, user_id, mood_words").eq("status", "submitted").then(({ data }) => {
+      const m: Record<string, { mine: string[]; theirs: string[] }> = {};
+      for (const r of (data ?? []) as { week_start: string; user_id: string; mood_words: string[] }[]) {
+        const k = new Date(r.week_start).toISOString();
+        m[k] ??= { mine: [], theirs: [] };
+        if (r.user_id === myId) m[k].mine = r.mood_words; else m[k].theirs = r.mood_words;
+      }
+      setMoods(m);
+    });
+  }, [current, myId]);
   if (!weeks || weeks.length <= 1) return null;
   return (
     <section className="space-y-2">
       <h2 className="text-2xl">Past check-ins</h2>
       <ul className="divide-y divide-dashed divide-leaf/20 rounded-[20px] bg-paper shadow-card">
         {weeks.map((w, i) => {
-          const status = w.revealed ? "Both shared" : w.my_status === "submitted" ? "You shared" : w.partner_submitted ? "Partner shared" : w.my_status === "draft" ? "Draft" : "Not done";
+          const status = w.revealed ? "Both shared" : w.my_status === "submitted" ? "You shared" : w.partner_submitted ? `${partner?.display_name || "Partner"} shared` : w.my_status === "draft" ? "Draft" : "Not done";
           const isOpen = w.week_start === current;
           return (
             <li key={w.week_start}>
               <button type="button" onClick={() => onPick(i === 0 ? null : w.week_start)} aria-current={isOpen ? "true" : undefined}
                 className={`flex w-full items-center justify-between gap-3 px-5 py-3 text-left ${isOpen ? "bg-mustard-soft" : ""}`}>
-                <span className="font-display text-base font-semibold">{i === 0 ? "This week" : weekLabel(w.week_start, tz)}</span>
-                <span className="text-xs font-semibold text-muted">{status}</span>
+                <span className="min-w-0">
+                  <span className="block font-display text-base font-semibold">{i === 0 ? "This week" : weekLabel(w.week_start, tz)}</span>
+                  {w.revealed && <MoodRow m={moods[new Date(w.week_start).toISOString()]} partnerName={partner?.display_name || "Them"} />}
+                </span>
+                <span className="shrink-0 text-xs font-semibold text-muted">{status}</span>
               </button>
             </li>
           );
@@ -215,5 +233,17 @@ function History({ current, tz, onPick }: { current: string; tz: string; onPick:
         <Link to="/checkin" className="inline-flex items-center gap-1.5 text-sm font-semibold text-leaf"><ArrowLeft size={14} aria-hidden="true" /> Back to this week</Link>
       )}
     </section>
+  );
+}
+
+/** Both of your mood words for a week, side by side. No scores, no charts. */
+function MoodRow({ m, partnerName }: { m?: { mine: string[]; theirs: string[] }; partnerName: string }) {
+  if (!m || (!m.mine.length && !m.theirs.length)) return null;
+  return (
+    <span className="mt-1 flex flex-wrap items-center gap-1">
+      {m.mine.map((w) => <span key={"m" + w} className="rounded-full bg-mustard-soft px-2 py-0.5 text-[11px] font-semibold text-mustard-deep">{w}</span>)}
+      {m.mine.length > 0 && m.theirs.length > 0 && <span className="text-[11px] text-faint" aria-hidden="true">·</span>}
+      {m.theirs.map((w) => <span key={"t" + w} className="rounded-full bg-raspberry-soft px-2 py-0.5 text-[11px] font-semibold text-raspberry-deep" title={partnerName}>{w}</span>)}
+    </span>
   );
 }

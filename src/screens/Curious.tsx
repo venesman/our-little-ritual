@@ -50,7 +50,7 @@ export function CuriousTab() {
           <Button variant="ghost" busy={busy === "end"} onClick={() => run("end", async () => { await endCurious(state.session_id); return null; })}>
             <X size={15} aria-hidden="true" /> {state.stage === "setup" ? "Not now" : "End & save to history"}
           </Button>
-          <p className="mt-1 text-xs text-muted">Either of you can end it — the other phone follows.</p>
+          <p className="mt-1 text-xs text-muted">The other phone follows.</p>
         </div>
       )}
     </div>
@@ -85,7 +85,7 @@ function Lobby({ busy, run }: { busy: string | null; run: Run }) {
         <p className="font-hand text-xl text-raspberry-deep">two curious minds · one little topic · two perspectives</p>
         <h2 className="mt-1 text-3xl">The Curious Club</h2>
         <p className="mt-2 text-sm text-muted">
-          A mini research date: get a topic, look it up on your own for a few minutes, then each present your findings for a minute and talk it through.
+          Get a topic, look it up on your own, present it in a minute, then talk it through.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-2">
           <Button busy={busy === "start"} onClick={() => run("start", () => startCurious(filters))}><Dices size={16} aria-hidden="true" /> Pick a topic for us</Button>
@@ -180,7 +180,7 @@ function Notebook({ busy, onPick }: { busy: string | null; onPick: (t: Topic) =>
 
       <section>
         <h3 className="mb-1 text-2xl">Our discoveries</h3>
-        <p className="mb-2 text-xs text-muted">Shared between you. They'll move into the Scrapbook when it arrives.</p>
+        <p className="mb-2 text-xs text-muted">Shared between you, and kept in your scrapbook.</p>
         {history === null ? <Spinner label="Loading" /> : discoveries.length === 0
           ? <p className="font-hand text-lg text-muted">save little discoveries at the end of a session</p>
           : (
@@ -580,7 +580,7 @@ function DiscussView({ s, busy, run }: { s: CuriousState; busy: string | null; r
 
       <Card className="space-y-3">
         <h3 className="inline-flex items-center gap-2 text-xl"><Sparkles size={18} className="text-mustard-deep" aria-hidden="true" />Save a discovery</h3>
-        <p className="text-xs text-muted">Little things worth remembering. Shared with both of you; they'll appear in the Scrapbook when it arrives.</p>
+        <p className="text-xs text-muted">Saved discoveries go straight into your scrapbook ✦</p>
         <div className="flex gap-2">
           <input aria-label="New discovery" className={inputCls} maxLength={500} value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="e.g. Rats can laugh when tickled" />
           <Button busy={busy === "disc"} onClick={() => { if (!draft.trim()) return; void run("disc", async () => { const r = await addCuriousDiscovery(s.session_id, draft); setDraft(""); return r; }); }}>

@@ -63,7 +63,7 @@ export function ApartTab() {
       <Card className="space-y-3 !bg-leaf text-cream">
         <h2 className="text-2xl text-cream">Little missions, on your own time</h2>
         <p className="text-sm text-cream/85">
-          Photo hunts, relays, research drops and little surprises. Do your part whenever it suits you — across time zones, no call needed.
+          Little missions you each do whenever it suits you — no call needed.
         </p>
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Kind of mission">
           {APART_TYPES.map((t) => (
@@ -244,7 +244,7 @@ export function ApartMission() {
         />
       )}
 
-      {(style === "relay" ? entries.length > 0 : summary.visible) && <SaveToScrapbook kind="mission" refId={missionId} />}
+      {(style === "relay" ? entries.length > 0 : summary.visible) && <SaveToScrapbook kind="mission" refId={missionId} prompt />}
 
       {!closed ? (
         <div className="border-t border-dashed border-leaf/25 pt-4">

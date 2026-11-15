@@ -1,3 +1,4 @@
+import { ForYouLine, WelcomeBack } from "../components/ForYouLine";
 import { RecentMemories } from "../components/ScrapbookBits";
 import { MailboxCard } from "../components/MailboxCard";
 import { CheckinCard } from "../components/CheckinCard";
@@ -107,12 +108,10 @@ export function Home() {
         </span>
       </section>
 
-      <CallWindowCard
-        now={now}
-        me={{ timeZone: myTz, from: profile?.free_from?.slice(0, 5) ?? null, to: profile?.free_to?.slice(0, 5) ?? null }}
-        partner={{ timeZone: partnerTz, from: partner.profile?.free_from?.slice(0, 5) ?? null, to: partner.profile?.free_to?.slice(0, 5) ?? null }}
-        partnerName={partnerName}
-      />
+
+      <WelcomeBack userId={session!.user.id} ritualId={ritual?.weeklyId} />
+
+      <ForYouLine partnerName={partnerName} ritualId={ritual?.weeklyId} />
 
       {/* this week's ritual — postcard */}
       <section aria-label="This week's ritual" className="space-y-2">
@@ -140,11 +139,18 @@ export function Home() {
         )}
       </section>
 
-      <RecentMemories />
+      <CheckinCard partnerName={partnerName} />
 
       <MailboxCard timeZone={myTz} />
 
-      <CheckinCard partnerName={partnerName} />
+      <RecentMemories />
+
+      <CallWindowCard
+        now={now}
+        me={{ timeZone: myTz, from: profile?.free_from?.slice(0, 5) ?? null, to: profile?.free_to?.slice(0, 5) ?? null }}
+        partner={{ timeZone: partnerTz, from: partner.profile?.free_from?.slice(0, 5) ?? null, to: partner.profile?.free_to?.slice(0, 5) ?? null }}
+        partnerName={partnerName}
+      />
 
       <NudgeCard myId={session!.user.id} partnerId={partner.user_id} partnerName={partnerName} timeZone={myTz} />
 

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { ForYouProvider, getSeen, markSeen, useForYou } from "../hooks/useForYou";
+import { useAuth } from "../hooks/useAuth";
 import { BookHeart, CloudOff, Dices, Home, Mail, Settings, Stamp } from "lucide-react";
 import { Logo } from "./ui";
 
@@ -37,8 +39,35 @@ function useOnline() {
   return online;
 }
 
+/** Which sections have something new waiting for you — shown as a quiet dot (no numbers). */
+function useDots(): Record<string, boolean> {
+  const { data } = useForYou();
+  const { session } = useAuth();
+  const { pathname } = useLocation();
+  const uid = session?.user.id ?? "";
+  const [, bump] = useState(0);
+  useEffect(() => {
+    if (pathname.startsWith("/us") && uid) { markSeen(uid, "us"); bump((n) => n + 1); }
+  }, [pathname, uid, data?.latest_memory_at]);
+  if (!data) return {};
+  const latest = data.latest_memory_at ? Date.parse(data.latest_memory_at) : 0;
+  return {
+    "/rituals": !!data.ritual_partner_shared || (data.older_rituals_waiting ?? 0) > 0,
+    "/play": (data.apart_my_turn ?? 0) > 0,
+    "/us": !!uid && latest > getSeen(uid, "us") && getSeen(uid, "us") > 0,
+    "/mailbox": (data.letters_unread ?? 0) > 0,
+  };
+}
+
+const Dot = () => <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full border-2 border-leaf bg-raspberry" aria-hidden="true" />;
+
 export function AppShell() {
+  return <ForYouProvider><Shell /></ForYouProvider>;
+}
+
+function Shell() {
   const online = useOnline();
+  const dots = useDots();
   return (
     <div className="min-h-[100dvh] md:flex">
       {/* desktop sidebar — a leaf-green journal spine */}
@@ -52,7 +81,8 @@ export function AppShell() {
                 className={({ isActive }) =>
                   `flex items-center gap-3 rounded-full px-4 py-2.5 text-sm font-semibold transition ${isActive ? "bg-mustard text-leaf" : "text-cream/80 hover:bg-cream/10 hover:text-cream"}`}
               >
-                <Icon size={18} aria-hidden="true" />{label}
+                <span className="relative"><Icon size={18} aria-hidden="true" />{dots[to] && <Dot />}</span>{label}
+                {dots[to] && <span className="sr-only"> (something new)</span>}
               </NavLink>
             ))}
           </nav>
@@ -83,7 +113,8 @@ export function AppShell() {
                 className={({ isActive }) =>
                   `flex min-w-[58px] flex-col items-center gap-1 rounded-2xl px-3 py-1.5 text-[11px] font-semibold transition ${isActive ? "bg-mustard text-leaf" : "text-cream/75"}`}
               >
-                <Icon size={21} aria-hidden="true" />{label}
+                <span className="relative"><Icon size={21} aria-hidden="true" />{dots[to] && <Dot />}</span>{label}
+                {dots[to] && <span className="sr-only"> (something new)</span>}
               </NavLink>
             </li>
           ))}

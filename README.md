@@ -79,6 +79,8 @@ Run each new file in `supabase/migrations/` once, in number order, in **SQL Edit
 
 - **`0016_gentle_reminders.sql`**: gentle reminders (web push) — see "Setting up gentle reminders" below.
 
+- **`0017_for_you.sql`**: the "For you" summary behind the Home line, Welcome back card and the quiet dots (counts only).
+
 ## 2. Deploy on Vercel
 
 1. [vercel.com](https://vercel.com) → **Add New → Project** → import `venesman/our-little-ritual`.
