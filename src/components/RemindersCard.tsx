@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { Bell, BellOff, Share } from "lucide-react";
+import { Bell, BellOff, Moon, Share } from "lucide-react";
 import {
-  currentSubscription, getReminderPrefs, reminderSupport, sendTestReminder, setReminderPrefs, turnOffReminders, turnOnReminders,
-  type ReminderPrefs,
+  currentSubscription, getQuietHours, getReminderPrefs, reminderSupport, sendTestReminder, setQuietHours, setReminderPrefs,
+  turnOffReminders, turnOnReminders, type QuietHours, type ReminderPrefs,
 } from "../lib/reminders";
 import { friendlyError } from "../lib/errors";
-import { Button, Card } from "./ui";
+import { Button, Card, inputCls } from "./ui";
 
 /** Settings: gentle reminders on this phone. Opt-in, never more than two a week, nothing private in them. */
 export function RemindersCard({ userId, partnerName = "your partner" }: { userId: string; partnerName?: string }) {
@@ -14,10 +14,12 @@ export function RemindersCard({ userId, partnerName = "your partner" }: { userId
   const [prefs, setPrefs] = useState<ReminderPrefs | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [quiet, setQuiet] = useState<QuietHours | null>(null);
 
   useEffect(() => {
     currentSubscription().then((s) => setOn(!!s)).catch(() => setOn(false));
     getReminderPrefs(userId).then(setPrefs).catch(() => setPrefs(null));
+    getQuietHours(userId).then(setQuiet).catch(() => setQuiet(null));
   }, [userId]);
 
   const toggle = async (k: keyof ReminderPrefs) => {
@@ -27,13 +29,20 @@ export function RemindersCard({ userId, partnerName = "your partner" }: { userId
     try { await setReminderPrefs({ [k]: next[k] }); } catch (e) { setPrefs(prefs); setNote(friendlyError(e)); }
   };
 
+  const saveQuiet = async (next: QuietHours) => {
+    const prev = quiet;
+    setQuiet(next);
+    try { await setQuietHours(next); } catch (e) { setQuiet(prev); setNote(friendlyError(e)); }
+  };
+  const quietOn = !!quiet && quiet.start !== null && quiet.end !== null;
+
   return (
     <Card className="space-y-3">
       <div className="flex items-center gap-3">
         <span className="grid h-10 w-10 place-items-center rounded-full bg-raspberry-soft text-raspberry-deep"><Bell size={17} aria-hidden="true" /></span>
         <div>
           <h2 className="text-xl">Notifications</h2>
-          <p className="text-sm text-muted">Nothing between 10 pm and 8 am. Never anything private in them.</p>
+          <p className="text-sm text-muted">They arrive the moment something's sent. Never anything private in them.</p>
         </div>
       </div>
 
@@ -69,6 +78,25 @@ export function RemindersCard({ userId, partnerName = "your partner" }: { userId
                 ))}
               </ul>
             )}
+            {quiet && (
+              <div className="space-y-2 rounded-2xl bg-lilac/50 p-3">
+                <label className="flex items-center justify-between gap-3 text-sm">
+                  <span className="flex items-center gap-2"><Moon size={15} aria-hidden="true" /> Quiet hours</span>
+                  <input type="checkbox" className="h-5 w-5 accent-[#3E6B4C]" checked={quietOn}
+                    onChange={() => void saveQuiet(quietOn ? { start: null, end: null } : { start: 23, end: 7 })} />
+                </label>
+                {quietOn && (
+                  <>
+                    <div className="flex flex-wrap items-center gap-2 text-sm">
+                      From <HourPicker label="Quiet from" value={quiet.start!} onChange={(h) => h !== quiet.end && void saveQuiet({ ...quiet, start: h })} />
+                      to <HourPicker label="Quiet until" value={quiet.end!} onChange={(h) => h !== quiet.start && void saveQuiet({ ...quiet, end: h })} />
+                      <span className="text-muted">your time</span>
+                    </div>
+                    <p className="text-xs text-muted">Hearts and letters still come straight through. Ritual, check-in and mission news waits until morning.</p>
+                  </>
+                )}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" className="!min-h-[38px] !px-3 text-xs" busy={busy === "test"} onClick={async () => {
                 setBusy("test"); setNote(null);
@@ -91,5 +119,15 @@ export function RemindersCard({ userId, partnerName = "your partner" }: { userId
       )}
       {note && <p className="text-sm text-muted" aria-live="polite">{note}</p>}
     </Card>
+  );
+}
+
+const hourLabel = (h: number) => (h === 0 ? "12 am" : h === 12 ? "12 pm" : h < 12 ? `${h} am` : `${h - 12} pm`);
+function HourPicker({ label, value, onChange }: { label: string; value: number; onChange: (h: number) => void }) {
+  return (
+    <select aria-label={label} value={value} onChange={(e) => onChange(Number(e.target.value))}
+      className={`${inputCls} !min-h-[36px] !w-auto !py-1 text-sm`}>
+      {Array.from({ length: 24 }, (_, h) => <option key={h} value={h}>{hourLabel(h)}</option>)}
+    </select>
   );
 }

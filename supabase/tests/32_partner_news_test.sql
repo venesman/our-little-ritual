@@ -17,8 +17,6 @@ select tests.expect((select count(*) from public.due_reminders(:'t') where kind 
 select tests.expect((select title from public.due_reminders(:'t') where kind = 'love' and user_id = :'A') = 'Jonatan is thinking of you ♥', 'says who');
 select tests.expect((select count(*) from public.due_reminders(:'t') where kind = 'love' and user_id = :'B') = 0, 'not to the one who tapped');
 
--- quiet hours: 3 am in Kuching (19:00 UTC) — nothing for Vee
-select tests.expect((select count(*) from public.due_reminders(:'t'::timestamptz + interval '6 hours') where kind = 'love' and user_id = :'A') = 0, 'nothing at night');
 
 -- turned off
 update public.profiles set remind_love = false where id = :'A';

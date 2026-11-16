@@ -59,13 +59,26 @@ export async function turnOffReminders(): Promise<void> {
   await sub.unsubscribe();
 }
 
-/** remind_partner / remind_love exist once migration 0032 has run. */
+/** remind_partner / remind_love exist once migration 0032 has run; quiet hours once 0033 has. */
 export interface ReminderPrefs { remind_monday: boolean; remind_midweek: boolean; remind_letters: boolean; remind_partner?: boolean; remind_love?: boolean }
+export interface QuietHours { start: number | null; end: number | null }
 export async function getReminderPrefs(userId: string): Promise<ReminderPrefs | null> {
-  const full = await supabase.from("profiles").select("remind_monday, remind_midweek, remind_letters, remind_partner, remind_love").eq("id", userId).maybeSingle();
-  if (!full.error) return full.data as ReminderPrefs | null;
-  const { data, error } = await supabase.from("profiles").select("remind_monday, remind_midweek, remind_letters").eq("id", userId).maybeSingle();
-  return error ? null : (data as ReminderPrefs | null);
+  for (const cols of ["remind_monday, remind_midweek, remind_letters, remind_partner, remind_love", "remind_monday, remind_midweek, remind_letters"]) {
+    const { data, error } = await supabase.from("profiles").select(cols).eq("id", userId).maybeSingle();
+    if (!error) return data as ReminderPrefs | null;
+  }
+  return null;
+}
+/** null when the quiet-hours migration hasn't run yet (the control stays hidden). */
+export async function getQuietHours(userId: string): Promise<QuietHours | null> {
+  const { data, error } = await supabase.from("profiles").select("quiet_start, quiet_end").eq("id", userId).maybeSingle();
+  if (error || !data) return null;
+  const d = data as { quiet_start: number | null; quiet_end: number | null };
+  return { start: d.quiet_start, end: d.quiet_end };
+}
+export async function setQuietHours(q: QuietHours) {
+  const { error } = await supabase.rpc("set_quiet_hours", { p_start: q.start, p_end: q.end });
+  if (error) throw error;
 }
 export async function setReminderPrefs(p: Partial<ReminderPrefs>) {
   if (p.remind_partner !== undefined || p.remind_love !== undefined) {
