@@ -11,7 +11,7 @@ import type { Visit } from "../lib/visits";
  * and little drawings for where you are.
  * ===================================================================== */
 
-const INK = "#3A2A24";
+const INK = "#1F3D2B";
 
 /* --------------------------------------------------------- drawings */
 type Scene = "longhouse" | "swedish-house" | "mountains" | "plane";
