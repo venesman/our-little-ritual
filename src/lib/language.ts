@@ -20,7 +20,7 @@ export const STARTERS: Starter[] = [
   { cat: "hello", en: "Good morning", sv: "God morgon", es: "Buenos días", iban: "Selamat pagi", say: { sv: "goo MOR-ron" } },
   { cat: "hello", en: "Good night, sleep well", sv: "God natt, sov gott", es: "Buenas noches, que duermas bien", iban: "Selamat malam, ngarap ka nuan tinduk nyamai", say: { sv: "goo NAT, sohv GOT" } },
   { cat: "hello", en: "Good afternoon", sv: "God eftermiddag", es: "Buenas tardes", iban: "Selamat ngalih tengahari", say: { sv: "goo EF-ter-mid-dahg" } },
-  { cat: "hello", en: "Good evening", sv: "God kväll", es: "Buenas noches", iban: "Selamat lema", say: { sv: "goo KVELL" }, note: { es: "Spanish uses the same words for good evening and good night" } },
+  { cat: "hello", en: "Good evening", sv: "God kväll", es: "Buenas noches", iban: "Selamat lemai", say: { sv: "goo KVELL" }, note: { es: "Spanish uses the same words for good evening and good night" } },
   { cat: "hello", en: "How are you?", sv: "Hur mår du?", es: "¿Cómo estás?", iban: "Nama berita nuan?", say: { sv: "hoor MOHR doo" } },
   { cat: "hello", en: "I'm fine", sv: "Jag mår bra", es: "Estoy bien", iban: "Aku gerai", say: { sv: "yah mohr BRAH" } },
   { cat: "hello", en: "Thank you", sv: "Tack", es: "Gracias", iban: "Terima kasih", say: { sv: "tahk" } },
