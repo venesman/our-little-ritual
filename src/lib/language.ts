@@ -77,7 +77,7 @@ export const STARTERS: Starter[] = [
   { cat: "everyday", en: "Delicious!", sv: "Gott!", es: "¡Qué rico!", iban: "Nyamai!", say: { sv: "got" } },
   { cat: "everyday", en: "Cheers!", sv: "Skål!", es: "¡Salud!", iban: "Oooohaa!", say: { sv: "skohl" } },
   { cat: "everyday", en: "I don't know", sv: "Jag vet inte", es: "No sé", iban: "Aku enda nemu", say: { sv: "yah veht IN-teh" }, note: { iban: "Draft — Vee to check" } },
-  { cat: "everyday", en: "Where are you going?", sv: "Vart ska du?", es: "¿A dónde vas?", iban: "Ka ni nuan?", say: { sv: "vart skah doo" }, note: { iban: "Draft — Vee to check" } },
+  { cat: "everyday", en: "Where are you going?", sv: "Vart ska du?", es: "¿A dónde vas?", iban: "Ka kini nuan?", say: { sv: "vart skah doo" } },
   { cat: "everyday", en: "Wait a moment", sv: "Vänta lite", es: "Espera un ratito", say: { sv: "VEN-ta LEE-teh" } },
   { cat: "everyday", en: "Sorry", sv: "Förlåt", es: "Perdón", say: { sv: "fur-LOHT" } },
   { cat: "everyday", en: "Good luck!", sv: "Lycka till!", es: "¡Suerte!", say: { sv: "LUCK-a till" } },
