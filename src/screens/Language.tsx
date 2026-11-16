@@ -267,6 +267,7 @@ function Conversations({ lang }: { lang: Lang | "all" }) {
               <li key={i} className={`flex ${i % 2 ? "justify-end" : ""}`}>
                 <div className={`max-w-[85%] rounded-3xl px-4 py-2.5 ${i % 2 ? "rounded-br-md bg-mint" : "rounded-bl-md bg-peach"}`}>
                   <p className="text-xl font-bold leading-snug text-leaf">{l.text}</p>
+                  {l.say && <p className="text-sm italic text-muted">say: {l.say}</p>}
                   <p className="text-base text-muted">{l.en}</p>
                 </div>
               </li>
