@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { BookHeart, ChevronRight, Hourglass } from "lucide-react";
+import { BookHeart, Hourglass } from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { CATEGORY, getRitualHistory, type WeeklyRitual } from "../lib/rituals";
 import { getMyRitualStatuses, type WeekListStatus } from "../lib/submissions";
@@ -9,7 +9,7 @@ import { useCurrentRitual } from "../hooks/useCurrentRitual";
 import { useSpace } from "../hooks/useSpace";
 import { formatInZone } from "../lib/time";
 import { RitualPostcard } from "../components/RitualPostcard";
-import { ErrorNote, Loops, Spinner } from "../components/ui";
+import { ErrorNote, Loops, PostageStamp, Spinner, type StampColour } from "../components/ui";
 
 /** Every week's ritual, newest first — the journal's table of contents. */
 export function Rituals() {
@@ -64,21 +64,29 @@ export function Rituals() {
         {history === null && !error ? null : past.length === 0 ? (
           <EmptyNote text="Your past rituals will collect here, week by week." />
         ) : (
-          <ul className="divide-y divide-dashed divide-leaf/20 rounded-card bg-paper shadow-card">
-            {past.map((r) => (
-              <li key={r.weeklyId}>
-                <Link to={`/rituals/${r.weeklyId}`} className="flex items-center gap-3 px-5 py-4 hover:bg-cream/60">
-                  <span className="w-14 shrink-0 text-[10px] font-bold uppercase tracking-[0.14em] text-tomato-deep">Week {r.weekNumber}</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate font-display text-lg">{r.activity.title}</span>
-                    <span className="block text-xs text-muted">{formatInZone(new Date(r.weekStart), tz).split(",")[0]}</span>
-                  </span>
-                  {kept.has(r.weeklyId) && <BookHeart size={15} className="shrink-0 text-raspberry-deep" aria-label="In our scrapbook" />}
-                  {statuses[r.weeklyId]?.revealed ? <PassportStamp ritual={r} tz={tz} /> : <WeekBadge s={statuses[r.weeklyId]} />}
-                  <ChevronRight size={18} className="text-faint" aria-hidden="true" />
-                </Link>
-              </li>
-            ))}
+          <ul className="grid grid-cols-2 gap-x-3 gap-y-4 pt-1">
+            {past.map((r, i) => {
+              const cat = CATEGORY[r.activity.category];
+              return (
+                <li key={r.weeklyId} style={{ transform: `rotate(${[-1.5, 1.2, 1, -1.2][i % 4]}deg)` }}>
+                  <Link to={`/rituals/${r.weeklyId}`} className="relative flex h-full min-h-[150px] flex-col rounded-[18px] bg-white p-3.5 shadow-card transition hover:-translate-y-0.5"
+                    aria-label={`Week ${r.weekNumber}: ${r.activity.title}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <PostageStamp colour={STAMP_COLOUR[cat.tone] ?? "tangerine"} size="sm" tilt={5}>
+                        <span className="font-display text-base leading-none">{String(r.weekNumber).padStart(2, "0")}</span>
+                        <span className="text-[7px] font-bold uppercase tracking-[0.1em]">Week</span>
+                      </PostageStamp>
+                      {statuses[r.weeklyId]?.revealed ? <PassportStamp ritual={r} tz={tz} /> : <WeekBadge s={statuses[r.weeklyId]} />}
+                    </div>
+                    <span className="mt-2 line-clamp-2 font-display text-lg leading-tight">{r.activity.title}</span>
+                    <span className="mt-auto flex items-center justify-between pt-1">
+                      <span className="font-hand text-base font-bold leading-none text-muted">{formatInZone(new Date(r.weekStart), tz).split(",")[0].toLowerCase()}</span>
+                      {kept.has(r.weeklyId) && <BookHeart size={14} className="shrink-0 text-raspberry-deep" aria-label="In our scrapbook" />}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>
@@ -94,6 +102,8 @@ function EmptyNote({ text }: { text: string }) {
     </div>
   );
 }
+
+const STAMP_COLOUR: Record<string, StampColour> = { raspberry: "lilac", mustard: "gold", leaf: "cornflower", tomato: "tangerine" };
 
 const STAMP_RING = {
   raspberry: "border-raspberry text-raspberry-deep", mustard: "border-mustard text-mustard-deep",

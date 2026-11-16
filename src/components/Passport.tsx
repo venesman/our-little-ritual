@@ -183,6 +183,15 @@ function VisaStamp({ v, i }: { v: Visit; i: number }) {
   );
 }
 
+/** A wrap of visa stamps, oldest first (pass past visits only). */
+export function VisaStamps({ visits }: { visits: Visit[] }) {
+  return (
+    <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-0 gap-y-1 py-1">
+      {visits.map((v, i) => <VisaStamp key={v.id} v={v} i={i} />)}
+    </ul>
+  );
+}
+
 /** "Places we've met": a passport page with a visa stamp for every past visit. */
 export function PlacesWeMet({ visits, today }: { visits: Visit[]; today: string }) {
   const past = visits.filter((v) => (v.ends_on ?? v.starts_on) < today).sort((a, b) => a.starts_on.localeCompare(b.starts_on));
@@ -200,9 +209,7 @@ export function PlacesWeMet({ visits, today }: { visits: Visit[]; today: string 
           Add the times you've already met — each one becomes a stamp.
         </div>
       ) : (
-        <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-0 gap-y-1 py-1">
-          {past.slice(-9).map((v, i) => <VisaStamp key={v.id} v={v} i={i} />)}
-        </ul>
+        <VisaStamps visits={past.slice(-9)} />
       )}
     </Link>
   );

@@ -6,7 +6,7 @@ import { daysInclusive, togetherDays, listDocuments, removeDocumentsOf, type Sup
 import { getFeed, type Memory } from "../lib/scrapbook";
 import { usePeople } from "../hooks/usePeople";
 import { Documents } from "../components/Documents";
-import { Scene, sceneFor } from "../components/Passport";
+import { Scene, sceneFor, VisaStamps } from "../components/Passport";
 import { localDate } from "../lib/callWindow";
 import { friendlyError } from "../lib/errors";
 import { useSpace } from "../hooks/useSpace";
@@ -211,6 +211,10 @@ export function Visits() {
         <section>
           <h2 className="mb-3 font-sans text-xs font-bold uppercase tracking-[0.16em] text-muted">Been there together</h2>
           {full && <p className="-mt-2 mb-3 text-xs text-muted">{past.length} {past.length === 1 ? "time" : "times"} together · {togetherDays(past.map((v) => ({ from: v.starts_on, until: v.ends_on }))).size} days (overlaps counted once)</p>}
+          <div className="mb-4 rotate-[0.5deg] rounded-card bg-paper px-3 pb-2 pt-3 shadow-card">
+            <p className="px-1 font-hand text-lg font-bold leading-none text-raspberry-deep">our passport · {past.length} {past.length === 1 ? "stamp" : "stamps"}</p>
+            <VisaStamps visits={[...past].reverse()} />
+          </div>
           <ul className="divide-y divide-dashed divide-leaf/20 rounded-card bg-paper shadow-card">{past.map(row)}</ul>
         </section>
       )}
