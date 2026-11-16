@@ -14,16 +14,16 @@ function useCover(path: string | null | undefined) {
 export function SongCard({ song, note, compact }: { song: Song; note?: string | null; compact?: boolean }) {
   const cover = useCover(song.cover_path);
   return (
-    <a href={song.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-2xl bg-leaf p-3 text-cream shadow-card transition hover:-translate-y-px" aria-label={`Open ${song.title || "this song"} in Spotify`}>
-      <div className={`${compact ? "h-12 w-12" : "h-16 w-16"} shrink-0 overflow-hidden rounded-lg bg-leaf-soft/20`}>
+    <a href={song.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-2xl bg-mint p-3 text-leaf shadow-card transition hover:-translate-y-px" aria-label={`Open ${song.title || "this song"} in Spotify`}>
+      <div className={`${compact ? "h-12 w-12" : "h-16 w-16"} shrink-0 overflow-hidden rounded-lg bg-white/70`}>
         {cover ? <img src={cover} alt="" className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center"><Music2 size={20} aria-hidden="true" /></div>}
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate font-display text-lg leading-tight">{song.title || "A song for you"}</p>
-        <p className="truncate text-sm text-cream/80">{[song.artist, song.album].filter(Boolean).join(" · ") || "Open in Spotify"}</p>
-        {note && <p className="mt-1 font-hand text-base leading-snug text-mustard">“{note}”</p>}
+        <p className="truncate text-sm text-muted">{[song.artist, song.album].filter(Boolean).join(" · ") || "Open in Spotify"}</p>
+        {note && <p className="mt-1 font-hand text-base font-bold leading-snug text-raspberry-deep">“{note}”</p>}
       </div>
-      <span className="shrink-0 rounded-full bg-mustard px-2.5 py-1 text-[11px] font-bold text-leaf">Spotify ↗</span>
+      <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-leaf">Spotify ↗</span>
     </a>
   );
 }

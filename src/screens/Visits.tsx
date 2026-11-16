@@ -6,6 +6,7 @@ import { daysInclusive, togetherDays, listDocuments, removeDocumentsOf, type Sup
 import { getFeed, type Memory } from "../lib/scrapbook";
 import { usePeople } from "../hooks/usePeople";
 import { Documents } from "../components/Documents";
+import { Scene, sceneFor } from "../components/Passport";
 import { localDate } from "../lib/callWindow";
 import { friendlyError } from "../lib/errors";
 import { useSpace } from "../hooks/useSpace";
@@ -83,7 +84,7 @@ export function Visits() {
     const trip = v.moment_id ? trips.find((m) => m.ref_id === v.moment_id) : null;
     return (
     <li key={v.id} className="flex items-start gap-3 px-5 py-4">
-      <Plane size={16} className="mt-1 shrink-0 text-tomato" aria-hidden="true" />
+      <Scene kind={sceneFor(`${v.country ?? ""} ${v.city ?? ""} ${v.place}`)} className="mt-1 h-9 w-14 shrink-0" />
       <div className="min-w-0 flex-1">
         {full && <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted">{STAY_LABEL[v.stay_type ?? "visit"]} · {daysInclusive(v.starts_on, v.ends_on)} {daysInclusive(v.starts_on, v.ends_on) === 1 ? "day" : "days"}</p>}
         <p className="font-display text-lg">{v.title || v.place}</p>

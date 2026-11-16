@@ -127,7 +127,7 @@ export function AnswerForm({ ritual, relationshipId, userId, myName, partnerName
         <div className="inline-flex rounded-full border-2 border-leaf/20 p-1" role="tablist" aria-label="Draw or write">
           {(["write", "draw"] as const).map((m) => (
             <button key={m} type="button" role="tab" aria-selected={mode === m} onClick={() => setMode(m)}
-              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold ${mode === m ? "bg-leaf text-cream" : "text-muted"}`}>
+              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold ${mode === m ? "bg-mustard text-leaf" : "text-muted"}`}>
               {m === "write" ? <PenLine size={14} /> : <Pencil size={14} />}{m === "write" ? "Write" : "Draw"}
             </button>
           ))}

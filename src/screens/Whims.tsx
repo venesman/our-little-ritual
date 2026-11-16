@@ -136,7 +136,7 @@ function WhimCard({ w, myId, pName, onChange }: { w: Whim; myId: string | null |
             {choices.map((s) => (
               <button key={s} type="button" disabled={!!busy} aria-pressed={w.status === s && !giverSurprise}
                 onClick={() => void act(s, () => setWhimStatus(w.id, s, noteOpen ? note : null))}
-                className={`min-h-[36px] rounded-full border-2 px-3 text-xs font-semibold ${w.status === s && !giverSurprise ? "border-leaf bg-leaf text-cream" : "border-leaf/40 bg-paper text-leaf"}`}>
+                className={`min-h-[36px] rounded-full border-2 px-3 text-xs font-semibold ${w.status === s && !giverSurprise ? "border-leaf/20 bg-mustard text-leaf" : "border-leaf/40 bg-paper text-leaf"}`}>
                 {giverSurprise && s === "bought" ? "Bought it (still secret)" : STATUS_LABEL[s]}
               </button>
             ))}
@@ -238,7 +238,7 @@ export function WhimEditor() {
         <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Kind of whim">
           {(Object.keys(KIND_INFO) as WhimKind[]).map((k) => (
             <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)}
-              className={`rounded-2xl border-2 p-3 text-left ${kind === k ? "border-leaf bg-leaf text-cream" : "border-leaf/30 bg-paper text-leaf"}`}>
+              className={`rounded-2xl border-2 p-3 text-left ${kind === k ? "border-leaf/20 bg-mustard text-leaf" : "border-leaf/30 bg-paper text-leaf"}`}>
               <span className="block font-display text-base">{KIND_INFO[k].label}</span>
               <span className={`block text-xs ${kind === k ? "text-cream/85" : "text-muted"}`}>{KIND_INFO[k].hint}</span>
             </button>

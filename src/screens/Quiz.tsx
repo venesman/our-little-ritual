@@ -202,7 +202,7 @@ function Mark({ v, hiddenLabel }: { v: { correct: boolean } | "hidden" | null; h
   if (v === null) return <span className="grid h-6 w-6 place-items-center rounded-full border-2 border-dashed border-leaf/25" aria-label="Not played yet" />;
   if (v === "hidden") return <span className="grid h-6 w-6 place-items-center rounded-full bg-leaf-soft text-[10px] font-bold text-leaf" aria-label={hiddenLabel}>?</span>;
   return v.correct
-    ? <span className="grid h-6 w-6 place-items-center rounded-full bg-leaf text-cream" aria-label="Right"><Check size={13} /></span>
+    ? <span className="grid h-6 w-6 place-items-center rounded-full bg-visa-green text-white" aria-label="Right"><Check size={13} /></span>
     : <span className="grid h-6 w-6 place-items-center rounded-full bg-tomato-soft text-tomato-deep" aria-label="Wrong"><X size={13} /></span>;
 }
 
@@ -317,7 +317,7 @@ function PlayRound({ round, partnerName, onDone }: { round: QuizRound; partnerNa
               return (
                 <button key={i} type="button" disabled={!!result} onClick={() => void answer(i)}
                   className={`relative min-h-[52px] rounded-2xl border-2 px-4 py-2 text-left font-semibold transition ${
-                    isRight ? "border-leaf bg-leaf text-cream" : isMineWrong ? "border-tomato bg-tomato-soft text-tomato-deep" : "border-leaf/30 bg-paper text-leaf hover:border-leaf"}`}>
+                    isRight ? "border-visa-green bg-mint text-leaf" : isMineWrong ? "border-tomato bg-tomato-soft text-tomato-deep" : "border-leaf/30 bg-paper text-leaf hover:border-leaf"}`}>
                   {o}
                   {partnerHere && <span className="absolute -right-1 -top-2 rounded-full bg-raspberry px-2 py-0.5 text-[10px] font-bold text-leaf">{partnerName.slice(0, 10)}</span>}
                 </button>
@@ -565,7 +565,7 @@ function LiveMatch({ initial, onReload }: { initial: QuizMatch; onReload: () => 
           {rv.options.map((o, i) => {
             const me1 = qs.mine && qs.mine.choice === i; const them = qs.partner && qs.partner !== "hidden" && qs.partner.choice === i;
             return (
-              <div key={i} className={`relative rounded-2xl border-2 px-4 py-2 font-semibold ${i === rv.right ? "border-leaf bg-leaf text-cream" : me1 || them ? "border-tomato bg-tomato-soft text-tomato-deep" : "border-leaf/20 bg-paper text-leaf/70"}`}>
+              <div key={i} className={`relative rounded-2xl border-2 px-4 py-2 font-semibold ${i === rv.right ? "border-visa-green bg-mint text-leaf" : me1 || them ? "border-tomato bg-tomato-soft text-tomato-deep" : "border-leaf/20 bg-paper text-leaf/70"}`}>
                 {o}
                 <span className="absolute -top-2 right-2 flex gap-1">
                   {me1 && <span className="rounded-full bg-mustard px-2 py-0.5 text-[10px] font-bold text-leaf">{myName.slice(0, 10)}</span>}

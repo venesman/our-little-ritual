@@ -509,10 +509,10 @@ function PresentView({ s, skewMs, busy, run }: { s: CuriousState; skewMs: number
   return (
     <div className="space-y-5">
       <p className="font-hand text-xl text-raspberry-deep">step 3 · presentation {s.presenter_index + 1} of 2</p>
-      <Card className="!bg-leaf text-cream">
-        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-cream/80">{FORMAT[s.format].label}</p>
-        <h2 className="mt-1 text-3xl text-cream">{presenter === myId ? "You're on!" : `${nameOf(presenter)} is presenting`}</h2>
-        {presenterRole && <p className="mt-1 text-sm text-cream/85">{presenterRole}</p>}
+      <Card className="!bg-mint">
+        <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-muted">{FORMAT[s.format].label}</p>
+        <h2 className="mt-1 text-3xl italic">{presenter === myId ? "You're on!" : `${nameOf(presenter)} is presenting`}</h2>
+        {presenterRole && <p className="mt-1 text-sm">{presenterRole}</p>}
         {s.format === "debate" && t.debate_statement && <p className="mt-2 font-display text-lg">“{t.debate_statement}”</p>}
       </Card>
       <StageTimer s={s} skewMs={skewMs} busy={busy} run={run} lengths={[30, 60, 120]} guide />

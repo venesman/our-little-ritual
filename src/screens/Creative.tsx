@@ -84,7 +84,7 @@ export function CreativeTab() {
                       <span className="font-semibold">Lines</span>
                       {["8", "10", "12"].map((n) => (
                         <button key={n} type="button" aria-pressed={lines === n && !acrostic} onClick={() => { setLines(n); setAcrostic(""); }}
-                          className={`rounded-full border-2 px-3 py-1 text-xs font-semibold ${lines === n && !acrostic ? "border-leaf bg-leaf text-cream" : "border-leaf/30"}`}>{n}</button>
+                          className={`rounded-full border-2 px-3 py-1 text-xs font-semibold ${lines === n && !acrostic ? "border-leaf/20 bg-mustard text-leaf" : "border-leaf/30"}`}>{n}</button>
                       ))}
                       <span className="text-muted">or acrostic</span>
                       <input className={`${inputCls} !w-32`} maxLength={12} value={acrostic} onChange={(e) => setAcrostic(e.target.value)} placeholder="e.g. PUFFIN" aria-label="Acrostic word" />
@@ -317,13 +317,13 @@ function Mixtape({ c, myTurn, nameOf, busy, onAdd, onCover }: {
   useEffect(() => { setSong(null); setNote(""); }, [c.parts.length]);
   return (
     <div className="space-y-3">
-      <div className="rounded-2xl bg-leaf p-4 text-cream shadow-card">
+      <div className="rounded-card bg-lilac p-4 shadow-card">
         <div className="flex items-center gap-3">
-          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md bg-cream/10">
+          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-md bg-white/70">
             {c.cover_path ? <Pic path={c.cover_path} className="h-full w-full object-cover" /> : <div className="grid h-full w-full place-items-center"><Disc3 size={28} aria-hidden="true" /></div>}
           </div>
           <div>
-            <p className="font-hand text-lg text-mustard">side A · {c.parts.length} of 12</p>
+            <p className="font-hand text-lg font-bold text-raspberry-deep">side A · {c.parts.length} of 12</p>
             <p className="font-display text-xl leading-tight">{c.settings.name ?? c.title}</p>
           </div>
         </div>

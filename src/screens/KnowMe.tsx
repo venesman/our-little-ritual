@@ -146,7 +146,7 @@ function AboutMe({ r, pName, onDone }: { r: KnowMeRound; pName: string; onDone: 
                 <div className="mt-2 flex gap-1.5" role="group" aria-label="How close was the guess?">
                   {[2, 1, 0].map((m) => (
                     <button key={m} type="button" aria-pressed={marks[i] === m} onClick={() => setMarks((x) => { const n = [...x]; n[i] = m; return n; })}
-                      className={`min-h-[34px] rounded-full border-2 px-3 text-xs font-semibold ${marks[i] === m ? "border-leaf bg-leaf text-cream" : "border-leaf/30 bg-paper text-leaf"}`}>{MARKS[m]}</button>
+                      className={`min-h-[34px] rounded-full border-2 px-3 text-xs font-semibold ${marks[i] === m ? "border-leaf/20 bg-mustard text-leaf" : "border-leaf/30 bg-paper text-leaf"}`}>{MARKS[m]}</button>
                   ))}
                 </div>
               )}

@@ -158,7 +158,7 @@ function JustUsMondaysCard({ on, onChange }: { on: boolean; onChange: (v: boolea
       </div>
       <button type="button" role="switch" aria-checked={on} aria-label="Include Just us rituals on Mondays" disabled={busy}
         onClick={async () => { setBusy(true); try { await onChange(!on); } finally { setBusy(false); } }}
-        className={`relative mt-1 h-8 w-14 shrink-0 rounded-full border-2 border-leaf transition ${on ? "bg-leaf" : "bg-paper"} disabled:opacity-60`}>
+        className={`relative mt-1 h-8 w-14 shrink-0 rounded-full border-2 border-leaf/20 transition ${on ? "bg-visa-green" : "bg-white"} disabled:opacity-60`}>
         <span className={`absolute top-0.5 h-6 w-6 rounded-full transition-all ${on ? "left-[26px] bg-mustard" : "left-0.5 bg-leaf/40"}`} />
       </button>
     </Card>

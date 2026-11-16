@@ -17,7 +17,7 @@ import {
   type Favourite, type PastSession, type PlanStep, type PlayActivity, type PlayFilters, type PlayState,
 } from "../lib/play";
 import { friendlyError } from "../lib/errors";
-import { Button, Card, ErrorNote, LoopField, Spinner, Ticket } from "../components/ui";
+import { Button, Card, ErrorNote, Spinner, Ticket } from "../components/ui";
 
 type Tab = "play" | "curious" | "favourites" | "history";
 
@@ -45,7 +45,7 @@ export function Play() {
         <p className="font-hand text-2xl text-raspberry-deep">{mode === "call" ? "on a call? open this together" : mode === "quiz" ? "who knows more? let's find out" : mode === "create" ? "make something together" : "together, on your own time"}</p>
         <h1 className="text-4xl">Play With Me</h1>
       </header>
-      <div className="grid grid-cols-2 gap-1 rounded-full bg-white p-1 shadow-card" role="radiogroup" aria-label="How are you playing?">
+      <div className="grid grid-cols-2 gap-1 rounded-card bg-white p-1.5 shadow-card" role="radiogroup" aria-label="How are you playing?">
         {([["call", "On a call", Phone], ["apart", "Apart, anytime", Hourglass], ["quiz", "Quiz Time", Trophy], ["create", "Creative Corner", Palette]] as const).map(([m, label, I]) => (
           <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
             className={`inline-flex items-center justify-center gap-1.5 rounded-full px-2 py-2.5 text-sm font-semibold transition ${mode === m ? "border-[1.5px] border-leaf/15 bg-mustard text-leaf" : "border-[1.5px] border-transparent text-leaf/70"}`}>
@@ -54,7 +54,7 @@ export function Play() {
         ))}
       </div>
       <Link to="/play/language" className="flex w-full items-center gap-3 rounded-2xl border-2 border-leaf/15 bg-paper px-4 py-2.5 text-sm font-semibold text-leaf">
-        <Languages size={16} aria-hidden="true" /> Language corner <span className="font-normal text-muted">· Swedish · Spanish · Iban</span> <span className="ml-auto">→</span>
+        <Languages size={16} aria-hidden="true" /> <span className="flex flex-col leading-tight">Language corner<span className="font-hand text-base font-bold text-raspberry-deep">hej · hola · selamat</span></span> <span className="ml-auto">→</span>
       </Link>
       {mode === "create" ? <CreativeTab /> : mode === "quiz" ? <QuizTab /> : mode === "apart" ? <ApartTab /> : <>
       <button type="button" onClick={() => setMode("quiz")} className="flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-mustard bg-mustard-soft/60 px-4 py-2.5 text-left text-sm font-semibold text-leaf">
@@ -169,14 +169,20 @@ function PlayTab({ onCurious }: { onCurious: () => void }) {
           </div>
         </>
       ) : (
-        <Card className="relative overflow-hidden !bg-leaf text-cream">
-          <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 opacity-90"><LoopField className="h-full w-full" /></div>
+        <Card className="relative overflow-hidden !bg-peach">
+          <svg aria-hidden="true" viewBox="0 0 120 100" className="pointer-events-none absolute -right-2 -top-1 h-28 w-32 rotate-6">
+            <rect x="48" y="10" width="48" height="48" rx="10" fill="#FBF0C4" stroke="#1F3D2B" strokeWidth="2.6" transform="rotate(14 72 34)" />
+            <circle cx="62" cy="24" r="4" fill="#1F3D2B" /><circle cx="74" cy="36" r="4" fill="#1F3D2B" /><circle cx="86" cy="48" r="4" fill="#1F3D2B" />
+            <rect x="16" y="44" width="42" height="42" rx="9" fill="#F6D3DE" stroke="#1F3D2B" strokeWidth="2.6" transform="rotate(-12 37 65)" />
+            <circle cx="30" cy="60" r="3.6" fill="#1F3D2B" /><circle cx="44" cy="70" r="3.6" fill="#1F3D2B" />
+          </svg>
           <div className="relative space-y-3">
-            <h2 className="max-w-[15rem] text-2xl text-cream">No more "what should we do?"</h2>
-            <p className="max-w-[18rem] text-sm text-cream/85">Pick a vibe or let us surprise you. You'll both see the same activity, live.</p>
+            <p className="font-hand text-xl font-bold leading-none text-raspberry-deep">no more "what should we do?"</p>
+            <h2 className="max-w-[14rem] text-[1.75rem] italic leading-tight">What shall we do?</h2>
+            <p className="max-w-[15rem] text-sm">Pick a vibe or let us surprise you — you'll both see the same thing, live.</p>
             <div className="flex flex-wrap items-center gap-2">
               <Button onClick={() => draw(filters.just_us ? { just_us: true } : {})} busy={busy === "draw"}><Dices size={16} aria-hidden="true" /> Surprise us</Button>
-              <JustUsChip on={!!filters.just_us} onChange={(v) => setFilters({ ...filters, just_us: v || undefined })} dark />
+              <JustUsChip on={!!filters.just_us} onChange={(v) => setFilters({ ...filters, just_us: v || undefined })} />
             </div>
           </div>
         </Card>
@@ -342,7 +348,7 @@ export function ActivityCard({ activity, done }: { activity: PlayActivity; done?
         <span className="rounded-full bg-mustard-soft px-2.5 py-1 text-mustard-deep">{cap(activity.energy)} energy</span>
         <span className="rounded-full bg-raspberry-soft px-2.5 py-1 text-raspberry-deep">{typeLabel(activity.activity_type)}</span>
         {activity.just_us && <span className="inline-flex items-center gap-1 rounded-full bg-tomato-deep px-2.5 py-1 text-cream"><Sparkles size={11} aria-hidden="true" />Just us</span>}
-        {done && <span className="rounded-full bg-leaf px-2.5 py-1 text-cream">Done ✓</span>}
+        {done && <span className="rounded-full bg-mint px-2.5 py-1 text-leaf">Done ✓</span>}
       </div>
       <p className="mt-4 leading-relaxed">{text.text}</p>
       {activity.just_us && !text.personal && (
@@ -412,7 +418,7 @@ export function JustUsChip({ on, onChange, dark }: { on: boolean; onChange: (v: 
     <button type="button" onClick={() => onChange(!on)} aria-pressed={on}
       title="Only activities made from your Our Story profiles"
       className={`inline-flex min-h-[40px] items-center gap-1.5 rounded-full border-2 px-4 text-sm font-semibold transition ${
-        on ? "border-tomato-deep bg-tomato-deep text-cream" : dark ? "border-cream/40 text-cream/90 hover:border-cream" : "border-leaf/20 text-muted hover:border-leaf/50"}`}>
+        on ? "border-tomato bg-tomato text-white" : dark ? "border-leaf/25 bg-white/60 text-leaf hover:border-leaf/50" : "border-leaf/20 bg-white/60 text-leaf hover:border-leaf/50"}`}>
       <Sparkles size={15} aria-hidden="true" /> Just us{on ? " ✓" : ""}
     </button>
   );

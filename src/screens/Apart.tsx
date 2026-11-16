@@ -60,16 +60,17 @@ export function ApartTab() {
   return (
     <div className="space-y-5">
       <ErrorNote>{error}</ErrorNote>
-      <Card className="space-y-3 !bg-leaf text-cream">
-        <h2 className="text-2xl text-cream">Little missions, on your own time</h2>
-        <p className="text-sm text-cream/85">
+      <Card className="space-y-3 !bg-lilac">
+        <p className="font-hand text-xl font-bold leading-none text-raspberry-deep">apart, anytime</p>
+        <h2 className="text-[1.75rem] italic leading-tight">Little missions</h2>
+        <p className="text-sm">
           Little missions you each do whenever it suits you — no call needed.
         </p>
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Kind of mission">
           {APART_TYPES.map((t) => (
             <button key={t.value} type="button" aria-pressed={filters.type === t.value}
               onClick={() => { setFilters({ ...filters, type: filters.type === t.value ? undefined : t.value }); setBrowse(null); }}
-              className={`rounded-full border-2 px-3 py-1 text-sm font-semibold ${filters.type === t.value ? "border-mustard bg-mustard text-leaf" : "border-cream/30 text-cream/85"}`}>
+              className={`rounded-full border-2 px-3 py-1 text-sm font-semibold ${filters.type === t.value ? "border-leaf/20 bg-white text-leaf" : "border-leaf/15 text-leaf/75"}`}>
               {t.label}
             </button>
           ))}

@@ -33,7 +33,7 @@ export function SaveToScrapbook({ kind, refId, prompt }: { kind: MemoryKind; ref
   }
   return (
     <div className="space-y-1">
-      <button type="button" disabled={busy} aria-pressed={saved} onClick={() => void save()} className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 px-5 text-sm font-semibold transition ${saved ? "border-leaf bg-leaf text-cream" : "border-leaf bg-paper text-leaf hover:bg-leaf-soft"}`}>
+      <button type="button" disabled={busy} aria-pressed={saved} onClick={() => void save()} className={`inline-flex min-h-[44px] items-center gap-2 rounded-full border-2 px-5 text-sm font-semibold transition ${saved ? "border-leaf/20 bg-mustard text-leaf" : "border-leaf bg-paper text-leaf hover:bg-leaf-soft"}`}>
         {saved ? <Check size={16} aria-hidden="true" /> : <BookHeart size={16} aria-hidden="true" />}{saved ? "In our scrapbook" : "Save to scrapbook"}
       </button>
       {error && <p className="text-xs text-tomato-deep">{error}</p>}

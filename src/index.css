@@ -16,6 +16,8 @@
     letter-spacing: -0.005em;
   }
   ::selection { @apply bg-raspberry-soft; }
+  /* page titles read like handwritten feelings */
+  main h1 { font-style: italic; }
 }
 
 @layer components {

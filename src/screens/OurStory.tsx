@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarHeart, Heart, MapPin, Paperclip, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import { Documents } from "../components/Documents";
+import { Scene, sceneFor } from "../components/Passport";
 import { fmtPrecise, listDocuments, removeDocumentsOf, type SupportingDoc } from "../lib/record";
 import { useSpace } from "../hooks/useSpace";
 import { usePeople } from "../hooks/usePeople";
@@ -13,7 +14,7 @@ import {
 } from "../lib/story";
 import { detectTimezone, isValidTimezone, listTimezones, suggestZones } from "../lib/time";
 import { friendlyError } from "../lib/errors";
-import { Button, Card, ErrorNote, Field, Spinner, Ticket, inputCls } from "../components/ui";
+import { Button, Card, ErrorNote, Field, Spinner, inputCls } from "../components/ui";
 
 /**
  * Our Story — three layers, every part editable by both partners:
@@ -80,26 +81,35 @@ function PersonCard({ person, isMe, onError }: { person: Profile; isMe: boolean;
 
   if (editing) return <PersonForm person={person} isMe={isMe} onDone={async (saved) => { setEditing(false); if (saved) await refresh(); }} onError={onError} />;
 
+  const fields: [string, string | null | undefined][] = [
+    ["Home country", person.home_country], ["Doing now", person.situation], ["School or workplace", person.institution],
+    ["Time zone", person.timezone.replace(/_/g, " ")], ["Speaks", person.languages_spoken.join(", ")], ["Learning", person.languages_learning.join(", ")],
+  ];
+  const filled = fields.filter(([, v]) => v);
+  const missing = fields.filter(([, v]) => !v).map(([l]) => l.toLowerCase());
   return (
-    <Card className="space-y-3">
-      <div className="flex items-start justify-between gap-3">
+    <div className={`relative space-y-3 overflow-hidden rounded-card p-5 pb-20 shadow-card ${isMe ? "-rotate-[0.6deg] bg-raspberry" : "rotate-[0.6deg] bg-peach"}`}>
+      <Scene kind={sceneFor(where || person.timezone)} night={!isMe} className="pointer-events-none absolute -bottom-1 right-2 h-20 w-36" />
+      <div className="relative flex items-start justify-between gap-3">
         <div>
-          <Ticket tone={isMe ? "mustard" : "raspberry"}>{who}</Ticket>
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em]">{who}</p>
           <h3 className="mt-2 text-2xl">{person.display_name || "—"}</h3>
-          <p className="mt-0.5 inline-flex items-center gap-1 text-sm text-muted"><MapPin size={13} aria-hidden="true" />{where || "Where they live now: not set"}</p>
+          {where && <p className="mt-0.5 inline-flex items-center gap-1 text-sm"><MapPin size={13} aria-hidden="true" />{where}</p>}
         </div>
         <Button variant="outline" className="!min-h-[36px] !px-3 text-xs" onClick={() => setEditing(true)}><Pencil size={14} aria-hidden="true" /> Edit</Button>
       </div>
-      <dl className="grid grid-cols-1 gap-x-4 gap-y-2 text-sm sm:grid-cols-2">
-        <Info label="Home country" value={person.home_country} />
-        <Info label="Doing now" value={person.situation} />
-        <Info label="School or workplace" value={person.institution} />
-        <Info label="Time zone" value={person.timezone.replace(/_/g, " ")} />
-        <Info label="Speaks" value={person.languages_spoken.join(", ")} />
-        <Info label="Learning" value={person.languages_learning.join(", ")} />
-      </dl>
-      {person.interests.length > 0 && <Chips items={person.interests} />}
-    </Card>
+      {filled.length > 0 && (
+        <dl className="relative grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          {filled.map(([l, v]) => <Info key={l} label={l} value={v} />)}
+        </dl>
+      )}
+      {person.interests.length > 0 && <div className="relative"><Chips items={person.interests} /></div>}
+      {missing.length > 0 && (
+        <button type="button" onClick={() => setEditing(true)} className="relative block max-w-[60%] text-left font-hand text-lg leading-tight text-raspberry-deep">
+          + add {missing.length > 2 ? `${missing.slice(0, 2).join(", ")} and more` : missing.join(" and ")}{!where ? "" : ""}
+        </button>
+      )}
+    </div>
   );
 }
 
