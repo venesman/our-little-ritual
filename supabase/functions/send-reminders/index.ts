@@ -48,7 +48,9 @@ export function configFromEnv(env: (k: string) => string | undefined) {
 /** Sends one notification to each device; returns how many arrived. Removes devices the browser says are gone. */
 export async function deliver(
   db: Db, subs: Sub[], payload: { title: string; body: string; url: string; tag: string },
-  send: (sub: webpush.PushSubscription, data: string) => Promise<unknown> = (s, d) => webpush.sendNotification(s, d, { TTL: 60 * 60 * 12 }),
+  send: (sub: webpush.PushSubscription, data: string) => Promise<unknown> = (s, d) =>
+    // "high" so iPhones show it right away on the lock screen instead of saving it for later.
+    webpush.sendNotification(s, d, { TTL: 60 * 60 * 12, urgency: "high" }),
 ) {
   let ok = 0;
   for (const s of subs) {
