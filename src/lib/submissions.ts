@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { notifyNow } from "./reminders";
 
 export const MEDIA_BUCKET = "ritual-media";
 
@@ -66,7 +67,9 @@ export async function saveDraft(weeklyId: string, draft: { body: string; link_ur
 
 /** Seals the answer. Resolves to true when this completed the reveal. */
 export async function submitRitual(weeklyId: string): Promise<boolean> {
-  return check(await supabase.rpc("submit_ritual", { p_weekly: weeklyId })) as boolean;
+  const opened = check(await supabase.rpc("submit_ritual", { p_weekly: weeklyId })) as boolean;
+  notifyNow();
+  return opened;
 }
 
 /** Uploads into the user's own private folder for this week. Storage policies refuse anything else. */

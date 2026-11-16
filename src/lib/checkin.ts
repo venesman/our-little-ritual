@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { notifyNow } from "./reminders";
 
 export const MOOD_WORDS = ["calm", "happy", "tired", "stressed", "excited", "homesick", "grateful", "lonely",
   "hopeful", "busy", "proud", "overwhelmed", "content", "missing you"] as const;
@@ -32,10 +33,12 @@ export async function getCheckinWeek(week?: string | null): Promise<CheckinWeek>
   return check(await supabase.rpc("checkin_week", { p_week: week ?? null })) as CheckinWeek;
 }
 export async function saveCheckin(week: string, d: CheckinDraft, submit: boolean): Promise<CheckinWeek> {
-  return check(await supabase.rpc("save_checkin", {
+  const out = check(await supabase.rpc("save_checkin", {
     p_week: week, p_feeling: d.feeling, p_happy: d.happy, p_need: d.need, p_bonus: d.bonus,
     p_mood_words: d.mood_words, p_talk_on_call: d.talk_on_call, p_submit: submit,
   })) as CheckinWeek;
+  if (submit) notifyNow();
+  return out;
 }
 export async function markCheckinTalked(week: string): Promise<CheckinWeek> {
   return check(await supabase.rpc("mark_checkin_talked", { p_week: week })) as CheckinWeek;

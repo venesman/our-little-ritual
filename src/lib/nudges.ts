@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { notifyNow } from "./reminders";
 import { localDate } from "./callWindow";
 
 export interface Nudge { id: string; sender_id: string; created_at: string }
@@ -10,6 +11,7 @@ function check<T>(res: { data: T; error: unknown }): T {
 
 export async function sendNudge(): Promise<void> {
   check(await supabase.rpc("send_nudge"));
+  notifyNow();
 }
 
 /** The last week of taps between you two (RLS limits it to your space). */

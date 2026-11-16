@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { notifyNow } from "./reminders";
 import { ACTIVITY_COLUMNS, type PlayActivity, type PlayFilters } from "./play";
 import { compressImage } from "./image";
 
@@ -60,6 +61,7 @@ export async function addEntry(missionId: string, body: string, link?: string | 
     p_mission: missionId, p_body: body, p_link_url: link || null, p_image_path: imagePath || null,
     p_voice_path: voicePath || null, p_voice_seconds: voicePath ? voiceSeconds ?? null : null,
   }));
+  notifyNow();
 }
 
 export async function signedApartUrl(path: string): Promise<string | null> {

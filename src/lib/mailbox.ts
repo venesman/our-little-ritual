@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { notifyNow } from "./reminders";
 import { compressImage } from "./image";
 import { uploadVoice, type RecordedVoice } from "../components/Voice";
 
@@ -57,7 +58,7 @@ export async function saveLetter(l: { id?: string | null; kind: LetterKind; titl
     p_image_path: l.image_path ?? null, p_voice_path: l.voice_path ?? null, p_voice_seconds: l.voice_seconds ?? null,
   })) as string;
 }
-export async function sendLetter(id: string, revealAt: string | null) { check(await supabase.rpc("send_letter", { p_id: id, p_reveal_at: revealAt })); }
+export async function sendLetter(id: string, revealAt: string | null) { check(await supabase.rpc("send_letter", { p_id: id, p_reveal_at: revealAt })); notifyNow(); }
 export async function takeBackLetter(id: string) { check(await supabase.rpc("take_back_letter", { p_id: id })); }
 export async function deleteDraft(l: Letter) {
   const files = [l.image_path, l.voice_path].filter((x): x is string => !!x);

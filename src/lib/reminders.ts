@@ -88,3 +88,14 @@ export async function sendTestReminder(): Promise<string> {
   }
   return (data as { sent?: number })?.sent ? "Sent! It should appear on this phone in a moment." : "No reminder could be delivered to this phone.";
 }
+
+/**
+ * Ask the server to deliver anything that's now due (e.g. "Jonatan shared…") straight
+ * away, instead of waiting for the next scheduled check. Fire-and-forget: if it fails,
+ * the schedule still delivers within a few minutes.
+ */
+export function notifyNow(): void {
+  window.setTimeout(() => {
+    void supabase.functions.invoke("send-reminders", { body: { kick: true } }).catch(() => {});
+  }, 400);
+}
