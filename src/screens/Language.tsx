@@ -4,7 +4,7 @@ import { ArrowLeft, Pencil, RotateCcw, Shuffle, Trash2 } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
 import { friendlyError } from "../lib/errors";
 import {
-  CATEGORY_LABEL, LANG_LABEL, LANG_NATIVE, deleteTaught, listTaught, quizQuestion, shuffle, starterCards, taughtCards, teachWord,
+  CATEGORY_LABEL, CATEGORY_ORDER, DIALOGUES, LANG_LABEL, LANG_NATIVE, deleteTaught, listTaught, quizQuestion, shuffle, starterCards, taughtCards, teachWord,
   type Card, type Category, type Lang, type TaughtWord,
 } from "../lib/language";
 import { Button, Card as Box, ErrorNote, Field, inputCls } from "../components/ui";
@@ -61,7 +61,7 @@ export function Language() {
         </div>
       )}
 
-      {tab === "book" && <Phrasebook deck={deck} nameOf={nameOf} myId={myId} onEdit={() => setTab("teach")} onChange={load} />}
+      {tab === "book" && <Phrasebook lang={lang} deck={deck} nameOf={nameOf} myId={myId} onEdit={() => setTab("teach")} onChange={load} />}
       {tab === "cards" && <Flashcards key={lang} deck={deck} />}
       {tab === "quiz" && <Quiz key={lang} deck={deck} pool={all} />}
       {tab === "teach" && (taught === null
@@ -71,8 +71,8 @@ export function Language() {
   );
 }
 
-function Phrasebook({ deck, nameOf, myId, onEdit, onChange }: { deck: Card[]; nameOf: (id?: string | null) => string; myId: string | null; onEdit: () => void; onChange: () => void }) {
-  const groups: [Category | "ours", Card[]][] = (["ours", "hello", "love", "assurance", "everyday", "culture"] as const)
+function Phrasebook({ lang, deck, nameOf, myId, onEdit, onChange }: { lang: Lang | "all"; deck: Card[]; nameOf: (id?: string | null) => string; myId: string | null; onEdit: () => void; onChange: () => void }) {
+  const groups: [Category | "ours", Card[]][] = (["ours", ...CATEGORY_ORDER] as const)
     .map((c) => [c, deck.filter((x) => x.cat === c)] as [Category | "ours", Card[]]).filter(([, l]) => l.length);
   const [error, setError] = useState<string | null>(null);
   return (
@@ -103,6 +103,7 @@ function Phrasebook({ deck, nameOf, myId, onEdit, onChange }: { deck: Card[]; na
           </ul>
         </section>
       ))}
+      <Conversations lang={lang} />
       <p className="text-sm text-muted">Iban phrases checked by Vee. If anything could be said better, teach your version and it'll sit at the top.</p>
     </div>
   );
@@ -245,5 +246,35 @@ function Teach({ taught, myId, onChange }: { taught: TaughtWord[]; myId: string 
         </div>
       </form>
     </Box>
+  );
+}
+
+/** Short back-and-forths to read aloud together on a call: one of you takes each side. */
+function Conversations({ lang }: { lang: Lang | "all" }) {
+  const list = DIALOGUES.filter((d) => lang === "all" || d.lang === lang);
+  if (!list.length) return null;
+  return (
+    <section className={`${tile} space-y-4 p-4`}>
+      <div>
+        <h2 className="font-sans text-sm font-extrabold uppercase tracking-[0.14em] text-muted">Little conversations</h2>
+        <p className="text-base text-muted">Read them aloud on a call — one of you takes each side.</p>
+      </div>
+      {list.map((d) => (
+        <div key={d.lang + d.title} className="space-y-2">
+          <div className="space-y-1"><span className={langPill(d.lang)}>{LANG_LABEL[d.lang]}</span><h3 className="font-sans text-xl font-extrabold leading-snug text-leaf">{d.title}</h3></div>
+          <ul className="space-y-2">
+            {d.lines.map((l, i) => (
+              <li key={i} className={`flex ${i % 2 ? "justify-end" : ""}`}>
+                <div className={`max-w-[85%] rounded-3xl px-4 py-2.5 ${i % 2 ? "rounded-br-md bg-mint" : "rounded-bl-md bg-peach"}`}>
+                  <p className="text-xl font-bold leading-snug text-leaf">{l.text}</p>
+                  <p className="text-base text-muted">{l.en}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {d.note && <p className="text-sm text-muted">{d.note}</p>}
+        </div>
+      ))}
+    </section>
   );
 }
