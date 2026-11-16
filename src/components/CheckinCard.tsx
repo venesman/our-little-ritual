@@ -29,7 +29,7 @@ export function CheckinCard({ partnerName }: { partnerName: string }) {
           <h2 className="text-lg leading-snug">Weekly check-in</h2>
           <p className="text-sm text-muted">{line}</p>
         </div>
-        <Link to="/checkin" aria-label="Open weekly check-in" className="grid h-11 w-11 shrink-0 place-items-center rounded-[4px] border-[1.5px] border-leaf bg-mustard text-leaf shadow-print-sm">
+        <Link to="/checkin" aria-label="Open weekly check-in" className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-[1.5px] border-leaf/15 bg-mustard text-leaf shadow-print-sm">
           <ArrowRight size={17} aria-hidden="true" />
         </Link>
       </div>

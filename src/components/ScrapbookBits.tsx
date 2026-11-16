@@ -27,7 +27,7 @@ export function SaveToScrapbook({ kind, refId, prompt }: { kind: MemoryKind; ref
           {error && <p className="text-xs text-tomato-deep">{error}</p>}
         </div>
         <button type="button" disabled={busy} onClick={() => void save()}
-          className="inline-flex min-h-[40px] shrink-0 items-center rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print-sm">Keep it</button>
+          className="inline-flex min-h-[40px] shrink-0 items-center rounded-full border-[1.5px] border-leaf/15 bg-mustard px-4 text-sm font-semibold text-leaf shadow-print-sm">Keep it</button>
       </div>
     );
   }

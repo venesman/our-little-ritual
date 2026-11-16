@@ -39,10 +39,10 @@ export function Language() {
         <p className="mt-2 text-sm text-muted">Teach each other your words — Iban, Swedish, and the Spanish you're both picking up.</p>
       </header>
 
-      <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-full border-2 border-leaf/20 p-1" role="tablist" aria-label="Language corner sections">
+      <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-full bg-white p-1 shadow-card" role="tablist" aria-label="Language corner sections">
         {([["book", "Phrasebook"], ["cards", "Flashcards"], ["quiz", "Quiz"], ["teach", "Teach"]] as [Tab, string][]).map(([t, label]) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
-            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${tab === t ? "bg-leaf text-cream" : "text-muted"}`}>{label}</button>
+            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${tab === t ? "bg-mustard text-leaf" : "text-muted"}`}>{label}</button>
         ))}
       </div>
 

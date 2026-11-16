@@ -10,8 +10,7 @@ export function RitualPostcard({ ritual, size = "full", children }: { ritual: We
   const compact = size === "compact";
 
   return (
-    <article className="overflow-hidden bg-paper shadow-card">
-      <div className="airmail h-[9px]" aria-hidden="true" />
+    <article className="overflow-hidden rounded-card bg-white shadow-card">
       <div className={compact ? "p-4" : "p-4 sm:p-5"}>
         <div className={`grid gap-3.5 ${compact ? "grid-cols-[1fr_64px]" : "grid-cols-[1fr_84px]"}`}>
           <div className="min-w-0">

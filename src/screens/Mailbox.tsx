@@ -79,33 +79,33 @@ export function Mailbox() {
           <span className="mt-2 inline-block rotate-[3deg] border-[1.5px] border-cornflower-deep px-2 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-cornflower-deep" aria-hidden="true">Par avion</span>
         </div>
         {section === "letters" && (
-          <Link to="/mailbox/new" className="inline-flex min-h-[48px] items-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-tangerine px-4 text-sm font-bold text-leaf shadow-print">
+          <Link to="/mailbox/new" className="inline-flex min-h-[48px] items-center gap-2 rounded-full border-[1.5px] border-leaf/15 bg-tangerine px-4 text-sm font-bold text-leaf shadow-print">
             <PenLine size={16} aria-hidden="true" /> Write
           </Link>
         )}
       </header>
 
-      <div className="grid grid-cols-2 rounded-card border-[1.5px] border-leaf bg-paper p-1" role="tablist" aria-label="Mailbox">
+      <div className="grid grid-cols-2 rounded-full bg-white p-1 shadow-card" role="tablist" aria-label="Mailbox">
         {([["letters", "Letters"], ["whims", "Whims"]] as const).map(([k, label]) => (
           <button key={k} role="tab" aria-selected={section === k} onClick={() => setParams(k === "whims" ? { section: "whims" } : {}, { replace: true })}
-            className={`min-h-[40px] rounded-[4px] border-[1.5px] text-sm font-semibold ${section === k ? "border-leaf bg-mustard text-leaf" : "border-transparent text-leaf/70"}`}>{label}</button>
+            className={`min-h-[40px] rounded-full border-[1.5px] text-sm font-semibold ${section === k ? "border-leaf/15 bg-mustard text-leaf" : "border-transparent text-leaf/70"}`}>{label}</button>
         ))}
       </div>
 
       {section === "whims" ? <Whims /> : <>
       <ErrorNote>{error}</ErrorNote>
 
-      <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-full border-2 border-leaf/20 p-1" role="tablist" aria-label="Mailbox sections">
+      <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-full bg-white p-1 shadow-card" role="tablist" aria-label="Mailbox sections">
         {([["inbox", `Inbox${unread ? ` (${unread})` : ""}`], ["sent", "Sent"], ["drafts", `Drafts${drafts.length ? ` (${drafts.length})` : ""}`], ["loved", "Letters we love"]] as [Tab, string][]).map(([t, label]) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
-            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${tab === t ? "bg-leaf text-cream" : "text-muted"}`}>{label}</button>
+            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${tab === t ? "bg-mustard text-leaf" : "text-muted"}`}>{label}</button>
         ))}
       </div>
 
       {tab === "inbox" && sealed.length > 0 && (
         <ul className="space-y-4" aria-label="Letters on their way">
           {sealed.map((s, i) => (
-            <li key={s.id} className={`envelope relative h-[236px] bg-lilac shadow-card ${i % 2 ? "rotate-[1.2deg]" : "-rotate-[1.5deg]"}`}>
+            <li key={s.id} className={`envelope relative h-[236px] overflow-hidden rounded-card bg-lilac shadow-card ${i % 2 ? "rotate-[1.2deg]" : "-rotate-[1.5deg]"}`}>
               {/* envelope flap + wax seal */}
               <svg aria-hidden="true" viewBox="0 0 350 236" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
                 <path d="M 0 0 L 175 124 L 350 0" fill="#d4b2cd" stroke="#0C1020" strokeWidth="1.2" vectorEffect="non-scaling-stroke" />
@@ -138,7 +138,7 @@ export function Mailbox() {
             return (
               <li key={l.id}>
                 <Link to={l.status === "draft" ? `/mailbox/${l.id}/edit` : `/mailbox/${l.id}`}
-                  className={`flex items-center gap-3 p-4 shadow-card transition hover:rotate-0 hover:-translate-y-px ${i % 2 ? "-rotate-[0.6deg]" : "rotate-[0.6deg]"} ${waiting ? "bg-gold" : !mine && !l.opened_at ? "bg-paper ring-2 ring-tangerine" : "bg-paper"}`}>
+                  className={`flex items-center gap-3 rounded-card p-4 shadow-card transition hover:rotate-0 hover:-translate-y-px ${i % 2 ? "-rotate-[0.6deg]" : "rotate-[0.6deg]"} ${waiting ? "bg-gold" : !mine && !l.opened_at ? "bg-paper ring-2 ring-tangerine" : "bg-paper"}`}>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[11px] font-bold uppercase tracking-[0.1em]">{status}</p>
                     <p className="mt-1 truncate font-display text-[1.35rem] leading-tight">{l.title || KIND[l.kind].label}</p>

@@ -72,7 +72,7 @@ export function SongPicker({ value, onChange, note, onNote, noteLabel = "Why thi
         <button type="button" disabled={busy} onClick={async () => {
           if (link) { void use(link); return; }
           try { const t = await navigator.clipboard.readText(); setLink(t); void use(t); } catch { setError("Paste the link into the box, then tap Add."); }
-        }} className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-3 text-sm font-semibold text-leaf">
+        }} className="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border-[1.5px] border-leaf/15 bg-mustard px-3 text-sm font-semibold text-leaf">
           <ClipboardPaste size={15} aria-hidden="true" /> {busy ? "Finding…" : link ? "Add" : "Paste"}
         </button>
       </div>

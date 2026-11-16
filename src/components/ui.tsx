@@ -13,14 +13,14 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 
 export function Button({ variant = "primary", busy = false, className = "", children, disabled, ...props }: ButtonProps) {
   const base =
-    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[4px] px-5 py-2.5 text-sm font-bold transition " +
+    "inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-bold transition " +
     "focus:outline-none focus-visible:ring-2 focus-visible:ring-cornflower focus-visible:ring-offset-2 focus-visible:ring-offset-cream " +
     "disabled:cursor-not-allowed disabled:opacity-50";
   const variants = {
     primary:
-      "border-[1.5px] border-leaf bg-mustard text-leaf shadow-print hover:-translate-y-px active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
-    dark: "border-[1.5px] border-leaf bg-leaf text-cream hover:bg-leaf-deep",
-    outline: "border-[1.5px] border-dashed border-leaf bg-paper/60 text-leaf hover:bg-paper",
+      "bg-mustard text-leaf shadow-print hover:-translate-y-px active:translate-y-px",
+    dark: "bg-leaf text-cream hover:bg-leaf-deep",
+    outline: "border-[1.5px] border-leaf/20 bg-white text-leaf hover:border-leaf/40",
     ghost: "text-muted hover:bg-leaf-soft/60 hover:text-leaf",
   };
   return (
@@ -38,7 +38,7 @@ export function Card({ className = "", ...props }: React.HTMLAttributes<HTMLDivE
 
 /* ------------------------------------------------------------------ Fields */
 export const inputCls =
-  "w-full rounded-[4px] border-[1.5px] border-leaf/30 bg-paper px-4 py-3 text-leaf placeholder-faint " +
+  "w-full rounded-2xl border-[1.5px] border-leaf/20 bg-white px-4 py-3 text-leaf placeholder-faint " +
   "focus:border-leaf focus:outline-none focus:ring-2 focus:ring-cornflower/40";
 
 export function Field({ label, hint, htmlFor, children }: { label: string; hint?: string; htmlFor: string; children: React.ReactNode }) {
@@ -54,7 +54,7 @@ export function Field({ label, hint, htmlFor, children }: { label: string; hint?
 export function ErrorNote({ children }: { children: React.ReactNode }) {
   if (!children) return null;
   return (
-    <p role="alert" className="flex items-start gap-2 rounded-[4px] border-[1.5px] border-tomato bg-tomato-soft/70 px-4 py-3 text-sm text-leaf">
+    <p role="alert" className="flex items-start gap-2 rounded-2xl bg-tomato-soft px-4 py-3 text-sm text-leaf">
       <AlertCircle size={16} className="mt-0.5 shrink-0 text-tomato-deep" aria-hidden="true" />
       <span>{children}</span>
     </p>
@@ -148,7 +148,7 @@ export function Postmark({ place, day, year, className = "" }: { place: string; 
   );
 }
 
-const STAMP_BG = { tangerine: "#EA572C", cornflower: "#4F7FC1", lime: "#DBDE49", gold: "#C3B20D", lilac: "#E1C3DB" } as const;
+const STAMP_BG = { tangerine: "#E0614F", cornflower: "#4F7FC1", lime: "#DCEBE2", gold: "#FBDDC6", lilac: "#E9D3E5" } as const;
 export type StampColour = keyof typeof STAMP_BG;
 /** A perforated postage stamp with something small inside (a number, a letter, an icon). */
 export function PostageStamp({ colour = "tangerine", size = "md", tilt = 4, children }: { colour?: StampColour; size?: "sm" | "md" | "lg"; tilt?: number; children: React.ReactNode }) {

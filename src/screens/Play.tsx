@@ -45,10 +45,10 @@ export function Play() {
         <p className="font-hand text-2xl text-raspberry-deep">{mode === "call" ? "on a call? open this together" : mode === "quiz" ? "who knows more? let's find out" : mode === "create" ? "make something together" : "together, on your own time"}</p>
         <h1 className="text-4xl">Play With Me</h1>
       </header>
-      <div className="grid grid-cols-2 gap-1 rounded-card border-[1.5px] border-leaf bg-paper p-1" role="radiogroup" aria-label="How are you playing?">
+      <div className="grid grid-cols-2 gap-1 rounded-full bg-white p-1 shadow-card" role="radiogroup" aria-label="How are you playing?">
         {([["call", "On a call", Phone], ["apart", "Apart, anytime", Hourglass], ["quiz", "Quiz Time", Trophy], ["create", "Creative Corner", Palette]] as const).map(([m, label, I]) => (
           <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => setMode(m)}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-[4px] px-2 py-2.5 text-sm font-semibold transition ${mode === m ? "border-[1.5px] border-leaf bg-mustard text-leaf" : "border-[1.5px] border-transparent text-leaf/70"}`}>
+            className={`inline-flex items-center justify-center gap-1.5 rounded-full px-2 py-2.5 text-sm font-semibold transition ${mode === m ? "border-[1.5px] border-leaf/15 bg-mustard text-leaf" : "border-[1.5px] border-transparent text-leaf/70"}`}>
             <I size={16} aria-hidden="true" />{label}
           </button>
         ))}
@@ -60,10 +60,10 @@ export function Play() {
       <button type="button" onClick={() => setMode("quiz")} className="flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-mustard bg-mustard-soft/60 px-4 py-2.5 text-left text-sm font-semibold text-leaf">
         <Trophy size={16} aria-hidden="true" /> Fancy a quiz? Play a live Quiz Duel on this call →
       </button>
-      <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-full border-2 border-leaf/20 p-1" role="tablist" aria-label="Play sections">
+      <div className="flex max-w-full gap-0.5 overflow-x-auto rounded-full bg-white p-1 shadow-card" role="tablist" aria-label="Play sections">
         {(["play", "curious", "favourites", "history"] as Tab[]).map((t) => (
           <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}
-            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${tab === t ? "bg-leaf text-cream" : "text-muted"}`}>
+            className={`shrink-0 whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-semibold ${tab === t ? "bg-mustard text-leaf" : "text-muted"}`}>
             {t === "play" ? "Play" : t === "curious" ? "Curious Club" : t === "favourites" ? "Favourites" : "History"}
           </button>
         ))}
@@ -387,10 +387,10 @@ function SharedTimer({ state, skewMs, busy, onAction }: {
         <div className="flex shrink-0 flex-col gap-2">
           {running ? (
             <button type="button" onClick={() => onAction("pause")} disabled={busy === "timer"} aria-label="Pause timer"
-              className="grid h-12 w-12 place-items-center rounded-[4px] border-[1.5px] border-leaf bg-mustard text-leaf shadow-print-sm"><Pause size={18} /></button>
+              className="grid h-12 w-12 place-items-center rounded-full border-[1.5px] border-leaf/15 bg-mustard text-leaf shadow-print-sm"><Pause size={18} /></button>
           ) : (
             <button type="button" onClick={() => onAction("start")} disabled={busy === "timer"} aria-label="Start timer"
-              className="grid h-12 w-12 place-items-center rounded-[4px] border-[1.5px] border-leaf bg-mustard text-leaf shadow-print-sm"><PlayIcon size={18} /></button>
+              className="grid h-12 w-12 place-items-center rounded-full border-[1.5px] border-leaf/15 bg-mustard text-leaf shadow-print-sm"><PlayIcon size={18} /></button>
           )}
           <button type="button" onClick={() => onAction("reset", state.current ? state.current.activity.minutes * 60 : undefined)} disabled={busy === "timer"} aria-label="Reset timer"
             className="grid h-12 w-12 place-items-center rounded-full border-2 border-leaf/25 text-muted"><RotateCcw size={17} /></button>

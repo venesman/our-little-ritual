@@ -48,7 +48,7 @@ export function Whims() {
     <div className="space-y-5">
       <div className="flex items-center justify-between gap-3">
         <p className="text-sm text-muted">Little wants and shared wishes — no pressure, ever.</p>
-        <Link to="/mailbox/whims/new" className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
+        <Link to="/mailbox/whims/new" className="inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full border-[1.5px] border-leaf/15 bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
           <Plus size={16} aria-hidden="true" /> Add a whim
         </Link>
       </div>
@@ -142,7 +142,7 @@ function WhimCard({ w, myId, pName, onChange }: { w: Whim; myId: string | null |
             ))}
             {giverSurprise && (
               <button type="button" disabled={!!busy} onClick={() => void act("reveal", () => revealWhim(w.id))}
-                className="min-h-[36px] rounded-[4px] border-[1.5px] border-leaf bg-mustard px-3 text-xs font-semibold text-leaf shadow-print-sm">
+                className="min-h-[36px] rounded-full border-[1.5px] border-leaf/15 bg-mustard px-3 text-xs font-semibold text-leaf shadow-print-sm">
                 <Sparkles size={12} className="mr-1 inline" aria-hidden="true" />Reveal the surprise
               </button>
             )}

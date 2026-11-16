@@ -1,15 +1,16 @@
 import { OnThisDay, OurPhoto, useCoverPhoto } from "../components/HomeMemories";
+import { BoardingPass, TogetherSince } from "../components/Passport";
 import { ForYouLine, WelcomeBack } from "../components/ForYouLine";
 import { RecentMemories } from "../components/ScrapbookBits";
 import { MailboxCard } from "../components/MailboxCard";
 import { CheckinCard } from "../components/CheckinCard";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Plane, Send } from "lucide-react";
+import { ArrowRight, Send } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useSpace } from "../hooks/useSpace";
-import { clockInZone, formatInZone, gmtLabel, longDateInZone, nextRelease, placeFromZone, relativeFromNow } from "../lib/time";
-import { ErrorNote, Postmark, Stamp, Ticket } from "../components/ui";
+import { formatInZone, longDateInZone, nextRelease, placeFromZone, relativeFromNow } from "../lib/time";
+import { ErrorNote, Postmark, Stamp } from "../components/ui";
 import { RitualPostcard } from "../components/RitualPostcard";
 import { CallWindowCard, NudgeCard, VisitCard } from "../components/HomeCards";
 import { useCurrentRitual } from "../hooks/useCurrentRitual";
@@ -50,22 +51,14 @@ export function Home() {
 
   const dayParts = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: myTz }).formatToParts(now);
   const part = (t: string) => dayParts.find((x) => x.type === t)?.value ?? "";
-  const header = (title: string, sub?: string) => {
-    const cut = title.indexOf(", ");
-    return (
-      <header className="space-y-2">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="font-hand text-2xl font-bold lowercase leading-none text-raspberry-deep">{longDateInZone(now, myTz)}</p>
-            <h1 className="mt-2 text-[2.9rem] leading-[0.98]">{cut < 0 ? title : <>{title.slice(0, cut + 1)}<br /><em>{title.slice(cut + 2)}</em></>}</h1>
-          </div>
-          <Postmark className="h-[104px] w-[104px]" place={me?.profile?.current_city?.trim() || placeFromZone(myTz)} day={`${part("day")} ${part("month")}`} year={part("year")} />
-        </div>
-        <Ticket>{space.relationship.name}</Ticket>
-        {sub && <p className="text-muted">{sub}</p>}
-      </header>
-    );
-  };
+  const header = (title: string, sub?: string) => (
+    <header className="space-y-2">
+      <p className="font-hand text-2xl font-bold lowercase leading-none text-raspberry-deep">{longDateInZone(now, myTz)}</p>
+      <h1 className="text-[2.6rem] italic leading-none">{title}</h1>
+      {sub && <p className="text-muted">{sub}</p>}
+    </header>
+  );
+
 
   /* ---------------------------------------------- waiting for partner */
   if (space.relationship.status === "pending" || !partner) {
@@ -97,57 +90,28 @@ export function Home() {
   const partnerTz = partner.profile?.timezone ?? "UTC";
   // Location labels come from Our Story ("current city") when set, otherwise from the time zone.
   const myCity = me?.profile?.current_city ?? null;
-  const places = [
-    { name: myName, tz: myTz, you: true, city: myCity },
-    { name: partnerName, tz: partnerTz, you: false, city: partner.profile?.current_city ?? null },
-  ];
 
   return (
     <div className="fade-up space-y-6">
       {header("Hello, you two.")}
 
-      {/* our photo + two people · two places */}
-      {photo.cover && (
-        <section aria-label="Where you both are" className="grid grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] items-center gap-4 pt-2">
-          <OurPhoto {...photo} />
-          <div className="flex flex-col gap-1.5">
-            {places.map((p, i) => (
-              <div key={p.name + i} className="contents">
-                {i === 1 && (
-                  <svg aria-hidden="true" viewBox="0 0 176 22" className="h-[22px] w-full">
-                    <path d="M 20 2 C 20 22, 156 0, 156 20" fill="none" stroke="#0C1020" strokeWidth="1.4" strokeDasharray="4 5" />
-                    <path d="M 82 6 l 12 5 l -12 5 l 3 -5 z" fill="#EA572C" />
-                  </svg>
-                )}
-                <div className={`px-3 py-2.5 text-leaf ${i === 0 ? "bg-gold" : "bg-lilac"}`}>
-                  <p className="truncate text-[10px] font-bold uppercase tracking-[0.12em]">{p.city?.trim() || placeFromZone(p.tz)} · {gmtLabel(p.tz, now)}</p>
-                  <div className="mt-1 flex items-baseline justify-between gap-2">
-                    <span className="truncate text-xs">{p.name}</span>
-                    <span className="shrink-0 font-display text-[1.6rem] leading-none">{clockInZone(now, p.tz)}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-      <section aria-label="Where you both are" className={`relative mt-8 grid grid-cols-2 gap-3 ${photo.cover ? "hidden" : ""}`}>
-        {places.map((p, i) => (
-          <div key={p.name + i} className={`p-4 text-leaf ${i === 0 ? "-rotate-1 bg-gold" : "rotate-1 bg-lilac"}`}>
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em]">{p.you ? "You" : "Them"} · {p.city?.trim() || placeFromZone(p.tz)} · {gmtLabel(p.tz, now)}</p>
-            <p className="mt-2 font-display text-[1.9rem] leading-none">{clockInZone(now, p.tz)}</p>
-            <p className="mt-1 truncate text-sm">{p.name}</p>
-          </div>
-        ))}
-        {/* a little airmail flight path between your two places */}
-        <svg aria-hidden="true" viewBox="0 0 200 40" preserveAspectRatio="none" className="pointer-events-none absolute -top-7 left-1/4 h-9 w-1/2 overflow-visible">
-          <path d="M2 38 C 60 2, 140 2, 198 38" fill="none" stroke="#0C1020" strokeOpacity="0.45" strokeWidth="1.6" strokeDasharray="4 5" vectorEffect="non-scaling-stroke" />
-        </svg>
-        <span className="absolute left-1/2 top-0 grid h-8 w-8 -translate-x-1/2 -translate-y-[85%] place-items-center rounded-full bg-cream text-tomato shadow-card">
-          <Plane size={15} className="rotate-45" aria-hidden="true" />
-        </span>
+      {/* our photo, pinned beside a stamp and today's postmark */}
+      <section aria-label="Our photo" className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] items-start gap-3 pt-1">
+        {photo.cover ? <OurPhoto {...photo} /> : (
+          <Link to="/us" className="polaroid block -rotate-[4deg] !pb-3">
+            <span className="tape" aria-hidden="true" />
+            <div className="grid aspect-[5/4] place-items-center bg-raspberry-soft px-3 text-center font-hand text-lg leading-tight">pin your favourite photo of you two</div>
+            <p className="mt-1 text-center font-hand text-lg font-bold">our photo</p>
+          </Link>
+        )}
+        <div className="flex flex-col items-end gap-1 pr-1 pt-1">
+          <TogetherSince />
+          <Postmark className="-mr-2 mt-1 h-[92px] w-[92px] self-start" place={myCity?.trim() || placeFromZone(myTz)} day={`${part("day")} ${part("month")}`} year={part("year")} />
+        </div>
       </section>
 
+      {/* your two clocks, on a boarding pass */}
+      <BoardingPass now={now} from={{ name: myName, tz: myTz, city: myCity }} to={{ name: partnerName, tz: partnerTz, city: partner.profile?.current_city ?? null }} />
 
       <WelcomeBack userId={session!.user.id} ritualId={ritual?.weeklyId} />
 
@@ -168,7 +132,7 @@ export function Home() {
               <p className="font-hand text-xl leading-tight text-leaf">{weekStatus?.revealed ? "you've both shared ✦" : "no rush, any time this week"}</p>
               <Link
                 to={`/rituals/${ritual.weeklyId}`}
-                className="inline-flex min-h-[44px] items-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-5 text-sm font-semibold text-leaf shadow-print transition hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-full border-[1.5px] border-leaf/15 bg-mustard px-5 text-sm font-semibold text-leaf shadow-print transition hover:-translate-y-px focus:outline-none focus-visible:ring-2 focus-visible:ring-raspberry"
               >
                 {weekStatus?.revealed ? "See answers" : weekStatus?.my_status === "submitted" ? "View" : weekStatus?.my_status === "draft" ? "Continue" : "Start"}
                 <ArrowRight size={16} aria-hidden="true" />
@@ -177,6 +141,10 @@ export function Home() {
           </RitualPostcard>
         )}
       </section>
+
+      <VisitCard timeZone={myTz} />
+
+      <NudgeCard myId={session!.user.id} partnerId={partner.user_id} partnerName={partnerName} timeZone={myTz} />
 
       <CheckinCard partnerName={partnerName} />
 
@@ -193,12 +161,8 @@ export function Home() {
         partnerName={partnerName}
       />
 
-      <NudgeCard myId={session!.user.id} partnerId={partner.user_id} partnerName={partnerName} timeZone={myTz} />
-
-      <VisitCard timeZone={myTz} />
-
       {/* next release */}
-      <div className="rotate-[0.6deg] border-[1.5px] border-dashed border-leaf bg-paper p-5">
+      <div className="-rotate-[0.8deg] rounded-[24px] bg-mint p-5 shadow-card">
         <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em]">Next postcard</p>
         <div className="flex items-center gap-5">
           <Stamp top="every monday" main="11:00" bottom="utc" />

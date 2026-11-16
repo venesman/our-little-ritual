@@ -85,13 +85,13 @@ export function Scrapbook() {
         <SinceStamp />
       </header>
       <div className="grid grid-cols-2 gap-2">
-        <Link to="/us/moment/new" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
+        <Link to="/us/moment/new" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border-[1.5px] border-leaf/15 bg-mustard px-4 text-sm font-semibold text-leaf shadow-print">
           <Plus size={16} aria-hidden="true" /> Add a trip or moment
         </Link>
-        <Link to="/us/export" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[4px] border-[1.5px] border-dashed border-leaf bg-paper/60 px-4 text-sm font-semibold text-leaf">
+        <Link to="/us/export" className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border-[1.5px] border-dashed border-leaf/15 bg-paper/60 px-4 text-sm font-semibold text-leaf">
           <FileDown size={16} aria-hidden="true" /> Export our story
         </Link>
-        <Link to="/us/keepsake" className="col-span-2 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[4px] border-[1.5px] border-leaf bg-cornflower px-4 text-sm font-bold text-leaf">
+        <Link to="/us/keepsake" className="col-span-2 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-peach px-4 text-sm font-bold text-leaf shadow-print">
           <Sparkles size={16} aria-hidden="true" /> Our year together
         </Link>
       </div>
@@ -272,7 +272,7 @@ function MemorySheet({ m, onClose, onChanged }: { m: Memory; onClose: () => void
           </div>
         )}
         <div className="mt-5 flex flex-wrap gap-2 border-t border-dashed border-leaf/25 pt-4">
-          {m.kind === "moment" && <Link to={`/us/moment/${m.ref_id}`} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-[4px] border-[1.5px] border-dashed border-leaf bg-paper/60 px-4 text-sm font-semibold text-leaf"><Pencil size={14} aria-hidden="true" /> Edit</Link>}
+          {m.kind === "moment" && <Link to={`/us/moment/${m.ref_id}`} className="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border-[1.5px] border-dashed border-leaf/15 bg-paper/60 px-4 text-sm font-semibold text-leaf"><Pencil size={14} aria-hidden="true" /> Edit</Link>}
           <Button variant="ghost" busy={busy === "rm"} onClick={async () => {
             setBusy("rm"); try { await setEntry(m.kind, m.ref_id, false); await onChanged(); onClose(); } catch (e) { setError(friendlyError(e)); } finally { setBusy(null); }
           }}><Trash2 size={14} aria-hidden="true" /> Remove from scrapbook</Button>

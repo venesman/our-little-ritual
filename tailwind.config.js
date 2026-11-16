@@ -1,47 +1,47 @@
 /** @type {import('tailwindcss').Config} */
-// Our Little Ritual — "Par Avion" design tokens (postcards & stamps).
-// Cream paper dominates; ink is text and structure; lime is for buttons and
-// chosen things; tangerine + cornflower are the airmail accents; mustard and
-// lilac are tile colours. Token names from the first design are kept and
-// pointed at the new palette so every screen moves over at once:
-//   leaf → ink · raspberry → tangerine (hand-lettering, accents) · mustard → lime
-//   (interactive) · tomato → tangerine (emphasis).
-// Contrast: ink text on every colour; cream text only large on tangerine/blue;
-// small coloured text uses the deep shades (tangerine-deep, blue-deep).
+// Our Little Ritual — "Scrapbook Passport" design tokens.
+// A journal on lined cream paper: taped polaroids, soft pastel note cards,
+// stamps everywhere (visa stamps for visits, postage stamps, postmarks), a
+// boarding pass for your two clocks, and one airmail postcard for the next visit.
+// Old token names are kept and pointed at the new palette so every screen moves at once:
+//   leaf → warm brown ink · raspberry → pink (deep = coral-red hand lettering)
+//   mustard → pink (chosen things, primary buttons) · tomato/tangerine → coral
+//   gold → peach · lime → mint.
+// Contrast: ink text on every pastel; white text only on ink; small coloured text uses the deep shades.
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        cream: "#FCF2E8",                                                     // warm cream — page ground
-        paper: "#FFFAF3",                                                     // postcard paper
-        ink: { DEFAULT: "#0C1020", soft: "#E9E4EE" },
-        leaf: { DEFAULT: "#0C1020", deep: "#000000", soft: "#EFE6EC" },        // = ink (structure + text)
-        raspberry: { DEFAULT: "#EA572C", soft: "#FBE1D6", deep: "#B23A14" },   // = tangerine accents
-        mustard: { DEFAULT: "#DBDE49", soft: "#F2F3C6", deep: "#575A00" },     // = lime (interactive)
-        tomato: { DEFAULT: "#EA572C", soft: "#FBE1D6", deep: "#B23A14" },      // = tangerine (emphasis)
-        tangerine: { DEFAULT: "#EA572C", soft: "#FBE1D6", deep: "#B23A14" },
-        lime: { DEFAULT: "#DBDE49", soft: "#F2F3C6" },
-        gold: { DEFAULT: "#C3B20D", soft: "#F1EBB8" },                        // the moodboard's mustard
-        lilac: { DEFAULT: "#E1C3DB", soft: "#F3E6F0" },
+        cream: "#FBF3EA",                                                     // lined journal paper
+        paper: "#FFFAF3",                                                     // passport page
+        ink: { DEFAULT: "#3A2A24", soft: "#F1E6DD" },
+        leaf: { DEFAULT: "#3A2A24", deep: "#2A1D18", soft: "#F1E6DD" },        // = ink
+        raspberry: { DEFAULT: "#F6D3DE", soft: "#FBE9EF", deep: "#B23A14" },   // pink; deep = hand lettering
+        mustard: { DEFAULT: "#F6D3DE", soft: "#FBE9EF", deep: "#8A3B57" },     // chosen things
+        tomato: { DEFAULT: "#E0614F", soft: "#FBDDC6", deep: "#B23A14" },      // coral
+        tangerine: { DEFAULT: "#E0614F", soft: "#FBDDC6", deep: "#B23A14" },
+        gold: { DEFAULT: "#FBDDC6", soft: "#FDEEE2" },                        // peach
+        peach: { DEFAULT: "#FBDDC6", soft: "#FDEEE2" },
+        lime: { DEFAULT: "#DCEBE2", soft: "#EDF5F0" },                        // mint
+        mint: { DEFAULT: "#DCEBE2", soft: "#EDF5F0" },
+        lilac: { DEFAULT: "#E9D3E5", soft: "#F4E9F2" },
         cornflower: { DEFAULT: "#4F7FC1", soft: "#DCE6F4", deep: "#2F5A9A" },
-        muted: "#4A4E5E",  // secondary text (≈7:1 on cream)
-        faint: "#8A8D99",  // placeholders, hairlines
+        visa: { red: "#C8352B", blue: "#2F5A9A", green: "#3E6B4C" },          // stamp inks
+        muted: "#6E5D55",  // secondary text (≈5.9:1 on cream)
+        faint: "#A39389",
       },
       fontFamily: {
         display: ['"DM Serif Display"', "Georgia", "serif"],
         sans: ['"DM Sans Variable"', "system-ui", "sans-serif"],
         hand: ['"Caveat"', "cursive"],
       },
-      borderRadius: {
-        card: "2px",
-      },
+      borderRadius: { card: "22px" },
       boxShadow: {
-        // printed, offset shadows for things you press; soft lift for paper
-        print: "3px 3px 0 0 #0C1020",
-        "print-sm": "2px 2px 0 0 #0C1020",
-        card: "0 1px 0 rgba(12,16,32,0.06), 0 10px 22px -14px rgba(12,16,32,0.45)",
-        photo: "0 6px 14px -8px rgba(12,16,32,0.5)",
+        print: "0 8px 16px -10px rgba(58,42,36,0.45)",
+        "print-sm": "0 4px 10px -6px rgba(58,42,36,0.4)",
+        card: "0 10px 22px -16px rgba(58,42,36,0.5)",
+        photo: "0 14px 26px -16px rgba(58,42,36,0.55)",
       },
     },
   },

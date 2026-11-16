@@ -6,9 +6,8 @@
   html { -webkit-text-size-adjust: 100%; }
   body {
     @apply bg-cream font-sans text-leaf antialiased;
-    /* fine printed dot screen, like the back of a postcard */
-    background-image: radial-gradient(rgba(12,16,32,0.05) 1px, transparent 1.2px);
-    background-size: 7px 7px;
+    /* lined journal paper */
+    background-image: repeating-linear-gradient(to bottom, transparent 0 27px, rgba(79,127,193,0.10) 27px 28px);
   }
   /* 16px inputs stop iOS Safari zooming when a field is focused. */
   input, select, textarea { font-size: 16px; }
@@ -28,20 +27,28 @@
   .postcard-air { @apply overflow-hidden; padding-top: calc(1.5rem + 9px); }
   .postcard-air::before {
     content: ""; position: absolute; inset: 0 0 auto 0; height: 9px;
-    background: repeating-linear-gradient(135deg, #EA572C 0 12px, #FFFAF3 12px 20px, #4F7FC1 20px 32px, #FFFAF3 32px 40px);
+    background: repeating-linear-gradient(135deg, #E0614F 0 12px, #FFFAF3 12px 20px, #4F7FC1 20px 32px, #FFFAF3 32px 40px);
   }
   /* Polaroid-style photo: white border, deeper bottom, a gentle tilt. */
   .polaroid { @apply relative bg-white p-2 shadow-photo; }
   /* Washi tape strip for pinning photos. */
-  .tape { @apply pointer-events-none absolute left-1/2 z-10 h-[18px] w-14; top: -8px; margin-left: -28px; background: rgba(219, 222, 73, 0.85); transform: rotate(-7deg); }
-  .tape-tangerine { background: rgba(234, 87, 44, 0.8); transform: rotate(6deg); }
-  .tape-blue { background: rgba(79, 127, 193, 0.75); transform: rotate(-4deg); }
+  .tape { @apply pointer-events-none absolute left-1/2 z-10 h-[18px] w-14; top: -8px; margin-left: -28px; background: rgba(225, 195, 219, 0.9); transform: rotate(-7deg); }
+  .tape-tangerine { background: rgba(251, 221, 198, 0.95); transform: rotate(6deg); }
+  .tape-blue { background: rgba(220, 235, 226, 0.95); transform: rotate(-4deg); }
   /* Perforated stamp edge. */
   .perforated { background: radial-gradient(circle at 4px 4px, #FFFAF3 3px, transparent 3.5px) -4px -4px / 8px 8px; padding: 6px; }
   /* Airmail edge for letter-like cards (invitations). */
   .airmail {
     background-image: repeating-linear-gradient(135deg,
-      #EA572C 0 12px, transparent 12px 20px, #4F7FC1 20px 32px, transparent 32px 40px);
+      #E0614F 0 12px, transparent 12px 20px, #4F7FC1 20px 32px, transparent 32px 40px);
+  }
+  /* Boarding pass: rounded, with deep notches on both sides. */
+  .ticket-lg {
+    border-radius: 16px;
+    -webkit-mask: radial-gradient(circle 10px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
+                  radial-gradient(circle 10px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
+            mask: radial-gradient(circle 10px at 0 50%, transparent 98%, #000) left / 51% 100% no-repeat,
+                  radial-gradient(circle 10px at 100% 50%, transparent 98%, #000) right / 51% 100% no-repeat;
   }
   /* Ticket: notched ends cut with radial masks. */
   .ticket {
