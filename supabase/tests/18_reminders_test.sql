@@ -86,7 +86,7 @@ select set_config('request.jwt.claim.sub', :'A', false);
 set role authenticated;
 select public.set_reminder_prefs(null, null, false);
 reset role;
-select tests.expect((select count(*) from public.due_reminders(now() + interval '1 minute') where kind = 'letter') = 0, 'letters off → no letter reminders');
+select tests.expect((select count(*) from public.due_reminders(now() + interval '1 minute') where kind = 'letter' and user_id = :'A') = 0, 'letters off → no letter reminders');
 
 -- No subscription → never due.
 delete from public.push_subscriptions where user_id = :'B';

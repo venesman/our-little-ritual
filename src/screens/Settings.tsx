@@ -98,7 +98,7 @@ export function Settings() {
         </form>
       </Card>
 
-      {space?.relationship.status === "active" && <RemindersCard userId={userId} />}
+      {space?.relationship.status === "active" && <RemindersCard userId={userId} partnerName={partner?.profile?.display_name || "your partner"} />}
 
       {space && <JustUsMondaysCard on={space.relationship.include_just_us_weekly} onChange={async (v) => {
         setError(null);

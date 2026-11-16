@@ -8,7 +8,7 @@ import { friendlyError } from "../lib/errors";
 import { Button, Card } from "./ui";
 
 /** Settings: gentle reminders on this phone. Opt-in, never more than two a week, nothing private in them. */
-export function RemindersCard({ userId }: { userId: string }) {
+export function RemindersCard({ userId, partnerName = "your partner" }: { userId: string; partnerName?: string }) {
   const [support] = useState(reminderSupport);
   const [on, setOn] = useState<boolean | null>(null);
   const [prefs, setPrefs] = useState<ReminderPrefs | null>(null);
@@ -22,7 +22,7 @@ export function RemindersCard({ userId }: { userId: string }) {
 
   const toggle = async (k: keyof ReminderPrefs) => {
     if (!prefs) return;
-    const next = { ...prefs, [k]: !prefs[k] };
+    const next = { ...prefs, [k]: !(prefs[k] ?? true) };
     setPrefs(next);
     try { await setReminderPrefs({ [k]: next[k] }); } catch (e) { setPrefs(prefs); setNote(friendlyError(e)); }
   };
@@ -32,8 +32,8 @@ export function RemindersCard({ userId }: { userId: string }) {
       <div className="flex items-center gap-3">
         <span className="grid h-10 w-10 place-items-center rounded-full bg-raspberry-soft text-raspberry-deep"><Bell size={17} aria-hidden="true" /></span>
         <div>
-          <h2 className="text-xl">Gentle reminders</h2>
-          <p className="text-sm text-muted">At most two a week. Never anything private in them.</p>
+          <h2 className="text-xl">Notifications</h2>
+          <p className="text-sm text-muted">Nothing between 10 pm and 8 am. Never anything private in them.</p>
         </div>
       </div>
 
@@ -54,14 +54,16 @@ export function RemindersCard({ userId }: { userId: string }) {
             {prefs && (
               <ul className="space-y-2">
                 {([
+                  ["remind_partner", `When ${partnerName} shares a ritual, check-in or mission`],
+                  ["remind_love", `When ${partnerName} thinks of you`],
+                  ["remind_letters", "When a letter arrives"],
                   ["remind_monday", "Monday — when the new postcard arrives"],
                   ["remind_midweek", "Thursday evening — only if something's still waiting"],
-                  ["remind_letters", "When a letter arrives"],
-                ] as [keyof ReminderPrefs, string][]).map(([k, label]) => (
+                ] as [keyof ReminderPrefs, string][]).filter(([k]) => prefs[k] !== undefined).map(([k, label]) => (
                   <li key={k}>
                     <label className="flex items-center justify-between gap-3 text-sm">
                       {label}
-                      <input type="checkbox" className="h-5 w-5 accent-[#0C1020]" checked={prefs[k]} onChange={() => void toggle(k)} />
+                      <input type="checkbox" className="h-5 w-5 accent-[#3E6B4C]" checked={!!prefs[k]} onChange={() => void toggle(k)} />
                     </label>
                   </li>
                 ))}

@@ -59,12 +59,20 @@ export async function turnOffReminders(): Promise<void> {
   await sub.unsubscribe();
 }
 
-export interface ReminderPrefs { remind_monday: boolean; remind_midweek: boolean; remind_letters: boolean }
+/** remind_partner / remind_love exist once migration 0032 has run. */
+export interface ReminderPrefs { remind_monday: boolean; remind_midweek: boolean; remind_letters: boolean; remind_partner?: boolean; remind_love?: boolean }
 export async function getReminderPrefs(userId: string): Promise<ReminderPrefs | null> {
+  const full = await supabase.from("profiles").select("remind_monday, remind_midweek, remind_letters, remind_partner, remind_love").eq("id", userId).maybeSingle();
+  if (!full.error) return full.data as ReminderPrefs | null;
   const { data, error } = await supabase.from("profiles").select("remind_monday, remind_midweek, remind_letters").eq("id", userId).maybeSingle();
   return error ? null : (data as ReminderPrefs | null);
 }
 export async function setReminderPrefs(p: Partial<ReminderPrefs>) {
+  if (p.remind_partner !== undefined || p.remind_love !== undefined) {
+    const { error } = await supabase.rpc("set_news_prefs", { p_partner: p.remind_partner ?? null, p_love: p.remind_love ?? null });
+    if (error) throw error;
+    if (p.remind_monday === undefined && p.remind_midweek === undefined && p.remind_letters === undefined) return;
+  }
   const { error } = await supabase.rpc("set_reminder_prefs", {
     p_monday: p.remind_monday ?? null, p_midweek: p.remind_midweek ?? null, p_letters: p.remind_letters ?? null,
   });
