@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Archive, Camera, ExternalLink, Gift, Pencil, Plus, Sparkles, Trash2, Undo2, X } from "lucide-react";
+import { ArrowLeft, Archive, Camera, ExternalLink, Gift, Pencil, Plus, Sparkles, Trash2, Undo2, X, Check } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
 import { useSpace } from "../hooks/useSpace";
 import { markSeen, useForYou } from "../hooks/useForYou";
@@ -238,9 +238,10 @@ export function WhimEditor() {
         <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Kind of whim">
           {(Object.keys(KIND_INFO) as WhimKind[]).map((k) => (
             <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)}
-              className={`rounded-2xl border-2 p-3 text-left ${kind === k ? "border-leaf/20 bg-mustard text-leaf" : "border-leaf/30 bg-paper text-leaf"}`}>
-              <span className="block font-display text-base">{KIND_INFO[k].label}</span>
-              <span className={`block text-xs ${kind === k ? "text-cream/85" : "text-muted"}`}>{KIND_INFO[k].hint}</span>
+              className={`relative rounded-2xl border-2 p-3 text-left ${kind === k ? "border-leaf bg-lime text-leaf" : "border-leaf/20 bg-paper text-leaf"}`}>
+              {kind === k && <span aria-hidden="true" className="absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full bg-leaf text-cream"><Check size={14} strokeWidth={3} /></span>}
+              <span className="block pr-6 font-display text-base">{KIND_INFO[k].label}</span>
+              <span className="block text-xs text-leaf/75">{KIND_INFO[k].hint}</span>
             </button>
           ))}
         </div>
