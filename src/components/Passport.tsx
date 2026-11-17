@@ -57,27 +57,48 @@ export function Scene({ kind, className = "", night = false }: { kind: Scene; cl
 }
 
 /* ------------------------------------------------- together since */
-/** A perforated stamp with your loops — shown once "Our relationship began" is added. */
-export function TogetherSince({ className = "" }: { className?: string }) {
-  const [on, setOn] = useState<string | null>(null);
+/** When your relationship began ("Our relationship began" in Our Story), or null until it's added. */
+export interface Began { on: string; precision: string }
+export function useBegan(): Began | null | undefined {
+  const [b, setB] = useState<Began | null | undefined>(undefined);
   useEffect(() => {
-    listMilestones().then((ms) => setOn(ms.find((m) => m.tag === "relationship_start" && m.happened_on)?.happened_on ?? null)).catch(() => {});
+    listMilestones()
+      .then((ms) => { const m = ms.find((x) => x.tag === "relationship_start" && x.happened_on); setB(m ? { on: m.happened_on!, precision: m.date_precision ?? "day" } : null); })
+      .catch(() => setB(null));
   }, []);
-  if (!on) return (
+  return b;
+}
+
+/** Whole days from the day you began to today (in your own time zone). */
+export function daysTogether(on: string, todayIso: string): number {
+  return Math.max(0, Math.round((Date.parse(`${todayIso}T00:00:00Z`) - Date.parse(`${on}T00:00:00Z`)) / 86400000));
+}
+
+/** A perforated stamp with your loops: how long you've been together (a happy anniversary on the day). */
+export function TogetherSince({ began, todayIso, className = "" }: { began: Began | null | undefined; todayIso: string; className?: string }) {
+  if (began === undefined) return <div className={`h-[118px] w-[98px] ${className}`} aria-hidden="true" />;
+  if (!began) return (
     <Link to="/us?tab=story&add=relationship_start" className={`flex h-[118px] w-[98px] rotate-[6deg] flex-col items-center justify-center rounded-lg border-2 border-dashed border-leaf/30 p-2 text-center ${className}`}>
       <Plus size={16} aria-hidden="true" />
       <span className="mt-1 font-hand text-lg leading-tight">when did it all begin?</span>
     </Link>
   );
-  const d = new Date(`${on}T00:00:00Z`);
-  const label = new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(d);
+  const exact = began.precision === "day";
+  const days = daysTogether(began.on, todayIso);
+  const years = Number(todayIso.slice(0, 4)) - Number(began.on.slice(0, 4));
+  const isAnniversary = exact && todayIso.slice(5) === began.on.slice(5) && years > 0;
+  const sinceLabel = new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${began.on}T00:00:00Z`));
+  const [top, big, bottom] = isAnniversary ? ["Happy", `${years} ${years === 1 ? "year" : "years"}`, "anniversary ♥"]
+    : exact ? ["Together for", days.toLocaleString("en-GB"), days === 1 ? "day" : "days"] : ["Together since", sinceLabel, ""];
   return (
-    <div role="img" aria-label={`Together since ${label}`} className={`h-[118px] w-[98px] rotate-[7deg] p-2 shadow-print ${className}`}
+    <div role="img" aria-label={isAnniversary ? `Happy ${years}-year anniversary` : exact ? `Together for ${days} days` : `Together since ${sinceLabel}`}
+      className={`h-[118px] w-[98px] rotate-[7deg] p-2 shadow-print ${className}`}
       style={{ background: "radial-gradient(circle at 5px 5px, #FBF3EA 4px, transparent 4.5px) -5px -5px / 10px 10px, #E0614F" }}>
       <div className="flex h-full flex-col items-center justify-center gap-0.5 border-[1.5px] border-leaf bg-peach text-center">
         <svg aria-hidden="true" viewBox="0 0 80 48" className="h-8 w-[52px]"><circle cx="28" cy="24" r="17" fill="none" stroke="#E0614F" strokeWidth="4" /><circle cx="52" cy="24" r="17" fill="none" stroke="#4F7FC1" strokeWidth="4" /></svg>
-        <span className="text-[8px] font-bold uppercase tracking-[0.12em]">Together since</span>
-        <span className="font-display text-lg leading-none">{label}</span>
+        <span className="text-[8px] font-bold uppercase tracking-[0.12em]">{top}</span>
+        <span className="font-display text-lg leading-none">{big}</span>
+        {bottom && <span className="text-[8px] font-bold uppercase tracking-[0.12em]">{bottom}</span>}
       </div>
     </div>
   );

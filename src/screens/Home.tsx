@@ -1,5 +1,5 @@
 import { OnThisDay, OurPhoto, useCoverPhoto } from "../components/HomeMemories";
-import { BoardingPass, TogetherSince } from "../components/Passport";
+import { BoardingPass, TogetherSince, useBegan } from "../components/Passport";
 import { ForYouLine, WelcomeBack } from "../components/ForYouLine";
 import { RecentMemories } from "../components/ScrapbookBits";
 import { MailboxCard } from "../components/MailboxCard";
@@ -51,6 +51,10 @@ export function Home() {
 
   const dayParts = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: myTz }).formatToParts(now);
   const part = (t: string) => dayParts.find((x) => x.type === t)?.value ?? "";
+  const began = useBegan();
+  const todayIso = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: myTz }).format(now);
+  const beganDate = began ? new Date(`${began.on}T00:00:00Z`) : null;
+  const beganFmt = (o: Intl.DateTimeFormatOptions) => (beganDate ? new Intl.DateTimeFormat("en-GB", { ...o, timeZone: "UTC" }).format(beganDate) : "");
   const header = (title: string, sub?: string) => (
     <header className="space-y-2">
       <p className="font-hand text-2xl font-bold lowercase leading-none text-raspberry-deep">{longDateInZone(now, myTz)}</p>
@@ -105,8 +109,14 @@ export function Home() {
           </Link>
         )}
         <div className="flex flex-col items-end gap-1 pr-1 pt-1">
-          <TogetherSince />
-          <Postmark className="-mr-2 mt-1 h-[92px] w-[92px] self-start" place={myCity?.trim() || placeFromZone(myTz)} day={`${part("day")} ${part("month")}`} year={part("year")} />
+          <TogetherSince began={began} todayIso={todayIso} />
+          {/* your anniversary once "Our relationship began" is in Our Story; until then, today's date where you are */}
+          {beganDate ? (
+            <Postmark className="-mr-2 mt-1 h-[92px] w-[92px] self-start" place="anniversary"
+              day={began!.precision === "day" ? beganFmt({ day: "numeric", month: "short" }) : beganFmt({ month: "short" })} year={beganFmt({ year: "numeric" })} />
+          ) : (
+            <Postmark className="-mr-2 mt-1 h-[92px] w-[92px] self-start" place={myCity?.trim() || placeFromZone(myTz)} day={`${part("day")} ${part("month")}`} year={part("year")} />
+          )}
         </div>
       </section>
 
