@@ -4,8 +4,8 @@ import { compressImage } from "./image";
 export const WHIM_BUCKET = "whims";
 export type WhimKind = "little_want" | "shared_wish";
 export type WhimStatus = "new" | "maybe" | "yes" | "surprise" | "bought" | "not_now" | "plan" | "saving" | "done" | "in_the_works";
-export type Currency = "RM" | "SEK" | "CLP";
-export const CURRENCIES: Currency[] = ["RM", "SEK", "CLP"];
+export type Currency = "RM" | "SEK" | "CLP" | "USD" | "EUR";
+export const CURRENCIES: Currency[] = ["RM", "SEK", "CLP", "USD", "EUR"];
 
 export interface Whim {
   id: string; kind: WhimKind; created_by: string; name: string; link: string | null; price: number | null; currency: Currency | null;

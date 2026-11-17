@@ -18,8 +18,8 @@ set role authenticated;
 select tests.expect_error('select public.save_whim(null, ''little_want'', ''  '')', 'name first');
 select tests.expect_error('select public.save_whim(null, ''gift'', ''x'')', 'Unknown kind');
 select tests.expect_error('select public.save_whim(null, ''little_want'', ''x'', ''http://shop.example'')', 'https://');
-select tests.expect_error('select public.save_whim(null, ''little_want'', ''x'', null, 20)', 'RM, SEK or CLP');
-select tests.expect_error('select public.save_whim(null, ''little_want'', ''x'', null, 20, ''USD'')', 'RM, SEK or CLP');
+select tests.expect_error('select public.save_whim(null, ''little_want'', ''x'', null, 20)', 'RM, SEK, CLP, USD or EUR');
+select tests.expect_error('select public.save_whim(null, ''little_want'', ''x'', null, 20, ''GBP'')', 'RM, SEK, CLP, USD or EUR');
 select tests.expect_error('select public.save_whim(null, ''little_want'', ''x'', null, null, null, '''', ''a/b/c/d.jpg'')', 'Save the whim first');
 select public.save_whim(null, 'little_want', 'Rattan bag', 'https://shop.example/bag', 89.90, 'RM', 'Saw it at the market!') as w1 \gset
 select tests.expect((select j->>'status' = 'new' and j->>'price' = '89.90' from jsonb_array_elements(public.my_whims()) j where j->>'id' = :'w1'), 'new Little Want waits for an answer');
