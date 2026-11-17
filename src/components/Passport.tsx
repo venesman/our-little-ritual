@@ -86,7 +86,10 @@ export function TogetherSince({ began, todayIso, className = "" }: { began: Bega
   const exact = began.precision === "day";
   const days = daysTogether(began.on, todayIso);
   const years = Number(todayIso.slice(0, 4)) - Number(began.on.slice(0, 4));
-  const isAnniversary = exact && todayIso.slice(5) === began.on.slice(5) && years > 0;
+  // Apart, the day often falls on two dates (8 March in Lund was already 9 March in Kuching),
+  // so the greeting shows on the day and the day after.
+  const dayAfter = new Date(Date.parse(`${todayIso.slice(0, 4)}-${began.on.slice(5)}T00:00:00Z`) + 86400000).toISOString().slice(5, 10);
+  const isAnniversary = exact && years > 0 && (todayIso.slice(5) === began.on.slice(5) || todayIso.slice(5) === dayAfter);
   const sinceLabel = new Intl.DateTimeFormat("en-GB", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(`${began.on}T00:00:00Z`));
   const [top, big, bottom] = isAnniversary ? ["Happy", `${years} ${years === 1 ? "year" : "years"}`, "anniversary ♥"]
     : exact ? ["Together for", days.toLocaleString("en-GB"), days === 1 ? "day" : "days"] : ["Together since", sinceLabel, ""];
