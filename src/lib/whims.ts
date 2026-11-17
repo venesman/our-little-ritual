@@ -3,14 +3,17 @@ import { compressImage } from "./image";
 
 export const WHIM_BUCKET = "whims";
 export type WhimKind = "little_want" | "shared_wish";
-export type WhimStatus = "new" | "maybe" | "yes" | "surprise" | "bought" | "not_now" | "plan" | "saving" | "done" | "in_the_works";
+export type WhimStatus = "new" | "maybe" | "yes" | "surprise" | "saved_for" | "bought" | "not_now" | "plan" | "saving" | "done" | "in_the_works" | "set_aside";
+export type Occasion = "birthday" | "anniversary" | "christmas" | "valentines" | "someday";
+export const OCCASIONS: Occasion[] = ["birthday", "anniversary", "christmas", "valentines", "someday"];
+export const OCCASION_LABEL: Record<Occasion, string> = { birthday: "Birthday", anniversary: "Our anniversary", christmas: "Christmas", valentines: "Valentine's Day", someday: "One day" };
 export type Currency = "RM" | "SEK" | "CLP" | "USD" | "EUR";
 export const CURRENCIES: Currency[] = ["RM", "SEK", "CLP", "USD", "EUR"];
 
 export interface Whim {
   id: string; kind: WhimKind; created_by: string; name: string; link: string | null; price: number | null; currency: Currency | null;
   message: string; photo_path: string | null; status: WhimStatus; status_by: string | null; status_at: string; response_note: string;
-  surprise: boolean; revealed_at: string | null; archived: boolean; created_at: string;
+  surprise: boolean; revealed_at: string | null; archived: boolean; created_at: string; occasion?: Occasion | null;
 }
 
 export const KIND_INFO: Record<WhimKind, { label: string; hint: string }> = {
@@ -24,7 +27,7 @@ export const SHARED_WISH_STATUSES: WhimStatus[] = ["plan", "saving", "done", "ma
 export const STATUS_LABEL: Record<WhimStatus, string> = {
   new: "Waiting for an answer", maybe: "Maybe someday", yes: "Yes! Let's get it, Puffin!", surprise: "I'll surprise you",
   bought: "Bought!", not_now: "Not right now", plan: "Let's plan it", saving: "Saving up", done: "Done together!",
-  in_the_works: "Something's in the works ✦",
+  in_the_works: "Something's in the works ✦", saved_for: "Saved for a special day", set_aside: "Saved for a special day ✦",
 };
 
 export const cameTrue = (w: Whim) => (w.kind === "little_want" && w.status === "bought" && !w.surprise) || (w.kind === "shared_wish" && w.status === "done");
@@ -65,3 +68,8 @@ export async function uploadWhimPhoto(relId: string, whimId: string, userId: str
   return path;
 }
 export async function removeWhimPhoto(path: string) { await supabase.storage.from(WHIM_BUCKET).remove([path]); }
+
+/** Save your partner's Little Want for a special day (it goes on your gift list, kept secret from them). */
+export async function saveWhimFor(id: string, occasion: Occasion, note: string | null) {
+  check(await supabase.rpc("save_whim_for", { p_id: id, p_occasion: occasion, p_note: note }));
+}

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Archive, Camera, ExternalLink, Gift, Pencil, Plus, Sparkles, Trash2, Undo2, X, Check } from "lucide-react";
+import { ArrowLeft, Archive, CalendarHeart, Camera, ExternalLink, Gift, Pencil, Plus, Sparkles, Trash2, Undo2, X, Check } from "lucide-react";
 import { usePeople } from "../hooks/usePeople";
 import { useSpace } from "../hooks/useSpace";
 import { markSeen, useForYou } from "../hooks/useForYou";
 import {
-  archiveWhim, cameTrue, CURRENCIES, deleteWhim, formatPrice, KIND_INFO, LITTLE_WANT_ANSWERS, listWhims, removeWhimPhoto, revealWhim, saveWhim,
-  setWhimStatus, SHARED_WISH_STATUSES, STATUS_LABEL, uploadWhimPhoto, WHIM_BUCKET, type Currency, type Whim, type WhimKind, type WhimStatus,
+  archiveWhim, cameTrue, CURRENCIES, deleteWhim, formatPrice, KIND_INFO, LITTLE_WANT_ANSWERS, listWhims, OCCASION_LABEL, OCCASIONS, removeWhimPhoto, revealWhim, saveWhim, saveWhimFor,
+  setWhimStatus, SHARED_WISH_STATUSES, STATUS_LABEL, uploadWhimPhoto, WHIM_BUCKET, type Currency, type Occasion, type Whim, type WhimKind, type WhimStatus,
 } from "../lib/whims";
 import { signedUrl } from "../lib/scrapbook";
 import { friendlyError } from "../lib/errors";
@@ -40,7 +40,10 @@ export function Whims() {
   useEffect(() => { if (myId && whims) { markSeen(myId, "whims"); refresh(); } }, [myId, whims, refresh]);
 
   if (whims === null) return <Spinner label="Opening the wish jar" />;
-  const active = whims.filter((w) => !w.archived && !cameTrue(w));
+  // Your gift list: their Little Wants you've saved for a special day (still a secret from them).
+  const onMyList = (w: Whim) => !w.archived && w.kind === "little_want" && w.created_by !== myId && w.surprise && !!w.occasion;
+  const giftList = whims.filter(onMyList);
+  const active = whims.filter((w) => !w.archived && !cameTrue(w) && !onMyList(w));
   const trueOnes = whims.filter((w) => !w.archived && cameTrue(w));
   const putAway = whims.filter((w) => w.archived);
 
@@ -58,6 +61,21 @@ export function Whims() {
         <p className="rounded-card border-2 border-dashed border-leaf/20 px-5 py-8 text-center font-hand text-xl text-muted">the wish jar is empty — add a little whim any time</p>
       ) : (
         <ul className="space-y-3">{active.map((w) => <li key={w.id}><WhimCard w={w} myId={myId} pName={pName} onChange={load} /></li>)}</ul>
+      )}
+
+      {giftList.length > 0 && (
+        <section className="space-y-3 rounded-card bg-lilac/60 p-4" aria-label="Your gift list">
+          <div>
+            <p className="font-hand text-2xl text-raspberry-deep">your gift list for {pName} ✦</p>
+            <p className="text-sm text-muted">Saved for special days. {pName} only sees “saved for a special day” — never which one.</p>
+          </div>
+          {OCCASIONS.filter((o) => giftList.some((w) => w.occasion === o)).map((o) => (
+            <div key={o} className="space-y-2">
+              <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.14em] text-leaf"><CalendarHeart size={14} aria-hidden="true" />{OCCASION_LABEL[o]}</p>
+              <ul className="space-y-3">{giftList.filter((w) => w.occasion === o).map((w) => <li key={w.id}><WhimCard w={w} myId={myId} pName={pName} onChange={load} /></li>)}</ul>
+            </div>
+          ))}
+        </section>
       )}
 
       {trueOnes.length > 0 && (
@@ -86,6 +104,7 @@ function WhimCard({ w, myId, pName, onChange }: { w: Whim; myId: string | null |
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [noteOpen, setNoteOpen] = useState(false);
+  const [pickDay, setPickDay] = useState(false);
   const mine = w.created_by === myId;
   const price = formatPrice(w.price, w.currency);
   const done = cameTrue(w);
@@ -94,7 +113,7 @@ function WhimCard({ w, myId, pName, onChange }: { w: Whim; myId: string | null |
   const choices: WhimStatus[] = w.kind === "shared_wish" ? SHARED_WISH_STATUSES
     : giverSurprise ? (w.status === "bought" ? [] : ["bought"]) : LITTLE_WANT_ANSWERS;
   const canChoose = !w.archived && (w.kind === "shared_wish" || (iAnswer && !done));
-  const editable = mine && !w.surprise && !done && w.status !== "in_the_works" && !w.archived;
+  const editable = mine && !w.surprise && !done && !(w.status === "in_the_works" || w.status === "set_aside") && !w.archived;
 
   const act = async (key: string, fn: () => Promise<void>) => {
     setBusy(key); setError(null);
@@ -124,9 +143,11 @@ function WhimCard({ w, myId, pName, onChange }: { w: Whim; myId: string | null |
       </div>
       {w.message && <p className="whitespace-pre-wrap font-hand text-lg leading-snug">{w.message}</p>}
 
-      <div className={`rounded-xl px-3 py-2 text-sm font-semibold ${done ? "bg-leaf text-cream" : w.status === "in_the_works" || w.surprise ? "bg-raspberry-soft text-raspberry-deep" : "bg-leaf-soft text-leaf"}`}>
-        {done ? <Gift size={14} className="mr-1.5 inline" aria-hidden="true" /> : w.status === "in_the_works" ? <Sparkles size={14} className="mr-1.5 inline" aria-hidden="true" /> : null}
-        {giverSurprise ? `${STATUS_LABEL[w.status]} · secret until you reveal it` : statusText}
+      <div className={`rounded-xl px-3 py-2 text-sm font-semibold ${done ? "bg-leaf text-cream" : (w.status === "in_the_works" || w.status === "set_aside") || w.surprise ? "bg-raspberry-soft text-raspberry-deep" : "bg-leaf-soft text-leaf"}`}>
+        {done ? <Gift size={14} className="mr-1.5 inline" aria-hidden="true" /> : (w.status === "in_the_works" || w.status === "set_aside") ? <Sparkles size={14} className="mr-1.5 inline" aria-hidden="true" /> : null}
+        {giverSurprise
+          ? `${w.status === "saved_for" && w.occasion ? `Saved for ${({ birthday: `${pName}'s birthday`, anniversary: "your anniversary", christmas: "Christmas", valentines: "Valentine's Day", someday: "one day" } as Record<Occasion, string>)[w.occasion]}` : STATUS_LABEL[w.status]} · secret until you reveal it`
+          : statusText}
         {w.response_note && <span className="mt-0.5 block font-hand text-base font-normal">“{w.response_note}”</span>}
       </div>
 
@@ -147,6 +168,28 @@ function WhimCard({ w, myId, pName, onChange }: { w: Whim; myId: string | null |
               </button>
             )}
           </div>
+          {iAnswer && w.status !== "bought" && (
+            pickDay ? (
+              <div className="space-y-1.5 rounded-2xl bg-lilac/60 p-3">
+                <p className="text-xs font-semibold text-leaf">Save it for…</p>
+                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Which special day">
+                  {OCCASIONS.map((o) => (
+                    <button key={o} type="button" disabled={!!busy} aria-pressed={w.occasion === o}
+                      onClick={() => void act(`day-${o}`, async () => { await saveWhimFor(w.id, o as Occasion, noteOpen ? note : null); setPickDay(false); })}
+                      className={`min-h-[36px] rounded-full border-2 px-3 text-xs font-semibold ${w.occasion === o ? "border-leaf bg-lime text-leaf" : "border-leaf/40 bg-paper text-leaf"}`}>
+                      {OCCASION_LABEL[o as Occasion]}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted">It goes on your gift list. {pName} just sees “saved for a special day”.</p>
+              </div>
+            ) : (
+              <button type="button" onClick={() => setPickDay(true)}
+                className="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border-2 border-leaf/40 bg-paper px-3 text-xs font-semibold text-leaf">
+                <CalendarHeart size={13} aria-hidden="true" />{w.status === "saved_for" ? "Change the special day" : "Save for a special day"}
+              </button>
+            )
+          )}
           {noteOpen ? (
             <input className={inputCls} value={note} maxLength={300} onChange={(e) => setNote(e.target.value)} placeholder="A little note with your answer (optional)" aria-label="Note with your answer" />
           ) : (
@@ -160,12 +203,12 @@ function WhimCard({ w, myId, pName, onChange }: { w: Whim; myId: string | null |
 
       <div className="flex flex-wrap gap-3 text-xs font-semibold text-muted">
         {editable && <Link to={`/mailbox/whims/${w.id}/edit`} className="inline-flex items-center gap-1 underline underline-offset-4"><Pencil size={12} aria-hidden="true" />Edit</Link>}
-        {!(mine && w.status === "in_the_works") && (
+        {!(mine && (w.status === "in_the_works" || w.status === "set_aside")) && (
           <button type="button" disabled={!!busy} onClick={() => void act("archive", () => archiveWhim(w.id, !w.archived))} className="inline-flex items-center gap-1 underline underline-offset-4">
             {w.archived ? <><Undo2 size={12} aria-hidden="true" />Bring back</> : <><Archive size={12} aria-hidden="true" />Put away</>}
           </button>
         )}
-        {mine && !w.surprise && !done && w.status !== "in_the_works" && (
+        {mine && !w.surprise && !done && !(w.status === "in_the_works" || w.status === "set_aside") && (
           <button type="button" disabled={!!busy} onClick={() => { if (window.confirm(`Delete “${w.name}”?`)) void act("delete", () => deleteWhim(w.id)); }} className="inline-flex items-center gap-1 underline underline-offset-4">
             <Trash2 size={12} aria-hidden="true" />Delete
           </button>
