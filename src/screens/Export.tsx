@@ -427,7 +427,7 @@ function PrintMemory({ m, photos, nameOf, photoSource, left, onToggle }: {
   m: Memory; photos: boolean; nameOf: (id: string | null | undefined) => string; photoSource: Record<string, PhotoSource>; left: boolean; onToggle: () => void;
 }) {
   return (
-    <div className={`break-inside-avoid border-t border-black/10 pt-3 ${left ? "no-print opacity-35" : ""}`}>
+    <div className={`${photos && imagesOf(m).length > 2 ? "" : "break-inside-avoid"} border-t border-black/10 pt-3 ${left ? "no-print opacity-35" : ""}`}>
       <p className="text-xs uppercase tracking-wide text-black/60">
         {kindLabel(m)} · {memoryDate(m)}{m.place ? ` · ${m.place}` : ""} · {memorySource(m)}
         <LeaveOut left={left} onToggle={onToggle} edit={m.kind === "moment" ? `/us/moment/${m.ref_id}` : undefined} />
@@ -442,7 +442,7 @@ function PrintMemory({ m, photos, nameOf, photoSource, left, onToggle }: {
         </div>
       ))}
       {photos && imagesOf(m).length > 0 && (
-        <div className="mt-2 grid grid-cols-2 gap-2">
+        <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
           {imagesOf(m).map((img) => <PrintPhoto key={img.path} {...img} caption={m.kind === "moment" ? photoCaption(img.taken_at, photoSource[img.path]) : img.taken_at ? `Photo taken ${fmtDate(img.taken_at.slice(0, 10))}` : ""} />)}
         </div>
       )}
@@ -455,7 +455,8 @@ function PrintPhoto({ bucket, path, caption }: { bucket: string; path: string; c
   useEffect(() => { void signedUrl(bucket, path).then(setUrl); }, [bucket, path]);
   return (
     <figure className="break-inside-avoid">
-      {url ? <img src={url} alt="" className="w-full rounded object-contain" /> : <div className="h-32 bg-black/5" />}
+      {/* a fixed frame so tall phone photos don't take a whole page: two across, two down on A4 */}
+      {url ? <img src={url} alt="" className="h-52 w-full rounded bg-black/[0.03] object-contain print:h-[88mm]" /> : <div className="h-52 rounded bg-black/5 print:h-[88mm]" />}
       {caption && <figcaption className="text-xs italic text-black/60">{caption}</figcaption>}
     </figure>
   );
@@ -470,8 +471,8 @@ async function imageForDocx(bucket: string, path: string): Promise<{ data: Array
   if (!res.ok) return null;
   const blob = await res.blob();
   const bmp = await createImageBitmap(blob);
-  const max = 420;
-  const scale = Math.min(1, max / bmp.width);
+  // fit inside a box (≈ 8 × 8.5 cm in Word) so four photos share a page
+  const scale = Math.min(1, 300 / bmp.width, 320 / bmp.height);
   return { data: await blob.arrayBuffer(), type: path.endsWith(".png") ? "png" : "jpg", width: Math.round(bmp.width * scale), height: Math.round(bmp.height * scale) };
 }
 
@@ -484,6 +485,9 @@ async function buildDocx(x: {
   const d = await import("docx");
   const { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, ImageRun, Footer, AlignmentType, PageNumber, PageBreak } = d;
   const GREY = "555555";
+  const noLine = { style: d.BorderStyle.NONE, size: 0, color: "FFFFFF" };
+  const NONE = { top: noLine, bottom: noLine, left: noLine, right: noLine };
+  const NONE_TABLE = { ...NONE, insideHorizontal: noLine, insideVertical: noLine };
   const P = (text: string, opts: { bold?: boolean; size?: number; italics?: boolean; color?: string } = {}) =>
     new Paragraph({ children: [new TextRun({ text, ...opts })], spacing: { after: 100 } });
   const cell = (text: string, bold = false) => new TableCell({ children: text.split("\n").map((t, i) => new Paragraph({ children: [new TextRun({ text: t, bold: bold || undefined, size: i ? 18 : 20, color: i ? GREY : undefined })] })) });
@@ -552,12 +556,28 @@ async function buildDocx(x: {
         for (const l of lines) children.push(P(l));
       }
       if (x.inc.photos) {
+        // two photos to a row (four to a page), each with its caption underneath
+        const cells: InstanceType<typeof TableCell>[] = [];
         for (const img of imagesOf(m)) {
           const data = await imageForDocx(img.bucket, img.path).catch(() => null);
           if (!data) continue;
-          children.push(new Paragraph({ children: [new ImageRun({ data: data.data, type: data.type, transformation: { width: data.width, height: data.height } })], keepNext: true }));
           const cap = m.kind === "moment" ? photoCaption(img.taken_at, x.photoSource[img.path]) : img.taken_at ? `Photo taken ${fmtDate(img.taken_at.slice(0, 10))}` : "";
-          if (cap) children.push(P(cap, { italics: true, size: 18, color: GREY }));
+          cells.push(new TableCell({
+            width: { size: 50, type: WidthType.PERCENTAGE }, borders: NONE,
+            margins: { top: 60, bottom: 60, left: 60, right: 60 },
+            children: [
+              new Paragraph({ alignment: AlignmentType.CENTER, children: [new ImageRun({ data: data.data, type: data.type, transformation: { width: data.width, height: data.height } })] }),
+              ...(cap ? [new Paragraph({ children: [new TextRun({ text: cap, italics: true, size: 16, color: GREY })] })] : []),
+            ],
+          }));
+        }
+        if (cells.length) {
+          const rows: InstanceType<typeof TableRow>[] = [];
+          for (let i = 0; i < cells.length; i += 2) {
+            rows.push(new TableRow({ cantSplit: true, children: [cells[i], cells[i + 1] ?? new TableCell({ width: { size: 50, type: WidthType.PERCENTAGE }, borders: NONE, children: [new Paragraph("")] })] }));
+          }
+          children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, borders: NONE_TABLE, rows }));
+          children.push(new Paragraph(""));
         }
       }
     }
